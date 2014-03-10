@@ -14,12 +14,11 @@
     public class SingleCallChannelReceiver : IReceiveMessagesFromSites
     {
         public SingleCallChannelReceiver(IChannelFactory channelFactory, IDeduplicateMessages deduplicator,
-            DataBusHeaderManager headerManager, IdempotentChannelReceiver receiver)
+            DataBusHeaderManager headerManager)
         {
             this.channelFactory = channelFactory;
             this.deduplicator = deduplicator;
             this.headerManager = headerManager;
-            this.receiver = receiver;
         }
 
         public IDataBus DataBus { get; set; }
@@ -29,7 +28,6 @@
         {
             channelReceiver = channelFactory.GetReceiver(channel.Type);
             channelReceiver.DataReceived += DataReceivedOnChannel;
-            receiver.MessageReceived += MessageReceivedOnOldChannel;
             channelReceiver.Start(channel.Address, numberOfWorkerThreads);
         }
 
@@ -40,24 +38,12 @@
 
         public void DisposeManaged()
         {
-            if (receiver != null)
-            {
-                receiver.MessageReceived -= MessageReceivedOnOldChannel;
-                receiver.Dispose();
-            }
-
             if (channelReceiver != null)
             {
                 channelReceiver.DataReceived -= DataReceivedOnChannel;
                 channelReceiver.Dispose();
             }
         }
-
-        void MessageReceivedOnOldChannel(object sender, MessageReceivedOnChannelArgs e)
-        {
-            MessageReceived(sender, e);
-        }
-
         void DataReceivedOnChannel(object sender, DataReceivedOnChannelArgs e)
         {
             using (e.Data)
@@ -75,9 +61,6 @@
                             break;
                         case CallType.SingleCallSubmit:
                             HandleSubmit(callInfo);
-                            break;
-                        default:
-                            receiver.DispatchReceivedCallInfo(callInfo);
                             break;
                     }
                     scope.Complete();
@@ -136,10 +119,7 @@
         IChannelFactory channelFactory;
         IDeduplicateMessages deduplicator;
         DataBusHeaderManager headerManager;
-
-        [ObsoleteEx(RemoveInVersion = "6.0", TreatAsErrorFromVersion = "5.0")] 
-        IdempotentChannelReceiver receiver;
-
+        
         IChannelReceiver channelReceiver;
     }
 }

@@ -13,8 +13,7 @@ namespace NServiceBus.Gateway.Routing.Sites
                 yield return new Site
                 {
                     Channel = Channel.Parse(originatingSite),
-                    Key = "Default reply channel",
-                    LegacyMode = messageToDispatch.IsLegacyGatewayMessage()
+                    Key = "Default reply channel"
                 };
             }
         }

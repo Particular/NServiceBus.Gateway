@@ -68,8 +68,7 @@ namespace NServiceBus.Config
             return Sites.Cast<SiteConfig>().ToDictionary(site => site.Key, site => new Gateway.Routing.Site
             {
                 Key = site.Key,
-                Channel = new Channel { Type = site.ChannelType, Address = site.Address },
-                LegacyMode = site.LegacyMode
+                Channel = new Channel { Type = site.ChannelType, Address = site.Address }
             });
         }
 
