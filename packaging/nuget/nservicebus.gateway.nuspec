@@ -16,6 +16,6 @@
     <dependencies />
   </metadata>
   <files>
-    <file src="..\..\NServiceBus.Gateway\bin\Release\NServiceBus.Gateway.???" target="lib\net40" />
+    <file src="..\..\src\NServiceBus.Gateway\bin\Release\NServiceBus.Gateway.???" target="lib\net40" />
   </files>
 </package>
