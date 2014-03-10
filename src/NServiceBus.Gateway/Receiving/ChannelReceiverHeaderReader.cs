@@ -1,4 +1,4 @@
-namespace NServiceBus.Gateway.Receiving
+namespace NServiceBus.Gateway.V2.Receiving
 {
     using System;
     using System.Collections.Generic;

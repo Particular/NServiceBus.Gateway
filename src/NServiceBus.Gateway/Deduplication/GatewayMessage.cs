@@ -1,4 +1,4 @@
-﻿namespace NServiceBus.Gateway.Deduplication
+﻿namespace NServiceBus.Gateway.V2.Deduplication
 {
     using System;
 

@@ -1,10 +1,11 @@
-namespace NServiceBus.Config
+namespace NServiceBus.Gateway.V2.Config
 {
     using System;
     using System.Collections.Generic;
     using System.Configuration;
     using System.Linq;
-    using Gateway.Channels;
+    using Channels;
+    using Routing;
 
     /// <summary>
     /// Config section for the gateway
@@ -63,9 +64,9 @@ namespace NServiceBus.Config
             }
         }
 
-        public IDictionary<string, Gateway.Routing.Site> SitesAsDictionary()
+        public IDictionary<string, Site> SitesAsDictionary()
         {
-            return Sites.Cast<SiteConfig>().ToDictionary(site => site.Key, site => new Gateway.Routing.Site
+            return Sites.Cast<SiteConfig>().ToDictionary(site => site.Key, site => new Site
             {
                 Key = site.Key,
                 Channel = new Channel { Type = site.ChannelType, Address = site.Address }

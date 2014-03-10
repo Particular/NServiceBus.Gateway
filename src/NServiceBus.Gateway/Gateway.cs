@@ -1,17 +1,18 @@
-﻿namespace NServiceBus.Features
+﻿namespace NServiceBus.Gateway.V2.Features
 {
     using System;
     using System.Linq;
-    using Config;
-    using NServiceBus.Gateway.Channels;
-    using NServiceBus.Gateway.Deduplication;
-    using NServiceBus.Gateway.HeaderManagement;
-    using NServiceBus.Gateway.Notifications;
-    using NServiceBus.Gateway.Persistence;
-    using NServiceBus.Gateway.Receiving;
-    using NServiceBus.Gateway.Routing.Endpoints;
-    using NServiceBus.Gateway.Routing.Sites;
-    using NServiceBus.Gateway.Sending;
+    using NServiceBus.Config;
+    using NServiceBus.Features;
+    using NServiceBus.Gateway.V2.Channels;
+    using NServiceBus.Gateway.V2.Deduplication;
+    using NServiceBus.Gateway.V2.HeaderManagement;
+    using NServiceBus.Gateway.V2.Notifications;
+    using NServiceBus.Gateway.V2.Receiving;
+    using NServiceBus.Gateway.V2.Routing.Endpoints;
+    using NServiceBus.Gateway.V2.Routing.Sites;
+    using NServiceBus.Gateway.V2.Sending;
+    using GatewayConfig = Config.GatewayConfig;
 
     public class Gateway : Feature
     {
@@ -23,7 +24,6 @@
 
             ConfigureSender();
 
-            InfrastructureServices.Enable<IPersistMessages>();
             InfrastructureServices.Enable<IDeduplicateMessages>();
         }
 
@@ -88,7 +88,6 @@
         {
             if (!Configure.Instance.Configurer.HasComponent<IForwardMessagesToSites>())
             {
-                Configure.Component<IdempotentChannelForwarder>(DependencyLifecycle.InstancePerCall);
                 Configure.Component<SingleCallChannelForwarder>(DependencyLifecycle.InstancePerCall);
             }
 
@@ -119,7 +118,6 @@
         {
             if (!Configure.Instance.Configurer.HasComponent<IReceiveMessagesFromSites>())
             {
-                Configure.Component<IdempotentChannelReceiver>(DependencyLifecycle.InstancePerCall);
                 Configure.Component<SingleCallChannelReceiver>(DependencyLifecycle.InstancePerCall);
             }
 

@@ -1,4 +1,4 @@
-﻿namespace NServiceBus.Gateway
+﻿namespace NServiceBus.Gateway.V2
 {
     using Settings;
 

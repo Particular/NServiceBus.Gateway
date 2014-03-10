@@ -1,4 +1,4 @@
-namespace NServiceBus.Config
+namespace NServiceBus.Gateway.V2.Config
 {
     using System.Configuration;
 

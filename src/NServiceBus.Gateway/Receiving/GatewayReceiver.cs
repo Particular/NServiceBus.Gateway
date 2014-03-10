@@ -1,14 +1,15 @@
-namespace NServiceBus.Gateway.Receiving
+namespace NServiceBus.Gateway.V2.Receiving
 {
     using System.Collections.Generic;
-    using Features;
     using Logging;
     using Notifications;
+    using NServiceBus.Features;
     using ObjectBuilder;
     using Routing;
     using Satellites;
     using Settings;
     using Transports;
+    using Gateway = Features.Gateway;
 
     public class GatewayReceiver : ISatellite
     {

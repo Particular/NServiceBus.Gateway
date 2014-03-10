@@ -1,4 +1,4 @@
-namespace NServiceBus.Gateway.Routing.Sites
+namespace NServiceBus.Gateway.V2.Routing.Sites
 {
     using System.Collections.Generic;
     using Channels;

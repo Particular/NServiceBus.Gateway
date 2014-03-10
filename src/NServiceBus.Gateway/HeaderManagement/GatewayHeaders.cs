@@ -1,4 +1,4 @@
-namespace NServiceBus.Gateway.HeaderManagement
+namespace NServiceBus.Gateway.V2.HeaderManagement
 {
     public class GatewayHeaders
     {

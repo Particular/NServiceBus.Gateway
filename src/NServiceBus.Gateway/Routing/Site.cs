@@ -1,4 +1,4 @@
-namespace NServiceBus.Gateway.Routing
+namespace NServiceBus.Gateway.V2.Routing
 {
     using Channels;
 

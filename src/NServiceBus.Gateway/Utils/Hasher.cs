@@ -1,4 +1,4 @@
-namespace NServiceBus.Gateway.Utils
+namespace NServiceBus.Gateway.V2.Utils
 {
     using System;
     using System.IO;

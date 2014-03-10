@@ -1,4 +1,4 @@
-namespace NServiceBus.Gateway.Sending
+namespace NServiceBus.Gateway.V2.Sending
 {
     using Routing;
 

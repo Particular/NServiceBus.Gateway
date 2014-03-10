@@ -1,12 +1,12 @@
-namespace NServiceBus.Gateway.Sending
+namespace NServiceBus.Gateway.V2.Sending
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using Channels;
-    using Features;
     using HeaderManagement;
     using Notifications;
+    using NServiceBus.Features;
     using ObjectBuilder;
     using Receiving;
     using Routing;
@@ -14,6 +14,7 @@ namespace NServiceBus.Gateway.Sending
     using Settings;
     using Transports;
     using Unicast.Transport;
+    using Gateway = Features.Gateway;
 
     public class GatewaySender : IAdvancedSatellite
     {

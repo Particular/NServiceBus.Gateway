@@ -1,4 +1,4 @@
-﻿namespace NServiceBus.Gateway.HeaderManagement
+﻿namespace NServiceBus.Gateway.V2.HeaderManagement
 {
     using System.Collections.Generic;
     using System.Linq;

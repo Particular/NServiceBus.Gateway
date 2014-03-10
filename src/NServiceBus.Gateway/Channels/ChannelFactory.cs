@@ -1,4 +1,4 @@
-namespace NServiceBus.Gateway.Channels
+namespace NServiceBus.Gateway.V2.Channels
 {
     using System;
     using ObjectBuilder;

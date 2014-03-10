@@ -1,4 +1,4 @@
-namespace NServiceBus.Gateway.Notifications
+namespace NServiceBus.Gateway.V2.Notifications
 {
     public interface IMessageNotifier : INotifyAboutMessages
     {

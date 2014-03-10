@@ -1,4 +1,4 @@
-namespace NServiceBus.Gateway.Routing.Endpoints
+namespace NServiceBus.Gateway.V2.Routing.Endpoints
 {
     public class DefaultEndpointRouter : IRouteMessagesToEndpoints
     {
