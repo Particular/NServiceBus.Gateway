@@ -127,9 +127,10 @@
         }
     }
 
-    public class SetDefaultInMemoryDeduplication : IWantCustomInitialization
+    public class SetDefaultInMemoryDeduplication : IWantToRunBeforeConfigurationIsFinalized
     {
-        public void Init()
+        
+        public void Run()
         {
             InfrastructureServices.SetDefaultFor<IDeduplicateMessages>(() => Configure.Instance.UseInMemoryGatewayDeduplication());
         }
