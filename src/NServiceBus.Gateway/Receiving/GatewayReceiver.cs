@@ -9,7 +9,6 @@ namespace NServiceBus.Gateway.V2.Receiving
     using Satellites;
     using Settings;
     using Transports;
-    using Gateway = Features.Gateway;
 
     public class GatewayReceiver : ISatellite
     {

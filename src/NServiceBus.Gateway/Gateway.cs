@@ -4,15 +4,14 @@
     using System.Linq;
     using NServiceBus.Config;
     using NServiceBus.Features;
-    using NServiceBus.Gateway.V2.Channels;
-    using NServiceBus.Gateway.V2.Deduplication;
-    using NServiceBus.Gateway.V2.HeaderManagement;
-    using NServiceBus.Gateway.V2.Notifications;
-    using NServiceBus.Gateway.V2.Receiving;
-    using NServiceBus.Gateway.V2.Routing.Endpoints;
-    using NServiceBus.Gateway.V2.Routing.Sites;
-    using NServiceBus.Gateway.V2.Sending;
-    using GatewayConfig = Config.GatewayConfig;
+    using Channels;
+    using Deduplication;
+    using HeaderManagement;
+    using Notifications;
+    using Receiving;
+    using Routing.Endpoints;
+    using Routing.Sites;
+    using Sending;
 
     public class Gateway : Feature
     {
