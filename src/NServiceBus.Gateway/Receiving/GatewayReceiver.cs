@@ -57,7 +57,7 @@ namespace NServiceBus.Gateway.V2.Receiving
 
         public void Start()
         {
-            replyToAddress = SettingsHolder.Get<Address>("Gateway.InputAddress");
+            replyToAddress = SettingsHolder.Get<Address>("Gateway.V2.InputAddress");
 
             foreach (var receiveChannel in ChannelManager.GetReceiveChannels())
             {

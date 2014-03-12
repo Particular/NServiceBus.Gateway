@@ -23,6 +23,7 @@
 
             ConfigureSender();
 
+            InfrastructureServices.SetDefaultFor<IDeduplicateMessages>(() => Configure.Instance.UseInMemoryGatewayDeduplication());
             InfrastructureServices.Enable<IDeduplicateMessages>();
         }
 

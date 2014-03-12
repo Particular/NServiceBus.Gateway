@@ -51,7 +51,7 @@ namespace NServiceBus.Gateway.V2.Sending
 
         public Address InputAddress
         {
-            get { return SettingsHolder.Get<Address>("Gateway.InputAddress"); }
+            get { return SettingsHolder.Get<Address>("Gateway.V2.InputAddress"); }
         }
 
         public bool Disabled
