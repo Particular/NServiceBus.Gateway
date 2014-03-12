@@ -23,7 +23,6 @@
 
             ConfigureSender();
 
-            InfrastructureServices.SetDefaultFor<IDeduplicateMessages>(() => Configure.Instance.UseInMemoryGatewayDeduplication());
             InfrastructureServices.Enable<IDeduplicateMessages>();
         }
 
@@ -125,6 +124,14 @@
 
             Configure.Component<DefaultEndpointRouter>(DependencyLifecycle.SingleInstance)
                 .ConfigureProperty(x => x.MainInputAddress, Address.Parse(Configure.EndpointName));
+        }
+    }
+
+    public class SetDefaultInMemoryDeduplication : IWantCustomInitialization
+    {
+        public void Init()
+        {
+            InfrastructureServices.SetDefaultFor<IDeduplicateMessages>(() => Configure.Instance.UseInMemoryGatewayDeduplication());
         }
     }
 }
