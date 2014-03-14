@@ -52,7 +52,7 @@ namespace NServiceBus.Gateway.V2.Receiving
 
         public bool Disabled
         {
-            get { return !Feature.IsEnabled<Gateway>(); }
+            get { return !Feature.IsEnabled<NServiceBus.Gateway.V2.Features.Gateway>(); }
         }
 
         public void Start()
