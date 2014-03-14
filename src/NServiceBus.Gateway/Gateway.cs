@@ -95,7 +95,7 @@
 
             Configure.Component<MessageNotifier>(DependencyLifecycle.SingleInstance);
 
-            var configSection = Configure.GetConfigSection<GatewayConfig>();
+            var configSection = Configure.GetConfigSection<Config.GatewayConfig>();
 
             if (configSection != null && configSection.GetChannels().Any())
             {
