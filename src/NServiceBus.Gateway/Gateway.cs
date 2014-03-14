@@ -23,6 +23,9 @@
 
             ConfigureSender();
 
+            //Temp until we can let the channel turn dedupe off
+            Configure.Instance.Configurer.ConfigureComponent<InMemoryDeduplication>(DependencyLifecycle.SingleInstance);
+
             InfrastructureServices.Enable<IDeduplicateMessages>();
         }
 
