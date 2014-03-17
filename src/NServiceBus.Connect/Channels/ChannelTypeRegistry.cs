@@ -3,7 +3,7 @@ namespace NServiceBus.Connect.Channels
     using System;
     using System.Collections.Generic;
 
-    public class ChannelTypeRegistry : IChannelTypeRegistry
+    internal class ChannelTypeRegistry : IChannelTypeRegistry
     {
         readonly IDictionary<string, Type> receiverTypesByChannelType = new Dictionary<string, Type>();
         readonly IDictionary<string, Type> senderTypesByChannelType = new Dictionary<string, Type>();

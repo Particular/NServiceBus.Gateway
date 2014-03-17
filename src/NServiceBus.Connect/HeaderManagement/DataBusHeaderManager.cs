@@ -4,7 +4,7 @@
     using System.Linq;
     using Receiving;
 
-    public class DataBusHeaderManager
+    internal class DataBusHeaderManager
     {
         public void InsertHeader(string clientId, string headerKey, string headerValue)
         {

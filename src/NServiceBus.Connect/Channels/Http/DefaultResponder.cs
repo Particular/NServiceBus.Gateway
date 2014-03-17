@@ -3,7 +3,7 @@ namespace NServiceBus.Connect.Channels.Http
     using System.Net;
     using System.Text;
 
-    public class DefaultResponder : IHttpResponder
+    internal class DefaultResponder : IHttpResponder
     {
         public void Handle(HttpListenerContext ctx)
         {

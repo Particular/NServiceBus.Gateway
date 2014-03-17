@@ -9,7 +9,7 @@ namespace NServiceBus.Connect.Channels.Http
 
     [ChannelType("http")]
     [ChannelType("https")]
-    public class HttpChannelSender : IChannelSender
+    internal class HttpChannelSender : IChannelSender
     {
         public void Send(string remoteUrl, IDictionary<string, string> headers, Stream data)
         {

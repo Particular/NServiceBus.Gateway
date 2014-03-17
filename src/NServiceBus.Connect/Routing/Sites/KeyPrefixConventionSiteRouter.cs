@@ -3,7 +3,7 @@ namespace NServiceBus.Connect.Routing.Sites
     using System.Collections.Generic;
     using Channels;
 
-    public class KeyPrefixConventionSiteRouter : IRouteMessagesToSites
+    internal class KeyPrefixConventionSiteRouter : IRouteMessagesToSites
     {
         public IEnumerable<Site> GetDestinationSitesFor(TransportMessage messageToDispatch)
         {

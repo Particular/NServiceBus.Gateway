@@ -5,7 +5,7 @@ namespace NServiceBus.Connect.Utils
     using System.Security.Cryptography;
     using Receiving;
 
-    public class Hasher
+    internal class Hasher
     {
         public static string Hash(Stream stream)
         {

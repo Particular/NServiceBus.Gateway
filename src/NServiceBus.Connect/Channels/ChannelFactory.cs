@@ -1,15 +1,8 @@
 namespace NServiceBus.Connect.Channels
 {
-    using System;
     using ObjectBuilder;
 
-    public interface IChannelFactory
-    {
-        IChannelReceiver GetReceiver(string channelType);
-        IChannelSender GetSender(string channelType);
-    }
-
-    public class ChannelFactory : IChannelFactory
+    internal class ChannelFactory : IChannelFactory
     {
         readonly IChannelTypeRegistry registry;
         readonly IBuilder builder;

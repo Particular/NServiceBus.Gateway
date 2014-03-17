@@ -14,7 +14,7 @@ namespace NServiceBus.Connect.Sending
     using Transports;
     using Unicast.Transport;
 
-    public class GatewaySender : IAdvancedSatellite
+    internal class GatewaySender : IAdvancedSatellite
     {
         public IBuilder Builder { get; set; }
         public IManageReceiveChannels ChannelManager { get; set; }

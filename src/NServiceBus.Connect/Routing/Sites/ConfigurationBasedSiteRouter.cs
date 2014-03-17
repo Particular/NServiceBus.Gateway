@@ -3,7 +3,7 @@ namespace NServiceBus.Connect.Routing.Sites
     using System.Collections.Generic;
     using Config;
 
-    public class ConfigurationBasedSiteRouter : IRouteMessagesToSites
+    internal class ConfigurationBasedSiteRouter : IRouteMessagesToSites
     {
         public ConfigurationBasedSiteRouter()
         {

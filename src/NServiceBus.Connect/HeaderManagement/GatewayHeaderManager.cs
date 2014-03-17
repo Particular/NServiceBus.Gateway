@@ -3,7 +3,7 @@ namespace NServiceBus.Connect.HeaderManagement
     using System;
     using MessageMutator;
 
-    public class GatewayHeaderManager : IMutateTransportMessages, INeedInitialization
+    internal class GatewayHeaderManager : IMutateTransportMessages, INeedInitialization
     {
         public void MutateIncoming(TransportMessage transportMessage)
         {

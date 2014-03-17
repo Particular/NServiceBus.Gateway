@@ -10,7 +10,7 @@ namespace NServiceBus.Connect.Receiving
     using Settings;
     using Transports;
 
-    public class GatewayReceiver : ISatellite
+    internal class GatewayReceiver : ISatellite
     {
         public GatewayReceiver()
         {

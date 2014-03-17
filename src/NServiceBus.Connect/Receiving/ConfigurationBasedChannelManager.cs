@@ -5,7 +5,7 @@ namespace NServiceBus.Connect.Receiving
     using Channels;
     using Config;
 
-    public class ConfigurationBasedChannelManager : IManageReceiveChannels
+    internal class ConfigurationBasedChannelManager : IManageReceiveChannels
     {
         public ConfigurationBasedChannelManager()
         {

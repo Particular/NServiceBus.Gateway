@@ -5,7 +5,7 @@
     /// <summary>
     ///     Sets the default input address for the gateway
     /// </summary>
-    public class DefaultInputAddress : IWantToRunBeforeConfigurationIsFinalized
+    internal class DefaultInputAddress : IWantToRunBeforeConfigurationIsFinalized
     {
         public void Run()
         {

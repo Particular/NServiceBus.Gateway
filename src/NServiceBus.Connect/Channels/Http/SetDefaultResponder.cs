@@ -1,6 +1,6 @@
 namespace NServiceBus.Connect.Channels.Http
 {
-    public class SetDefaultResponder : IWantToRunBeforeConfigurationIsFinalized
+    internal class SetDefaultResponder : IWantToRunBeforeConfigurationIsFinalized
     {
         public void Run()
         {

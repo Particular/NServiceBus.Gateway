@@ -3,9 +3,8 @@ namespace NServiceBus.Connect.HeaderManagement
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Transports.Msmq;
-
-    public class HeaderMapper
+    
+    internal class HeaderMapper
     {
         public static TransportMessage Map(IDictionary<string, string> from)
         {

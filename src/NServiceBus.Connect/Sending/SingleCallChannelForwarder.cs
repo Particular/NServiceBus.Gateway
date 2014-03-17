@@ -12,7 +12,7 @@
     using Routing;
     using Utils;
 
-    public class SingleCallChannelForwarder : IForwardMessagesToSites
+    internal class SingleCallChannelForwarder : IForwardMessagesToSites
     {
         public SingleCallChannelForwarder(IChannelFactory channelFactory)
         {

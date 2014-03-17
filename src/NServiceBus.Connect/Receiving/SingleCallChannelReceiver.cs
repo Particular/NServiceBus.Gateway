@@ -11,7 +11,7 @@
     using Sending;
     using Utils;
 
-    public class SingleCallChannelReceiver : IReceiveMessagesFromSites
+    internal class SingleCallChannelReceiver : IReceiveMessagesFromSites
     {
         public SingleCallChannelReceiver(IChannelFactory channelFactory, IDeduplicateMessages deduplicator,
             DataBusHeaderManager headerManager)

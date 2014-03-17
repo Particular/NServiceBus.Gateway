@@ -16,7 +16,7 @@ namespace NServiceBus.Connect.Channels.Http
 
     [ChannelType("http")]
     [ChannelType("https")]
-    public class HttpChannelReceiver : IChannelReceiver
+    internal class HttpChannelReceiver : IChannelReceiver
     {
         public bool RequiresDeduplication {
             get { return true; }

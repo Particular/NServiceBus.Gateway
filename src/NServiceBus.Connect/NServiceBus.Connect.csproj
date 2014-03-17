@@ -65,6 +65,7 @@
     <Compile Include="Channels\ChannelTypeRegistry.cs" />
     <Compile Include="Channels\DataReceivedOnChannelArgs.cs" />
     <Compile Include="Channels\Http\DefaultResponder.cs" />
+    <Compile Include="Channels\IChannelFactory.cs" />
     <Compile Include="Config\ConfigureGateway.cs" />
     <Compile Include="ExceptionExtensions.cs" />
     <Compile Include="Channels\Http\HttpChannelReceiver.cs" />

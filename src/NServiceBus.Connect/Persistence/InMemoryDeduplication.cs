@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    public class InMemoryDeduplication : IDeduplicateMessages
+    internal class InMemoryDeduplication : IDeduplicateMessages
     {
         public bool DeduplicateMessage(string clientId, DateTime timeReceived)
         {
