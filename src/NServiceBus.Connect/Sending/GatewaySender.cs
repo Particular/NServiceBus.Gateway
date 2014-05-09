@@ -56,7 +56,7 @@ namespace NServiceBus.Connect.Sending
 
         public bool Disabled
         {
-            get { return !Feature.IsEnabled<NServiceBus.Connect.Features.Gateway>(); }
+            get { return !Feature.IsEnabled<Features.Gateway>(); }
         }
 
         public void Start()
