@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
-    <id>NServiceBus.Connect</id>
-    <title>NServiceBus Connect</title>
+    <id>NServiceBus.Gateway</id>
+    <title>NServiceBus Gateway</title>
     <version>1.0.0</version>
     <authors>NServiceBus Ltd</authors>
     <owners>Udi Dahan, Andreas Ohlund, John Simons</owners>
@@ -16,6 +16,6 @@
     <dependencies />
   </metadata>
   <files>
-    <file src="..\..\src\NServiceBus.Connect\bin\Release\NServiceBus.Connect.???" target="lib\net40" />
+    <file src="..\..\src\NServiceBus.Gateway\bin\Release\NServiceBus.Gateway.???" target="lib\net40" />
   </files>
 </package>
