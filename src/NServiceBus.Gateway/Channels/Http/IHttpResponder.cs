@@ -1,4 +1,4 @@
-namespace NServiceBus.Connect.Channels.Http
+namespace NServiceBus.Gateway.Channels.Http
 {
     using System.Net;
 

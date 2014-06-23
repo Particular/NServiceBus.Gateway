@@ -1,8 +1,8 @@
-namespace NServiceBus.Connect.Notifications
+namespace NServiceBus.Gateway.Notifications
 {
     using System;
 
-    internal class MessageNotifier : IMessageNotifier
+    public class MessageNotifier : IMessageNotifier
     {
         public event EventHandler<MessageReceivedOnChannelArgs> MessageForwarded;
 

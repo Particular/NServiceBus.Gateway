@@ -1,8 +1,8 @@
-﻿namespace NServiceBus.Connect.Deduplication
+﻿namespace NServiceBus.Gateway.Deduplication
 {
     using System;
 
-    internal class GatewayMessage
+    public class GatewayMessage
     {
         public string Id { get; set; }
         public DateTime TimeReceived { get; set; }

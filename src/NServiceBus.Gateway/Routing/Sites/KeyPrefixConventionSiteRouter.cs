@@ -1,9 +1,9 @@
-namespace NServiceBus.Connect.Routing.Sites
+namespace NServiceBus.Gateway.Routing.Sites
 {
     using System.Collections.Generic;
     using Channels;
 
-    internal class KeyPrefixConventionSiteRouter : IRouteMessagesToSites
+    public class KeyPrefixConventionSiteRouter : IRouteMessagesToSites
     {
         public IEnumerable<Site> GetDestinationSitesFor(TransportMessage messageToDispatch)
         {

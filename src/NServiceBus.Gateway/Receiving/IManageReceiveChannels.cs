@@ -1,4 +1,4 @@
-namespace NServiceBus.Connect.Receiving
+namespace NServiceBus.Gateway.Receiving
 {
     using System.Collections.Generic;
     using Channels;
@@ -6,6 +6,6 @@ namespace NServiceBus.Connect.Receiving
     public interface IManageReceiveChannels
     {
         IEnumerable<ReceiveChannel> GetReceiveChannels();
-        Channel GetDefaultChannel(IEnumerable<string> types);
+        Channel GetDefaultChannel();
     }
 }

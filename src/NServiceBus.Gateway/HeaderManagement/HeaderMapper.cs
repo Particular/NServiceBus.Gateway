@@ -1,10 +1,11 @@
-namespace NServiceBus.Connect.HeaderManagement
+namespace NServiceBus.Gateway.HeaderManagement
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    
-    internal class HeaderMapper
+    using Transports.Msmq;
+
+    class HeaderMapper
     {
         public static TransportMessage Map(IDictionary<string, string> from)
         {
@@ -22,7 +23,7 @@ namespace NServiceBus.Connect.HeaderManagement
             var headers = ExtractHeaders(from);
             var to = new TransportMessage(from[NServiceBus + Id], headers);
 
-            to.CorrelationId = from[NServiceBus + CorrelationId] ?? to.Id;
+            to.CorrelationId = StripSlashZeroFromCorrelationId(from[NServiceBus + CorrelationId]) ?? to.Id;
 
             bool recoverable;
             if (bool.TryParse(from[NServiceBus + Recoverable], out recoverable))
@@ -60,7 +61,7 @@ namespace NServiceBus.Connect.HeaderManagement
         public static void Map(TransportMessage from, IDictionary<string, string> to)
         {
             to[NServiceBus + Id] = from.Id;
-            to[NServiceBus + CorrelationId] = from.CorrelationId;
+            to[NServiceBus + CorrelationId] = GetCorrelationForBackwardsCompatibility(from);
             to[NServiceBus + Recoverable] = from.Recoverable.ToString();
             to[NServiceBus + TimeToBeReceived] = from.TimeToBeReceived.ToString();
 
@@ -68,6 +69,8 @@ namespace NServiceBus.Connect.HeaderManagement
             {
                 to[NServiceBus + ReplyToAddress] = from.ReplyToAddress.ToString();
             }
+
+            SetBackwardsCompatibilityHeaders(to);
 
             string replyToAddress;
             if (from.Headers.TryGetValue(ReplyToAddress, out replyToAddress))
@@ -79,6 +82,50 @@ namespace NServiceBus.Connect.HeaderManagement
                 .ForEach(header => to[NServiceBus + Headers.HeaderName + "." + header.Key] = header.Value);
         }
 
+        static string StripSlashZeroFromCorrelationId(string corrId)
+        {
+            if (corrId == null)
+            {
+                return null;
+            }
+
+            if (Configure.HasComponent<MsmqMessageSender>())
+            {
+                if (corrId.EndsWith("\\0"))
+                {
+                    return corrId.Replace("\\0", String.Empty);
+                }
+            }
+
+            return corrId;
+        }
+
+        static void SetBackwardsCompatibilityHeaders(IDictionary<string, string> to)
+        {
+            if (Configure.HasComponent<MsmqMessageSender>())
+            {
+                to[NServiceBus + IdForCorrelation] = to[NServiceBus + CorrelationId];
+            }
+        }
+
+        static string GetCorrelationForBackwardsCompatibility(TransportMessage message)
+        {
+            var correlationIdToStore = message.CorrelationId;
+
+            if (Configure.HasComponent<MsmqMessageSender>())
+            {
+                Guid correlationId;
+
+                if (Guid.TryParse(message.CorrelationId, out correlationId))
+                {
+                    correlationIdToStore = message.CorrelationId + "\\0";
+                    //msmq required the id's to be in the {guid}\{incrementing number} format so we need to fake a \0 at the end to make it compatible                
+                }
+            }
+
+            return correlationIdToStore;
+        }
+
         public const string NServiceBus = "NServiceBus.";
         public const string Id = "Id";
         public const string CallType = "CallType";
@@ -88,6 +135,7 @@ namespace NServiceBus.Connect.HeaderManagement
         const string Recoverable = "Recoverable";
         const string ReplyToAddress = "ReplyToAddress";
         const string TimeToBeReceived = "TimeToBeReceived";
+        const string IdForCorrelation = "IdForCorrelation";
         static readonly TimeSpan MinimumTimeToBeReceived = TimeSpan.FromSeconds(1);
     }
 }

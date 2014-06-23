@@ -1,9 +1,10 @@
-namespace NServiceBus.Connect.HeaderManagement
+namespace NServiceBus.Gateway.HeaderManagement
 {
     using System;
     using MessageMutator;
+    using Unicast.Messages;
 
-    internal class GatewayHeaderManager : IMutateTransportMessages, INeedInitialization
+    class GatewayHeaderManager : IMutateTransportMessages, INeedInitialization
     {
         public void MutateIncoming(TransportMessage transportMessage)
         {
@@ -30,7 +31,7 @@ namespace NServiceBus.Connect.HeaderManagement
             };
         }
 
-        public void MutateOutgoing(object message, TransportMessage transportMessage)
+        public void MutateOutgoing(LogicalMessage logicalMessage, TransportMessage transportMessage)
         {
             if (returnInfo == null)
             {
@@ -60,9 +61,9 @@ namespace NServiceBus.Connect.HeaderManagement
             transportMessage.Headers[GatewayHeaders.LegacyMode] = returnInfo.LegacyMode.ToString();
         }
 
-        public void Init()
+        public void Init(Configure config)
         {
-            Configure.Instance.Configurer.ConfigureComponent<GatewayHeaderManager>(
+            config.Configurer.ConfigureComponent<GatewayHeaderManager>(
                 DependencyLifecycle.InstancePerCall);
         }
 

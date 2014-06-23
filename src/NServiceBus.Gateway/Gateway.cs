@@ -1,141 +1,147 @@
-﻿namespace NServiceBus.Connect.Features
+﻿namespace NServiceBus.Features
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
-    using Channels;
-    using Deduplication;
-    using HeaderManagement;
-    using Notifications;
-    using Receiving;
-    using Routing.Endpoints;
-    using Routing.Sites;
-    using Sending;
+    using Config;
+    using Installation;
+    using NServiceBus.Gateway;
+    using NServiceBus.Gateway.Channels;
+    using NServiceBus.Gateway.HeaderManagement;
+    using NServiceBus.Gateway.Notifications;
+    using NServiceBus.Gateway.Receiving;
+    using NServiceBus.Gateway.Routing;
+    using NServiceBus.Gateway.Routing.Endpoints;
+    using NServiceBus.Gateway.Routing.Sites;
+    using NServiceBus.Gateway.Sending;
 
+    /// <summary>
+    /// Used to configure the gateway.
+    /// </summary>
     public class Gateway : Feature
     {
-        public override void Initialize()
+
+        internal Gateway()
         {
-            ConfigureChannels();
-
-            ConfigureReceiver();
-
-            ConfigureSender();
-
-            //Temp until we can let the channel turn dedupe off
-            Configure.Instance.Configurer.ConfigureComponent<InMemoryDeduplication>(DependencyLifecycle.SingleInstance);
-
-            InfrastructureServices.Enable<IDeduplicateMessages>();
         }
 
-        static void ConfigureChannels()
+        /// <summary>
+        ///     Called when the features is activated
+        /// </summary>
+        protected override void Setup(FeatureConfigurationContext context)
         {
-            var registry = new ChannelTypeRegistry();
 
-            FillChannelTypeRegistryAndContainer(registry);
+            var txConfig = context.Container.ConfigureComponent<GatewayTransaction>(DependencyLifecycle.InstancePerCall);
 
-            Configure.Instance.Configurer.RegisterSingleton<IChannelTypeRegistry>(registry);
-            Configure.Instance.Configurer.ConfigureComponent<ChannelFactory>(DependencyLifecycle.SingleInstance);
+            var configSection = context.Settings.GetConfigSection<GatewayConfig>();
+
+            if (configSection != null)
+            {
+                txConfig.ConfigureProperty(c => c.ConfiguredTimeout, configSection.TransactionTimeout);
+            }
+
+            var gatewayInputAddress = Address.Parse(context.Settings.EndpointName()).SubScope("gateway");
+
+            ConfigureChannels(context);
+
+            ConfigureReceiver(context, gatewayInputAddress);
+
+            ConfigureSender(context, gatewayInputAddress);
         }
 
-        static void FillChannelTypeRegistryAndContainer(IChannelTypeRegistry registry)
+        static void ConfigureChannels(FeatureConfigurationContext context)
         {
-            foreach (var type in Configure.TypesToScan.Where(t => typeof(IChannelReceiver).IsAssignableFrom(t) && !t.IsInterface))
+            var channelFactory = new ChannelFactory();
+
+            foreach (
+                var type in
+                    context.Settings.GetAvailableTypes().Where(t => typeof(IChannelReceiver).IsAssignableFrom(t) && !t.IsInterface))
             {
-                var channelTypes = type.GetCustomAttributes(true).OfType<ChannelTypeAttribute>().ToList();
-                if (channelTypes.Any())
-                {
-                    channelTypes.ForEach(t =>
-                    {
-                        registry.AddReceiver(t.Type, type);
-                        AddToContainerIfNecessary(type);
-                    });
-                }
-                else
-                {
-                    registry.AddReceiver(type.Name.Substring(0, type.Name.IndexOf("Channel")), type);
-                    AddToContainerIfNecessary(type);
-                }
+                channelFactory.RegisterReceiver(type);
             }
 
-            foreach (var type in Configure.TypesToScan.Where(t => typeof(IChannelSender).IsAssignableFrom(t) && !t.IsInterface))
+            foreach (
+                var type in
+                    context.Settings.GetAvailableTypes().Where(t => typeof(IChannelSender).IsAssignableFrom(t) && !t.IsInterface))
             {
-                var channelTypes = type.GetCustomAttributes(true).OfType<ChannelTypeAttribute>().ToList();
-                if (channelTypes.Any())
-                {
-                    channelTypes.ForEach(t =>
-                    {
-                        registry.AddSender(t.Type, type);
-                        AddToContainerIfNecessary(type);
-                    });
-                }
-                else
-                {
-                    registry.AddSender(type.Name.Substring(0, type.Name.IndexOf("Channel")), type);
-                    AddToContainerIfNecessary(type);
-                }
+                channelFactory.RegisterSender(type);
             }
+
+            context.Container.RegisterSingleton<IChannelFactory>(channelFactory);
         }
 
-        static void AddToContainerIfNecessary(Type type)
+        static void ConfigureSender(FeatureConfigurationContext context, Address gatewayInputAddress)
         {
-            if (!Configure.HasComponent(type))
+            if (!context.Container.HasComponent<IForwardMessagesToSites>())
             {
-                Configure.Component(type, DependencyLifecycle.InstancePerCall);
-            }
-        }
-
-        static void ConfigureSender()
-        {
-            if (!Configure.Instance.Configurer.HasComponent<IForwardMessagesToSites>())
-            {
-                Configure.Component<SingleCallChannelForwarder>(DependencyLifecycle.InstancePerCall);
+                context.Container.ConfigureComponent<SingleCallChannelForwarder>(DependencyLifecycle.InstancePerCall);
             }
 
-            Configure.Component<MessageNotifier>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<MessageNotifier>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<GatewaySender>(DependencyLifecycle.SingleInstance)
+                .ConfigureProperty(t => t.InputAddress, gatewayInputAddress)
+                .ConfigureProperty(t => t.Disabled, false);
 
-            var configSection = Configure.GetConfigSection<Config.GatewayConfig>();
+            var configSection = context.Settings.GetConfigSection<GatewayConfig>();
 
             if (configSection != null && configSection.GetChannels().Any())
             {
-                Configure.Component<ConfigurationBasedChannelManager>(DependencyLifecycle.SingleInstance);
+                context.Container.ConfigureComponent<ConfigurationBasedChannelManager>(DependencyLifecycle.SingleInstance)
+                    .ConfigureProperty(c => c.ReceiveChannels, configSection.GetChannels());
             }
             else
             {
-                Configure.Component<ConventionBasedChannelManager>(DependencyLifecycle.SingleInstance);
+                context.Container.ConfigureComponent<ConventionBasedChannelManager>(DependencyLifecycle.SingleInstance)
+                    .ConfigureProperty(t => t.EndpointName, context.Settings.EndpointName());
             }
 
-            ConfigureSiteRouters();
+            ConfigureSiteRouters(context);
         }
 
-        static void ConfigureSiteRouters()
+        static void ConfigureSiteRouters(FeatureConfigurationContext context)
         {
-            Configure.Component<OriginatingSiteHeaderRouter>(DependencyLifecycle.SingleInstance);
-            Configure.Component<KeyPrefixConventionSiteRouter>(DependencyLifecycle.SingleInstance);
-            Configure.Component<ConfigurationBasedSiteRouter>(DependencyLifecycle.SingleInstance);
-        }
+            context.Container.ConfigureComponent<OriginatingSiteHeaderRouter>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<KeyPrefixConventionSiteRouter>(DependencyLifecycle.SingleInstance);
 
-        static void ConfigureReceiver()
-        {
-            if (!Configure.Instance.Configurer.HasComponent<IReceiveMessagesFromSites>())
+            IDictionary<string, Site> sites = new Dictionary<string, Site>();
+
+            var section = context.Settings.GetConfigSection<GatewayConfig>();
+            if (section != null)
             {
-                Configure.Component<SingleCallChannelReceiver>(DependencyLifecycle.InstancePerCall);
+                sites = section.SitesAsDictionary();
             }
 
-            Configure.Component<DataBusHeaderManager>(DependencyLifecycle.InstancePerCall);
-
-            Configure.Component<DefaultEndpointRouter>(DependencyLifecycle.SingleInstance)
-                .ConfigureProperty(x => x.MainInputAddress, Address.Parse(Configure.EndpointName));
+            context.Container.ConfigureComponent<ConfigurationBasedSiteRouter>(DependencyLifecycle.SingleInstance)
+                .ConfigureProperty(p => p.Sites, sites);
         }
-    }
 
-    public class SetDefaultInMemoryDeduplication : IWantToRunBeforeConfigurationIsFinalized
-    {
-        
-        public void Run()
+
+
+        static void ConfigureReceiver(FeatureConfigurationContext context, Address gatewayInputAddress)
         {
-            InfrastructureServices.SetDefaultFor<IDeduplicateMessages>(() => Configure.Instance.UseInMemoryGatewayDeduplication());
+            if (!context.Container.HasComponent<IReceiveMessagesFromSites>())
+            {
+                context.Container.ConfigureComponent<SingleCallChannelReceiver>(DependencyLifecycle.InstancePerCall);
+                context.Container.ConfigureComponent<Func<IReceiveMessagesFromSites>>(builder => () => builder.Build<SingleCallChannelReceiver>(), DependencyLifecycle.InstancePerCall);
+            }
+            else
+            {
+                context.Container.ConfigureComponent<Func<IReceiveMessagesFromSites>>(builder => () => builder.Build<IReceiveMessagesFromSites>(), DependencyLifecycle.InstancePerCall);
+            }
+
+            context.Container.ConfigureComponent<DataBusHeaderManager>(DependencyLifecycle.InstancePerCall);
+
+            var endpointName = context.Settings.EndpointName();
+
+            context.Container.ConfigureComponent<GatewayHttpListenerInstaller>(DependencyLifecycle.InstancePerCall)
+                .ConfigureProperty(t => t.Enabled, true);
+
+            context.Container.ConfigureComponent<DefaultEndpointRouter>(DependencyLifecycle.SingleInstance)
+                .ConfigureProperty(x => x.MainInputAddress, Address.Parse(endpointName));
+
+            context.Container.ConfigureComponent<GatewayReceiver>(DependencyLifecycle.SingleInstance)
+                .ConfigureProperty(t => t.ReplyToAddress, gatewayInputAddress)
+                .ConfigureProperty(t => t.Disabled, false);
         }
     }
 }

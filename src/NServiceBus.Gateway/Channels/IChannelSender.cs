@@ -1,4 +1,4 @@
-namespace NServiceBus.Connect.Channels
+namespace NServiceBus.Gateway.Channels
 {
     using System.Collections.Generic;
     using System.IO;

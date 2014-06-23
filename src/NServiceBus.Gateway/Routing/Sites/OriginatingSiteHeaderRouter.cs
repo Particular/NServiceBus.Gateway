@@ -1,9 +1,9 @@
-namespace NServiceBus.Connect.Routing.Sites
+namespace NServiceBus.Gateway.Routing.Sites
 {
     using System.Collections.Generic;
     using Channels;
 
-    internal class OriginatingSiteHeaderRouter : IRouteMessagesToSites
+    public class OriginatingSiteHeaderRouter : IRouteMessagesToSites
     {
         public IEnumerable<Site> GetDestinationSitesFor(TransportMessage messageToDispatch)
         {
@@ -13,7 +13,8 @@ namespace NServiceBus.Connect.Routing.Sites
                 yield return new Site
                 {
                     Channel = Channel.Parse(originatingSite),
-                    Key = "Default reply channel"
+                    Key = "Default reply channel",
+                    LegacyMode = messageToDispatch.IsLegacyGatewayMessage()
                 };
             }
         }

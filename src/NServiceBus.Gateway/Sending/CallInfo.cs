@@ -1,10 +1,10 @@
-namespace NServiceBus.Connect.Sending
+namespace NServiceBus.Gateway.Sending
 {
     using System;
     using System.Collections.Generic;
     using System.IO;
 
-    internal class CallInfo
+    public class CallInfo
     {
         public string ClientId { get; set; }
         public CallType Type { get; set; }

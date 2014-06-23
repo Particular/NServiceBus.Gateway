@@ -1,6 +1,6 @@
-namespace NServiceBus.Connect.Sending
+namespace NServiceBus.Gateway.Sending
 {
-    internal enum CallType
+    public enum CallType
     {
         SingleCallSubmit,
         SingleCallDatabusProperty

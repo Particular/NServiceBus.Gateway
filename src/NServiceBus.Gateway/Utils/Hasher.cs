@@ -1,11 +1,11 @@
-namespace NServiceBus.Connect.Utils
+namespace NServiceBus.Gateway.Utils
 {
     using System;
     using System.IO;
     using System.Security.Cryptography;
     using Receiving;
 
-    internal class Hasher
+    public class Hasher
     {
         public static string Hash(Stream stream)
         {

@@ -1,4 +1,4 @@
-namespace NServiceBus.Connect.Channels.Http
+namespace NServiceBus.Gateway.Channels.Http
 {
     using System;
     using System.Collections.Generic;
@@ -8,20 +8,13 @@ namespace NServiceBus.Connect.Channels.Http
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Threading.Tasks.Schedulers;
     using System.Web;
     using HeaderManagement;
     using Logging;
     using Receiving;
 
-    [ChannelType("http")]
-    [ChannelType("https")]
-    internal class HttpChannelReceiver : IChannelReceiver
+    public class HttpChannelReceiver : IChannelReceiver
     {
-        public bool RequiresDeduplication {
-            get { return true; }
-        }
-
         public event EventHandler<DataReceivedOnChannelArgs> DataReceived;
 
         public void Start(string address, int numberOfWorkerThreads)
@@ -52,7 +45,7 @@ namespace NServiceBus.Connect.Channels.Http
             //Injected at compile time
         }
 
-        public void DisposeManaged()
+        void DisposeManaged()
         {
             if (tokenSource != null)
             {
@@ -90,7 +83,7 @@ namespace NServiceBus.Connect.Channels.Http
             }
             catch (ChannelException ex)
             {
-                CloseResponseAndWarn(context, ex.GetMessage(), ex.StatusCode);
+                CloseResponseAndWarn(context, ex.Message, ex.StatusCode);
             }
             catch (Exception ex)
             {
@@ -184,10 +177,10 @@ namespace NServiceBus.Connect.Channels.Http
         {
             var newStatus = status;
 
-            var jsonp = context.Request.QueryString["callback"];
-            if (string.IsNullOrEmpty(jsonp) == false)
+            var jsonCallback = context.Request.QueryString["callback"];
+            if (string.IsNullOrEmpty(jsonCallback) == false)
             {
-                newStatus = jsonp + "({ status: '" + newStatus + "'})";
+                newStatus = jsonCallback + "({ status: '" + newStatus + "'})";
                 context.Response.AddHeader("Content-Type", "application/javascript; charset=utf-8");
             }
             else
@@ -215,7 +208,7 @@ namespace NServiceBus.Connect.Channels.Http
 
         const int MaximumBytesToRead = 100000;
 
-        static readonly ILog Logger = LogManager.GetLogger(typeof(HttpChannelReceiver));
+        static ILog Logger = LogManager.GetLogger<HttpChannelReceiver>();
         HttpListener listener;
         MTATaskScheduler scheduler;
         CancellationTokenSource tokenSource;

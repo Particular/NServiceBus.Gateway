@@ -1,4 +1,4 @@
-namespace NServiceBus.Connect.Routing
+namespace NServiceBus.Gateway.Routing
 {
     using System.Collections.Generic;
 

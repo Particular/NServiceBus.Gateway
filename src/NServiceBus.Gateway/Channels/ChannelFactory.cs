@@ -1,30 +1,59 @@
-namespace NServiceBus.Connect.Channels
+namespace NServiceBus.Gateway.Channels
 {
-    using ObjectBuilder;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
 
-    internal class ChannelFactory : IChannelFactory
+    public interface IChannelFactory
     {
-        readonly IChannelTypeRegistry registry;
-        readonly IBuilder builder;
+        IChannelReceiver GetReceiver(string channelType);
+        IChannelSender GetSender(string channelType);
+    }
 
-        public ChannelFactory(IChannelTypeRegistry registry, IBuilder builder)
-        {
-            this.registry = registry;
-            this.builder = builder;
-        }
-
+    public class ChannelFactory : IChannelFactory
+    {
         public IChannelReceiver GetReceiver(string channelType)
         {
-            var receiver = registry.GetReceiverType(channelType);
-
-            return builder.Build(receiver) as IChannelReceiver;
+            return Activator.CreateInstance(receivers[channelType.ToLower()]) as IChannelReceiver;
         }
 
         public IChannelSender GetSender(string channelType)
         {
-            var sender = registry.GetSenderType(channelType);
-
-            return builder.Build(sender) as IChannelSender;
+            return Activator.CreateInstance(senders[channelType.ToLower()]) as IChannelSender;
         }
+
+
+        public void RegisterReceiver(Type receiver)
+        {
+            RegisterReceiver(receiver, receiver.Name.Substring(0, receiver.Name.IndexOf("Channel")));
+        }
+
+        public void RegisterReceiver(Type receiver, string type)
+        {
+            receivers.Add(type.ToLower(), receiver);
+        }
+
+
+        public void RegisterSender(Type sender)
+        {
+            var channelTypes =
+                sender.GetCustomAttributes(true).OfType<ChannelTypeAttribute>().ToList();
+            if (channelTypes.Any())
+            {
+                channelTypes.ForEach(type => RegisterSender(sender, type.Type));
+            }
+            else
+            {
+                RegisterSender(sender, sender.Name.Substring(0, sender.Name.IndexOf("Channel")));
+            }
+        }
+
+        public void RegisterSender(Type sender, string type)
+        {
+            senders.Add(type.ToLower(), sender);
+        }
+
+        readonly IDictionary<string, Type> receivers = new Dictionary<string, Type>();
+        readonly IDictionary<string, Type> senders = new Dictionary<string, Type>();
     }
 }

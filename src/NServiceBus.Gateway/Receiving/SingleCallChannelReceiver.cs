@@ -1,4 +1,4 @@
-﻿namespace NServiceBus.Connect.Receiving
+﻿namespace NServiceBus.Gateway.Receiving
 {
     using System;
     using System.IO;
@@ -11,14 +11,15 @@
     using Sending;
     using Utils;
 
-    internal class SingleCallChannelReceiver : IReceiveMessagesFromSites
+    class SingleCallChannelReceiver : IReceiveMessagesFromSites
     {
         public SingleCallChannelReceiver(IChannelFactory channelFactory, IDeduplicateMessages deduplicator,
-            DataBusHeaderManager headerManager)
+            DataBusHeaderManager headerManager, GatewayTransaction transaction)
         {
             this.channelFactory = channelFactory;
             this.deduplicator = deduplicator;
             this.headerManager = headerManager;
+            this.transaction = transaction;
         }
 
         public IDataBus DataBus { get; set; }
@@ -36,7 +37,7 @@
             //Injected at compile time
         }
 
-        public void DisposeManaged()
+        void DisposeManaged()
         {
             if (channelReceiver != null)
             {
@@ -44,6 +45,8 @@
                 channelReceiver.Dispose();
             }
         }
+
+  
         void DataReceivedOnChannel(object sender, DataReceivedOnChannelArgs e)
         {
             using (e.Data)
@@ -52,7 +55,7 @@
 
                 Logger.DebugFormat("Received message of type {0} for client id: {1}", callInfo.Type, callInfo.ClientId);
 
-                using (var scope = GatewayTransaction.Scope())
+                using (var scope = transaction.Scope())
                 {
                     switch (callInfo.Type)
                     {
@@ -62,6 +65,8 @@
                         case CallType.SingleCallSubmit:
                             HandleSubmit(callInfo);
                             break;
+                        default:
+                            throw new Exception("Unknown call type: " + callInfo.Type);
                     }
                     scope.Complete();
                 }
@@ -80,13 +85,10 @@
                 var msg = HeaderMapper.Map(headerManager.Reassemble(callInfo.ClientId, callInfo.Headers));
                 msg.Body = new byte[stream.Length];
                 stream.Read(msg.Body, 0, msg.Body.Length);
-               
-                if (!channelReceiver.RequiresDeduplication || deduplicator.DeduplicateMessage(callInfo.ClientId, DateTime.UtcNow))
+
+                if (deduplicator.DeduplicateMessage(callInfo.ClientId, DateTime.UtcNow))
                 {
-                    MessageReceived(this, new MessageReceivedOnChannelArgs
-                    {
-                        Message = msg
-                    });
+                    MessageReceived(this, new MessageReceivedOnChannelArgs { Message = msg });
                 }
                 else
                 {
@@ -102,7 +104,7 @@
                 throw new InvalidOperationException("Databus transmission received without a configured databus");
             }
 
-            
+
             var newDatabusKey = DataBus.Put(callInfo.Data, callInfo.TimeToBeReceived);
             using (var databusStream = DataBus.Get(newDatabusKey))
             {
@@ -119,7 +121,9 @@
         IChannelFactory channelFactory;
         IDeduplicateMessages deduplicator;
         DataBusHeaderManager headerManager;
-        
+
+        readonly GatewayTransaction transaction;
+
         IChannelReceiver channelReceiver;
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace NServiceBus.Connect.Sending
+﻿namespace NServiceBus.Gateway.Sending
 {
     using System;
     using System.Collections.Generic;
@@ -12,7 +12,7 @@
     using Routing;
     using Utils;
 
-    internal class SingleCallChannelForwarder : IForwardMessagesToSites
+    public class SingleCallChannelForwarder : IForwardMessagesToSites
     {
         public SingleCallChannelForwarder(IChannelFactory channelFactory)
         {
@@ -33,7 +33,7 @@
             //before the body of the message is forwarded on the bus
             TransmitDataBusProperties(channelSender, targetSite, headers);
 
-            using (var messagePayload = new MemoryStream(message.Body, 0, message.Body.Length, true, true))
+            using (var messagePayload = new MemoryStream(message.Body))
             {
                 Transmit(channelSender, targetSite, CallType.SingleCallSubmit, headers, messagePayload);
             }
@@ -76,7 +76,7 @@
             }
         }
 
-        static readonly ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
-        readonly IChannelFactory channelFactory;
+        static ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
+        IChannelFactory channelFactory;
     }
 }

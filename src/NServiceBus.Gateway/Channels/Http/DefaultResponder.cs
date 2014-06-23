@@ -1,16 +1,15 @@
-namespace NServiceBus.Connect.Channels.Http
+namespace NServiceBus.Gateway.Channels.Http
 {
     using System.Net;
     using System.Text;
 
-    internal class DefaultResponder : IHttpResponder
+    public class DefaultResponder : IHttpResponder
     {
         public void Handle(HttpListenerContext ctx)
         {
             ctx.Response.StatusCode = 200;
 
-            var response = string.Format("<html><body>EndpointName:{0} - Status: Ok</body></html>",
-                Configure.EndpointName);
+            var response = string.Format("<html><body>EndpointName:{0} - Status: Ok</body></html>",EndpointName);
 
             ctx.Response.ContentType = "text/html";
 
@@ -22,5 +21,7 @@ namespace NServiceBus.Connect.Channels.Http
 
             ctx.Response.Close(Encoding.UTF8.GetBytes(response), true);
         }
+
+        public string EndpointName { get; set; }
     }
 }

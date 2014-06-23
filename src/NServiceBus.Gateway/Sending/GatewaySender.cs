@@ -1,27 +1,31 @@
-namespace NServiceBus.Connect.Sending
+namespace NServiceBus.Gateway.Sending
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Channels;
     using Notifications;
-    using NServiceBus.Features;
     using ObjectBuilder;
     using Receiving;
     using Routing;
     using Satellites;
-    using Settings;
     using Transports;
+    using Unicast;
     using Unicast.Transport;
 
-    internal class GatewaySender : IAdvancedSatellite
+    class GatewaySender : IAdvancedSatellite
     {
+        public GatewaySender()
+        {
+            Disabled = true;
+        }
+
         public IBuilder Builder { get; set; }
         public IManageReceiveChannels ChannelManager { get; set; }
         public IMessageNotifier Notifier { get; set; }
         public ISendMessages MessageSender { get; set; }
-        public IChannelTypeRegistry TypeRegistry { get; set; }
 
+        public GatewayTransaction GatewayTransaction { get; set; }
+       
         public bool Handle(TransportMessage message)
         {
             var destinationSites = GetDestinationSitesFor(message);
@@ -49,16 +53,10 @@ namespace NServiceBus.Connect.Sending
             return true;
         }
 
-        public Address InputAddress
-        {
-            get { return SettingsHolder.Get<Address>("Gateway.InputAddress"); }
-        }
-
-        public bool Disabled
-        {
-            get { return !Feature.IsEnabled<Features.Gateway>(); }
-        }
-
+        public Address InputAddress { get; set; }
+       
+        public bool Disabled { get; set; }
+       
         public void Start()
         {
         }
@@ -87,24 +85,23 @@ namespace NServiceBus.Connect.Sending
             //todo - do we need to clone? check with Jonathan O
             messageToDispatch.Headers[Headers.DestinationSites] = destinationSite.Key;
 
-            MessageSender.Send(messageToDispatch, InputAddress);
+            MessageSender.Send(messageToDispatch, new SendOptions(InputAddress));
         }
 
         void SendToSite(TransportMessage transportMessage, Site targetSite)
         {
-            transportMessage.Headers[Headers.OriginatingSite] = GetDefaultAddressForThisSite(targetSite);
+            transportMessage.Headers[Headers.OriginatingSite] = GetDefaultAddressForThisSite();
 
             var forwarder = Builder.Build<IForwardMessagesToSites>();
+            
             forwarder.Forward(transportMessage, targetSite);
 
             Notifier.RaiseMessageForwarded(Address.Local.ToString(), targetSite.Channel.Type, transportMessage);
         }
 
-        string GetDefaultAddressForThisSite(Site targetSite)
+        string GetDefaultAddressForThisSite()
         {
-            var senderType = TypeRegistry.GetSenderType(targetSite.Channel.Type);
-            var types = TypeRegistry.GetChannelTypesForSenderType(senderType);
-            var defaultChannel = ChannelManager.GetDefaultChannel(types);
+            var defaultChannel = ChannelManager.GetDefaultChannel();
             return string.Format("{0},{1}", defaultChannel.Type, defaultChannel.Address);
         }
     }

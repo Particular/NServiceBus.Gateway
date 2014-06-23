@@ -1,4 +1,4 @@
-﻿namespace NServiceBus.Connect
+﻿namespace NServiceBus.Gateway
 {
     using HeaderManagement;
 

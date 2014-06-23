@@ -1,12 +1,13 @@
-namespace NServiceBus.Connect.Channels.Http
+namespace NServiceBus.Gateway.Channels.Http
 {
-    internal class SetDefaultResponder : IWantToRunBeforeConfigurationIsFinalized
+    class SetDefaultResponder : IWantToRunBeforeConfigurationIsFinalized
     {
-        public void Run()
+        public void Run(Configure config)
         {
-            if (!Configure.Instance.Configurer.HasComponent<IHttpResponder>())
+            if (!config.Configurer.HasComponent<IHttpResponder>())
             {
-                Configure.Instance.Configurer.ConfigureComponent<DefaultResponder>(DependencyLifecycle.InstancePerCall);
+                config.Configurer.ConfigureComponent<DefaultResponder>(DependencyLifecycle.InstancePerCall)
+                                     .ConfigureProperty(t => t.EndpointName, config.Settings.EndpointName());
             }
         }
     }

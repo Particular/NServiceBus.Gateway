@@ -1,4 +1,4 @@
-namespace NServiceBus.Connect.Channels.Http
+namespace NServiceBus.Gateway.Channels.Http
 {
     using System;
     using System.Collections.Generic;
@@ -9,7 +9,7 @@ namespace NServiceBus.Connect.Channels.Http
 
     [ChannelType("http")]
     [ChannelType("https")]
-    internal class HttpChannelSender : IChannelSender
+    public class HttpChannelSender : IChannelSender
     {
         public void Send(string remoteUrl, IDictionary<string, string> headers, Stream data)
         {
@@ -55,6 +55,6 @@ namespace NServiceBus.Connect.Channels.Http
         }
 
 
-        static readonly ILog Logger = LogManager.GetLogger(typeof(HttpChannelSender));
+        static ILog Logger = LogManager.GetLogger<HttpChannelSender>();
     }
 }

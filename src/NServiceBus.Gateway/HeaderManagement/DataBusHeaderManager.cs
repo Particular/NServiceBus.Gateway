@@ -1,10 +1,10 @@
-﻿namespace NServiceBus.Connect.HeaderManagement
+﻿namespace NServiceBus.Gateway.HeaderManagement
 {
     using System.Collections.Generic;
     using System.Linq;
     using Receiving;
 
-    internal class DataBusHeaderManager
+    public class DataBusHeaderManager
     {
         public void InsertHeader(string clientId, string headerKey, string headerValue)
         {
