@@ -22,8 +22,8 @@
 
         public IDictionary<string, string> Reassemble(string clientId, IDictionary<string, string> input)
         {
-            var expectedDatabusProperties =
-                input.Where(kv => kv.Key.Contains(HeaderMapper.DATABUS_PREFIX)).ToList();
+            var expectedDatabusProperties = input.Where(kv => kv.Key.Contains("NServiceBus.DataBus.")).ToList();
+
             if (!expectedDatabusProperties.Any())
             {
                 return input;

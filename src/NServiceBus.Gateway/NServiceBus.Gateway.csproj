@@ -37,18 +37,18 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NServiceBus.Core">
+      <HintPath>..\packages\NServiceBus.5.0.0-Beta0002\lib\net45\NServiceBus.Core.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="NServiceBus.Core">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\NServiceBus\lib\net45\NServiceBus.Core.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="ripple.dependencies.config" />
   </ItemGroup>
   <ItemGroup>
@@ -56,17 +56,17 @@
     <Compile Include="Channels\ChannelFactory.cs" />
     <Compile Include="Channels\ChannelTypeAttribute.cs" />
     <Compile Include="Channels\DataReceivedOnChannelArgs.cs" />
-    <Compile Include="Channels\Http\DefaultResponder.cs" />
     <Compile Include="Channels\Http\HttpChannelReceiver.cs" />
     <Compile Include="Channels\Http\HttpChannelSender.cs" />
     <Compile Include="Channels\Http\HttpHeaders.cs" />
-    <Compile Include="Channels\Http\IHttpResponder.cs" />
     <Compile Include="Channels\Http\MTATaskScheduler.cs" />
-    <Compile Include="Channels\Http\SetDefaultResponder.cs" />
     <Compile Include="Channels\IChannelReceiver.cs" />
     <Compile Include="Channels\IChannelSender.cs" />
-    <Compile Include="Deduplication\GatewayMessage.cs" />
-    <Compile Include="Deduplication\IDeduplicateMessages.cs" />
+    <Compile Include="Config\ChannelCollection.cs" />
+    <Compile Include="Config\ChannelConfig.cs" />
+    <Compile Include="Config\GatewayConfig.cs" />
+    <Compile Include="Config\SiteCollection.cs" />
+    <Compile Include="Config\SiteConfig.cs" />
     <Compile Include="Gateway.cs" />
     <Compile Include="GatewayExtensions.cs" />
     <Compile Include="GatewayHttpListenerInstaller.cs" />
@@ -74,7 +74,6 @@
     <Compile Include="HeaderManagement\DataBusHeaderManager.cs" />
     <Compile Include="HeaderManagement\GatewayHeaderManager.cs" />
     <Compile Include="HeaderManagement\GatewayHeaders.cs" />
-    <Compile Include="HeaderManagement\HeaderMapper.cs" />
     <Compile Include="Notifications\IMessageNotifier.cs" />
     <Compile Include="Notifications\INotifyAboutMessages.cs" />
     <Compile Include="Notifications\MessageNotifier.cs" />
@@ -102,6 +101,5 @@
     <Compile Include="Utils\Hasher.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
   <Import Project="$(SolutionDir)..\BuildSupport\GitVersionTask\build\GitVersionTask.targets" />
 </Project>

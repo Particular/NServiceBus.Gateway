@@ -9,11 +9,10 @@ namespace NServiceBus.Gateway.Channels.Http
     using System.Threading;
     using System.Threading.Tasks;
     using System.Web;
-    using HeaderManagement;
     using Logging;
     using Receiving;
 
-    public class HttpChannelReceiver : IChannelReceiver
+    class HttpChannelReceiver : IChannelReceiver
     {
         public event EventHandler<DataReceivedOnChannelArgs> DataReceived;
 
@@ -42,11 +41,6 @@ namespace NServiceBus.Gateway.Channels.Http
 
         public void Dispose()
         {
-            //Injected at compile time
-        }
-
-        void DisposeManaged()
-        {
             if (tokenSource != null)
             {
                 tokenSource.Cancel();
@@ -65,13 +59,6 @@ namespace NServiceBus.Gateway.Channels.Http
         {
             try
             {
-                if (!IsGatewayRequest(context.Request))
-                {
-                    //there will always be a responder
-                    Configure.Instance.Builder.Build<IHttpResponder>().Handle(context);
-                    return;
-                }
-
                 DataReceived(this, new DataReceivedOnChannelArgs
                 {
                     Headers = GetHeaders(context),
@@ -108,15 +95,6 @@ namespace NServiceBus.Gateway.Channels.Http
 
             return streamToReturn;
         }
-
-        bool IsGatewayRequest(HttpListenerRequest request)
-        {
-            return request.Headers.AllKeys.Contains(GatewayHeaders.CallTypeHeader) ||
-                   request.Headers.AllKeys.Contains(GatewayHeaders.CallTypeHeader.ToLower()) ||
-                   request.QueryString[GatewayHeaders.CallTypeHeader] != null;
-        }
-
-
         static IDictionary<string, string> GetHeaders(HttpListenerContext context)
         {
             var headers = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);
