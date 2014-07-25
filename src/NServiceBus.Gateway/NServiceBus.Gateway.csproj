@@ -52,6 +52,7 @@
     <None Include="ripple.dependencies.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Channels\Channel.cs" />
     <Compile Include="Channels\ChannelFactory.cs" />
     <Compile Include="Channels\ChannelTypeAttribute.cs" />
