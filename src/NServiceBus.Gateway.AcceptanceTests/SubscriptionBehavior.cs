@@ -4,6 +4,7 @@
     using System.Linq;
     using Pipeline;
     using Pipeline.Contexts;
+    using Unicast.Subscriptions;
 
     class SubscriptionBehavior : IBehavior<IncomingContext>
     {
