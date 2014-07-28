@@ -13,9 +13,11 @@
     <description>Successor to NServicebus Gateway</description>
     <copyright>Copyright 2010-2014 NServiceBus. All rights reserved</copyright>
     <tags>nservicebus servicebus msmq cqrs publish subscribe</tags>
-    <dependencies />
+    <dependencies>
+	  <dependency id="NServiceBus" version="[5.0.0-beta0002, 6.0.0)" />
+    </dependencies>
   </metadata>
   <files>
-    <file src="..\..\src\NServiceBus.Gateway\bin\Release\NServiceBus.Gateway.???" target="lib\net40" />
+    <file src="..\..\src\NServiceBus.Gateway\bin\Release\NServiceBus.Gateway.???" target="lib\net45" />
   </files>
 </package>
