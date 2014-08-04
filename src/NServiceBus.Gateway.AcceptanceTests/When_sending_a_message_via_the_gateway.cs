@@ -3,11 +3,11 @@
     using System;
     using System.IO;
     using System.Net;
+    using System.Security.Cryptography;
     using System.Web;
     using Config;
     using EndpointTemplates;
     using AcceptanceTesting;
-    using NServiceBus.Gateway.Utils;
     using NUnit.Framework;
     using ScenarioDescriptors;
     
@@ -34,7 +34,7 @@
                     
                     using (var messagePayload = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(message)))
                     {
-                        webRequest.Headers.Add(HttpRequestHeader.ContentMd5, HttpUtility.UrlEncode(Hasher.Hash(messagePayload)));
+                        webRequest.Headers.Add(HttpRequestHeader.ContentMd5, HttpUtility.UrlEncode(Hash(messagePayload)));
                         webRequest.ContentLength = messagePayload.Length;
 
                         using (var requestStream = webRequest.GetRequestStream())
@@ -68,6 +68,16 @@
                     Assert.AreEqual("MySpecialValue", c.MySpecialHeader);
                 })
                 .Run();
+        }
+
+        static string Hash(Stream stream)
+        {
+            var position = stream.Position;
+            var hash = MD5.Create().ComputeHash(stream);
+
+            stream.Position = position;
+
+            return Convert.ToBase64String(hash);
         }
 
         public class Context : ScenarioContext

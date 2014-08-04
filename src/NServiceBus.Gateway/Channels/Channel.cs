@@ -2,22 +2,39 @@ namespace NServiceBus.Gateway.Channels
 {
     using System;
 
-    public class ReceiveChannel : Channel
-    {
-        public int NumberOfWorkerThreads { get; set; }
-        public bool Default { get; set; }
-
-        public override string ToString()
-        {
-            return base.ToString() + "NumberOfWorkerThreads=" + NumberOfWorkerThreads + "Default=" + Default;
-        }
-    }
-
+    /// <summary>
+    /// The site channel class.
+    /// </summary>
     public class Channel : IEquatable<Channel>
     {
+        /// <summary>
+        /// The type of the channel.
+        /// </summary>
         public string Type { get; set; }
+        
+        /// <summary>
+        /// The address to receive/send on.
+        /// </summary>
         public string Address { get; set; }
 
+        internal static Channel Parse(string s)
+        {
+            var parts = s.Split(',');
+
+            return new Channel
+            {
+                Type = parts[0],
+                Address = parts[1]
+            };
+        }
+
+        /// <summary>
+        /// Indicates whether the current object is equal to another object of the same type.
+        /// </summary>
+        /// <returns>
+        /// true if the current object is equal to the <paramref name="other"/> parameter; otherwise, false.
+        /// </returns>
+        /// <param name="other">An object to compare with this object.</param>
         public bool Equals(Channel other)
         {
             if (ReferenceEquals(null, other))
@@ -31,22 +48,25 @@ namespace NServiceBus.Gateway.Channels
             return Equals(other.Type, Type) && Equals(other.Address, Address);
         }
 
-        public static Channel Parse(string s)
-        {
-            var parts = s.Split(',');
-
-            return new Channel
-            {
-                Type = parts[0],
-                Address = parts[1]
-            };
-        }
-
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>
+        /// A string that represents the current object.
+        /// </returns>
+        /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
             return string.Format("{0},{1}", Type, Address);
         }
 
+        /// <summary>
+        /// Determines whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:System.Object"/>.
+        /// </summary>
+        /// <returns>
+        /// true if the specified object  is equal to the current object; otherwise, false.
+        /// </returns>
+        /// <param name="obj">The object to compare with the current object. </param><filterpriority>2</filterpriority>
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj))
@@ -64,6 +84,13 @@ namespace NServiceBus.Gateway.Channels
             return Equals((Channel) obj);
         }
 
+        /// <summary>
+        /// Serves as a hash function for a particular type. 
+        /// </summary>
+        /// <returns>
+        /// A hash code for the current <see cref="T:System.Object"/>.
+        /// </returns>
+        /// <filterpriority>2</filterpriority>
         public override int GetHashCode()
         {
             unchecked
@@ -72,11 +99,17 @@ namespace NServiceBus.Gateway.Channels
             }
         }
 
+        /// <summary>
+        /// Overrides the == operator.
+        /// </summary>
         public static bool operator ==(Channel left, Channel right)
         {
             return Equals(left, right);
         }
 
+        /// <summary>
+        /// Overrides the != operator.
+        /// </summary>
         public static bool operator !=(Channel left, Channel right)
         {
             return !Equals(left, right);

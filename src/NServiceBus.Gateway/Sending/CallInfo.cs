@@ -4,7 +4,7 @@ namespace NServiceBus.Gateway.Sending
     using System.Collections.Generic;
     using System.IO;
 
-    public class CallInfo
+    class CallInfo
     {
         public string ClientId { get; set; }
         public CallType Type { get; set; }

@@ -2,7 +2,7 @@ namespace NServiceBus.Gateway.Routing.Sites
 {
     using System.Collections.Generic;
 
-    public class ConfigurationBasedSiteRouter : IRouteMessagesToSites
+    class ConfigurationBasedSiteRouter : IRouteMessagesToSites
     {
         public IEnumerable<Site> GetDestinationSitesFor(TransportMessage messageToDispatch)
         {

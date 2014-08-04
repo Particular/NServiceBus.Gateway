@@ -20,7 +20,6 @@
     /// </summary>
     public class Gateway : Feature
     {
-
         internal Gateway()
         {
         }
@@ -114,8 +113,6 @@
             context.Container.ConfigureComponent<ConfigurationBasedSiteRouter>(DependencyLifecycle.SingleInstance)
                 .ConfigureProperty(p => p.Sites, sites);
         }
-
-
 
         static void ConfigureReceiver(FeatureConfigurationContext context, Address gatewayInputAddress)
         {

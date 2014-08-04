@@ -1,6 +1,6 @@
 namespace NServiceBus.Gateway.Routing.Endpoints
 {
-    public class DefaultEndpointRouter : IRouteMessagesToEndpoints
+    class DefaultEndpointRouter : IRouteMessagesToEndpoints
     {
         public Address MainInputAddress { get; set; }
 

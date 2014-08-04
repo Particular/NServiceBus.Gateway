@@ -2,6 +2,9 @@ namespace NServiceBus.Config
 {
     using System.Configuration;
 
+    /// <summary>
+    /// The channels collection.
+    /// </summary>
     public class ChannelCollection : ConfigurationElementCollection
     {
         /// <summary>
@@ -20,6 +23,12 @@ namespace NServiceBus.Config
             return ((ChannelConfig) element).Address;
         }
 
+        /// <summary>
+        /// Indicates whether the <see cref="T:System.Configuration.ConfigurationElementCollection"/> object is read only.
+        /// </summary>
+        /// <returns>
+        /// true if the <see cref="T:System.Configuration.ConfigurationElementCollection"/> object is read only; otherwise, false.
+        /// </returns>
         public override bool IsReadOnly()
         {
             return false;

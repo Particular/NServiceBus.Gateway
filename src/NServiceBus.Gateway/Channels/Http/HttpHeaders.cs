@@ -1,6 +1,6 @@
 namespace NServiceBus.Gateway.Channels.Http
 {
-    public static class HttpHeaders
+    static class HttpHeaders
     {
         public const string ContentMd5Key = "Content-MD5";
     }

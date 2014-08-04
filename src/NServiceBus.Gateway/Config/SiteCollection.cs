@@ -23,6 +23,12 @@ namespace NServiceBus.Config
             return ((SiteConfig) element).Key;
         }
 
+        /// <summary>
+        /// Indicates whether the <see cref="T:System.Configuration.ConfigurationElementCollection"/> object is read only.
+        /// </summary>
+        /// <returns>
+        /// true if the <see cref="T:System.Configuration.ConfigurationElementCollection"/> object is read only; otherwise, false.
+        /// </returns>
         public override bool IsReadOnly()
         {
             return false;

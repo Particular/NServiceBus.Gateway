@@ -62,7 +62,7 @@ namespace NServiceBus.Config
             }
         }
 
-        public Dictionary<string, Gateway.Routing.Site> SitesAsDictionary()
+        internal Dictionary<string, Gateway.Routing.Site> SitesAsDictionary()
         {
             return Sites.Cast<SiteConfig>().ToDictionary(site => site.Key, site => new Gateway.Routing.Site
             {
@@ -72,7 +72,7 @@ namespace NServiceBus.Config
             });
         }
 
-        public IEnumerable<ReceiveChannel> GetChannels()
+        internal IEnumerable<ReceiveChannel> GetChannels()
         {
             return (from ChannelConfig channel in Channels
                 select new ReceiveChannel

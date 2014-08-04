@@ -31,7 +31,7 @@ namespace NServiceBus.Gateway.Sending
             var destinationSites = GetDestinationSitesFor(message);
 
             //if there is more than 1 destination we break it up into multiple messages
-            if (destinationSites.Count() > 1)
+            if (destinationSites.Count > 1)
             {
                 foreach (var destinationSite in destinationSites)
                 {
@@ -82,7 +82,6 @@ namespace NServiceBus.Gateway.Sending
 
         void CloneAndSendLocal(TransportMessage messageToDispatch, Site destinationSite)
         {
-            //todo - do we need to clone? check with Jonathan O
             messageToDispatch.Headers[Headers.DestinationSites] = destinationSite.Key;
 
             MessageSender.Send(messageToDispatch, new SendOptions(InputAddress));

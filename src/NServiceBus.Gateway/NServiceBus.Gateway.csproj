@@ -25,6 +25,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <DocumentationFile>bin\Debug\NServiceBus.Gateway.XML</DocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,8 +35,9 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\NServiceBus.Gateway.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\NServiceBus.Gateway.XML</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="NServiceBus.Core">
@@ -62,8 +65,10 @@
     <Compile Include="Channels\Http\HttpChannelSender.cs" />
     <Compile Include="Channels\Http\HttpHeaders.cs" />
     <Compile Include="Channels\Http\MTATaskScheduler.cs" />
+    <Compile Include="Channels\IChannelFactory.cs" />
     <Compile Include="Channels\IChannelReceiver.cs" />
     <Compile Include="Channels\IChannelSender.cs" />
+    <Compile Include="Channels\ReceiveChannel.cs" />
     <Compile Include="Config\ChannelCollection.cs" />
     <Compile Include="Config\ChannelConfig.cs" />
     <Compile Include="Config\GatewayConfig.cs" />

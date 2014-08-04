@@ -3,7 +3,7 @@ namespace NServiceBus.Gateway.Routing.Sites
     using System.Collections.Generic;
     using Channels;
 
-    public class OriginatingSiteHeaderRouter : IRouteMessagesToSites
+    class OriginatingSiteHeaderRouter : IRouteMessagesToSites
     {
         public IEnumerable<Site> GetDestinationSitesFor(TransportMessage messageToDispatch)
         {

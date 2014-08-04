@@ -4,7 +4,7 @@ namespace NServiceBus.Gateway.Receiving
     using System.Runtime.Serialization;
 
     [Serializable]
-    public class ChannelException : Exception
+    class ChannelException : Exception
     {
         public ChannelException(int statusCode, string message) : base(message)
         {

@@ -1,8 +1,7 @@
 namespace NServiceBus.Gateway.Routing
 {
-    public interface IRouteMessagesToEndpoints
+    interface IRouteMessagesToEndpoints
     {
-        // ReSharper disable once UnusedParameter.Global        
         Address GetDestinationFor(TransportMessage messageToSend);
     }
 }

@@ -2,7 +2,7 @@ namespace NServiceBus.Gateway.Notifications
 {
     using System;
 
-    public class MessageReceivedOnChannelArgs : EventArgs
+    class MessageReceivedOnChannelArgs : EventArgs
     {
         public TransportMessage Message { get; set; }
         public string FromChannel { get; set; }

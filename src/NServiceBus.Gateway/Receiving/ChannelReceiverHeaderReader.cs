@@ -9,8 +9,7 @@ namespace NServiceBus.Gateway.Receiving
 
     static class ChannelReceiverHeaderReader
     {
-        
-        internal static CallInfo GetCallInfo(DataReceivedOnChannelArgs receivedData)
+        public static CallInfo GetCallInfo(DataReceivedOnChannelArgs receivedData)
         {
             return new CallInfo
                 {
@@ -37,7 +36,7 @@ namespace NServiceBus.Gateway.Receiving
             return TimeSpan.FromHours(1);
         }
 
-        internal static string ReadMd5(IDictionary<string, string> headers)
+        public static string ReadMd5(IDictionary<string, string> headers)
         {
             string md5;
             headers.TryGetValue(HttpHeaders.ContentMd5Key, out md5);
@@ -48,7 +47,8 @@ namespace NServiceBus.Gateway.Receiving
             }
             return md5;
         }
-        internal static string ReadDataBus(this CallInfo callInfo)
+
+        public static string ReadDataBus(this CallInfo callInfo)
         {
             string dataBus;
             callInfo.Headers.TryGetValue(GatewayHeaders.DatabusKey, out dataBus);
@@ -60,7 +60,7 @@ namespace NServiceBus.Gateway.Receiving
             return dataBus;
         }
 
-        internal static string ReadClientId(IDictionary<string, string> headers)
+        public static string ReadClientId(IDictionary<string, string> headers)
         {
             string clientIdString;
             headers.TryGetValue(GatewayHeaders.ClientIdHeader, out clientIdString);
@@ -71,7 +71,7 @@ namespace NServiceBus.Gateway.Receiving
             return clientIdString;
         }
 
-        internal static CallType ReadCallType(IDictionary<string, string> headers)
+        public static CallType ReadCallType(IDictionary<string, string> headers)
         {
             string callTypeString;
             CallType callType;

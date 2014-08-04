@@ -4,13 +4,7 @@ namespace NServiceBus.Gateway.Channels
     using System.Collections.Generic;
     using System.Linq;
 
-    public interface IChannelFactory
-    {
-        IChannelReceiver GetReceiver(string channelType);
-        IChannelSender GetSender(string channelType);
-    }
-
-    public class ChannelFactory : IChannelFactory
+    class ChannelFactory : IChannelFactory
     {
         public IChannelReceiver GetReceiver(string channelType)
         {
@@ -22,17 +16,19 @@ namespace NServiceBus.Gateway.Channels
             return Activator.CreateInstance(senders[channelType.ToLower()]) as IChannelSender;
         }
 
-
         public void RegisterReceiver(Type receiver)
         {
-            RegisterReceiver(receiver, receiver.Name.Substring(0, receiver.Name.IndexOf("Channel")));
+            var channelTypes =
+                receiver.GetCustomAttributes(true).OfType<ChannelTypeAttribute>().ToList();
+            if (channelTypes.Any())
+            {
+                channelTypes.ForEach(type => RegisterReceiver(receiver, type.Type));
+            }
+            else
+            {
+                RegisterReceiver(receiver, receiver.Name.Substring(0, receiver.Name.IndexOf("Channel")));
+            }
         }
-
-        public void RegisterReceiver(Type receiver, string type)
-        {
-            receivers.Add(type.ToLower(), receiver);
-        }
-
 
         public void RegisterSender(Type sender)
         {
@@ -48,7 +44,12 @@ namespace NServiceBus.Gateway.Channels
             }
         }
 
-        public void RegisterSender(Type sender, string type)
+        void RegisterReceiver(Type receiver, string type)
+        {
+            receivers.Add(type.ToLower(), receiver);
+        }
+
+        void RegisterSender(Type sender, string type)
         {
             senders.Add(type.ToLower(), sender);
         }

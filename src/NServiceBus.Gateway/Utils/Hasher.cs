@@ -5,7 +5,7 @@ namespace NServiceBus.Gateway.Utils
     using System.Security.Cryptography;
     using Receiving;
 
-    public class Hasher
+    class Hasher
     {
         public static string Hash(Stream stream)
         {
@@ -17,9 +17,8 @@ namespace NServiceBus.Gateway.Utils
             return Convert.ToBase64String(hash);
         }
 
-        internal static void Verify(Stream input, string md5Hash)
+        public static void Verify(Stream input, string md5Hash)
         {
-
             if (md5Hash != Hash(input))
             {
                 throw new ChannelException(412, "MD5 hash received does not match hash calculated on server. Please resubmit.");

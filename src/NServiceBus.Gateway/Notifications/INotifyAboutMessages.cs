@@ -2,7 +2,7 @@ namespace NServiceBus.Gateway.Notifications
 {
     using System;
 
-    public interface INotifyAboutMessages
+    interface INotifyAboutMessages
     {
         event EventHandler<MessageReceivedOnChannelArgs> MessageForwarded;
     }
