@@ -60,7 +60,7 @@ namespace NServiceBus.Core.Tests
         {
             Assert.Throws<ChannelException>(() => ChannelReceiverHeaderReader.ReadMd5( new Dictionary<string, string>
                         {
-                            {HttpHeaders.ContentMd5Key, ""},
+                            {HttpHeaders.ContentMD5, ""},
                         }));
         }
     }

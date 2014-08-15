@@ -39,11 +39,11 @@ namespace NServiceBus.Gateway.Receiving
         public static string ReadMd5(IDictionary<string, string> headers)
         {
             string md5;
-            headers.TryGetValue(HttpHeaders.ContentMd5Key, out md5);
+            headers.TryGetValue(HttpHeaders.ContentMD5, out md5);
 
             if (string.IsNullOrWhiteSpace(md5))
             {
-                throw new ChannelException(400, "Required header '" + HttpHeaders.ContentMd5Key + "' missing.");
+                throw new ChannelException(400, "Required header '" + HttpHeaders.ContentMD5 + "' missing.");
             }
             return md5;
         }

@@ -1,7 +1,13 @@
 namespace NServiceBus.Gateway.Channels.Http
 {
+    /// <summary>
+    /// Well known http headers.
+    /// </summary>
     static class HttpHeaders
     {
-        public const string ContentMd5Key = "Content-MD5";
+        /// <summary>
+        /// Content-MD5 http header.
+        /// </summary>
+        public const string ContentMD5 = "Content-MD5";
     }
 }
