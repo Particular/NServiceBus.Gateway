@@ -31,11 +31,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NServiceBus.AcceptanceTesting">
-      <HintPath>..\packages\NServiceBus.AcceptanceTesting.5.0.0-beta0002\lib\net45\NServiceBus.AcceptanceTesting.dll</HintPath>
+    <Reference Include="NServiceBus.AcceptanceTesting, Version=5.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NServiceBus.AcceptanceTesting.5.0.0-beta0003\lib\net45\NServiceBus.AcceptanceTesting.dll</HintPath>
     </Reference>
-    <Reference Include="NServiceBus.Core">
-      <HintPath>..\packages\NServiceBus.5.0.0-beta0002\lib\net45\NServiceBus.Core.dll</HintPath>
+    <Reference Include="NServiceBus.Core, Version=5.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NServiceBus.5.0.0-beta0003\lib\net45\NServiceBus.Core.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
@@ -60,6 +62,7 @@
   <ItemGroup>
     <Compile Include="EndpointTemplates\ConfigureExtensions.cs" />
     <Compile Include="EndpointTemplates\ContextAppender.cs" />
+    <Compile Include="EndpointTemplates\DefaultPublisher.cs" />
     <Compile Include="EndpointTemplates\DefaultServer.cs" />
     <Compile Include="NServiceBusAcceptanceTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

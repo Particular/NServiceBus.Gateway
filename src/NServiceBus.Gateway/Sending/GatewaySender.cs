@@ -23,6 +23,7 @@ namespace NServiceBus.Gateway.Sending
         public IManageReceiveChannels ChannelManager { get; set; }
         public IMessageNotifier Notifier { get; set; }
         public ISendMessages MessageSender { get; set; }
+        public Configure Configure { get; set; }
 
         public GatewayTransaction GatewayTransaction { get; set; }
        
@@ -95,7 +96,7 @@ namespace NServiceBus.Gateway.Sending
             
             forwarder.Forward(transportMessage, targetSite);
 
-            Notifier.RaiseMessageForwarded(Address.Local.ToString(), targetSite.Channel.Type, transportMessage);
+            Notifier.RaiseMessageForwarded(Configure.LocalAddress.ToString(), targetSite.Channel.Type, transportMessage);
         }
 
         string GetDefaultAddressForThisSite()

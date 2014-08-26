@@ -61,10 +61,10 @@ namespace NServiceBus.Gateway.HeaderManagement
             transportMessage.Headers[GatewayHeaders.LegacyMode] = returnInfo.LegacyMode.ToString();
         }
 
-        public void Init(Configure config)
+        public void Customize(BusConfiguration builder)
         {
-            config.Configurer.ConfigureComponent<GatewayHeaderManager>(
-                DependencyLifecycle.InstancePerCall);
+            builder.RegisterComponents(c => c.ConfigureComponent<GatewayHeaderManager>(
+                DependencyLifecycle.InstancePerCall));
         }
 
         [ThreadStatic] static HttpReturnInfo returnInfo;

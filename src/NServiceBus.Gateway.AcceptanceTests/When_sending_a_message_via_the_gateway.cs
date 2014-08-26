@@ -94,7 +94,7 @@
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.EnableFeature<Features.Gateway>();
-                    c.UseSerialization<Xml>();
+                    c.UseSerialization<XmlSerializer>();
                 })
                     .IncludeType<MyRequest>()
                     .WithConfig<GatewayConfig>(c =>
