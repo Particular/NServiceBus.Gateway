@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using Unicast;
 
     /// <summary>
     /// Gateways IBus extensions.
@@ -19,8 +20,8 @@
         public static ICallback SendToSites(this IBus bus, IEnumerable<string> siteKeys, object message)
         {
             bus.SetMessageHeader(message, Headers.DestinationSites, string.Join(",", siteKeys.ToArray()));
-            
-            return bus.Send(Settings.Get<Address>("MasterNode.Address").SubScope("gateway"), message);
+            var unicast = (UnicastBus)bus;
+            return bus.Send(unicast.Settings.Get<Address>("MasterNode.Address").SubScope("gateway"), message);
         }
     }
 }
