@@ -2,6 +2,7 @@ namespace NServiceBus.Gateway.Receiving
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using Channels;
     using Channels.Http;
     using HeaderManagement;
@@ -81,7 +82,7 @@ namespace NServiceBus.Gateway.Receiving
             }
             if (!Enum.TryParse(callTypeString, out callType))
             {
-                throw new ChannelException(400, string.Format("Invalid CallType '{0}'. CallTypes supported '{1}'", callTypeString, String.Join(", ", Enum.GetValues(typeof(CallType)))));
+                throw new ChannelException(400, string.Format("Invalid CallType '{0}'. CallTypes supported '{1}'", callTypeString, String.Join(", ", Enum.GetValues(typeof(CallType)).Cast<CallType>())));
             }
             return callType;
         }
