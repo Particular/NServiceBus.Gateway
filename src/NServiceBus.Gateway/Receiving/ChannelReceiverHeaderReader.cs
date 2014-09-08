@@ -81,7 +81,7 @@ namespace NServiceBus.Gateway.Receiving
             }
             if (!Enum.TryParse(callTypeString, out callType))
             {
-                throw new ChannelException(400, "Required header '" + GatewayHeaders.CallTypeHeader + "' missing.");
+                throw new ChannelException(400, string.Format("Invalid CallType '{0}'. CallTypes supported '{1}'", callTypeString, String.Join(", ", Enum.GetValues(typeof(CallType)))));
             }
             return callType;
         }
