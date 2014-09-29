@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{25AD2314-8D8F-4950-B12C-D80487E666C9}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NServiceBus.Gateway</RootNamespace>
+    <AssemblyName>NServiceBus.Gateway</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\NServiceBus.snk</AssemblyOriginatorKeyFile>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <DocumentationFile>bin\Debug\NServiceBus.Gateway.XML</DocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\NServiceBus.Gateway.XML</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="NServiceBus.Core, Version=5.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NServiceBus.5.0.0\lib\net45\NServiceBus.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Web" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="BusExtensions.cs" />
+    <Compile Include="Channels\Channel.cs" />
+    <Compile Include="Channels\ChannelFactory.cs" />
+    <Compile Include="Channels\ChannelTypeAttribute.cs" />
+    <Compile Include="Channels\DataReceivedOnChannelArgs.cs" />
+    <Compile Include="Channels\Http\HttpChannelReceiver.cs" />
+    <Compile Include="Channels\Http\HttpChannelSender.cs" />
+    <Compile Include="Channels\Http\HttpHeaders.cs" />
+    <Compile Include="Channels\Http\MTATaskScheduler.cs" />
+    <Compile Include="Channels\IChannelFactory.cs" />
+    <Compile Include="Channels\IChannelReceiver.cs" />
+    <Compile Include="Channels\IChannelSender.cs" />
+    <Compile Include="Channels\ReceiveChannel.cs" />
+    <Compile Include="Config\ChannelCollection.cs" />
+    <Compile Include="Config\ChannelConfig.cs" />
+    <Compile Include="Config\GatewayConfig.cs" />
+    <Compile Include="Config\SiteCollection.cs" />
+    <Compile Include="Config\SiteConfig.cs" />
+    <Compile Include="Gateway.cs" />
+    <Compile Include="GatewayExtensions.cs" />
+    <Compile Include="GatewayHttpListenerInstaller.cs" />
+    <Compile Include="GatewayTransaction.cs" />
+    <Compile Include="HeaderManagement\DataBusHeaderManager.cs" />
+    <Compile Include="HeaderManagement\GatewayHeaderManager.cs" />
+    <Compile Include="HeaderManagement\GatewayHeaders.cs" />
+    <Compile Include="Notifications\IMessageNotifier.cs" />
+    <Compile Include="Notifications\INotifyAboutMessages.cs" />
+    <Compile Include="Notifications\MessageNotifier.cs" />
+    <Compile Include="Notifications\MessageReceivedOnChannelArgs.cs" />
+    <Compile Include="Receiving\ChannelException.cs" />
+    <Compile Include="Receiving\ChannelReceiverHeaderReader.cs" />
+    <Compile Include="Receiving\ConfigurationBasedChannelManager.cs" />
+    <Compile Include="Receiving\ConventionBasedChannelManager.cs" />
+    <Compile Include="Receiving\GatewayReceiver.cs" />
+    <Compile Include="Receiving\IManageReceiveChannels.cs" />
+    <Compile Include="Receiving\IReceiveMessagesFromSites.cs" />
+    <Compile Include="Receiving\SingleCallChannelReceiver.cs" />
+    <Compile Include="Routing\Endpoints\DefaultEndpointRouter.cs" />
+    <Compile Include="Routing\IRouteMessagesToEndpoints.cs" />
+    <Compile Include="Routing\IRouteMessagesToSites.cs" />
+    <Compile Include="Routing\Site.cs" />
+    <Compile Include="Routing\Sites\ConfigurationBasedSiteRouter.cs" />
+    <Compile Include="Routing\Sites\KeyPrefixConventionSiteRouter.cs" />
+    <Compile Include="Routing\Sites\OriginatingSiteHeaderRouter.cs" />
+    <Compile Include="Sending\CallInfo.cs" />
+    <Compile Include="CallType.cs" />
+    <Compile Include="Sending\GatewaySender.cs" />
+    <Compile Include="Sending\IForwardMessagesToSites.cs" />
+    <Compile Include="Sending\SingleCallChannelForwarder.cs" />
+    <Compile Include="Utils\Hasher.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\GitVersionTask.1.3.0\Build\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.1.3.0\Build\GitVersionTask.targets'))" />
+    <Error Condition="!Exists('..\packages\NuGetPackager.0.1.6\build\NuGetPackager.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NuGetPackager.0.1.6\build\NuGetPackager.targets'))" />
+  </Target>
+  <Import Project="..\packages\GitVersionTask.1.3.0\Build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.1.3.0\Build\GitVersionTask.targets')" />
+  <Import Project="..\packages\NuGetPackager.0.1.6\build\NuGetPackager.targets" Condition="Exists('..\packages\NuGetPackager.0.1.6\build\NuGetPackager.targets')" />
+</Project>
