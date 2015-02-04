@@ -57,7 +57,7 @@ namespace NServiceBus.Gateway.Channels
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
-            return string.Format("{0},{1}", Type, Address);
+            return string.Format("Type='{0}', Address='{1}'", Type, Address);
         }
 
         /// <summary>
