@@ -82,7 +82,10 @@
                 callInfo.Data.CopyTo(stream);
                 stream.Position = 0;
 
-                Hasher.Verify(stream, callInfo.Md5);
+                if (callInfo.Md5 != null)
+                {
+                    Hasher.Verify(stream, callInfo.Md5);
+                }
 
                 var msg = CreatePhysicalMessage(headerManager.Reassemble(callInfo.ClientId, callInfo.Headers));
 
@@ -165,11 +168,13 @@
                 throw new InvalidOperationException("Databus transmission received without a configured databus");
             }
 
-
             var newDatabusKey = DataBus.Put(callInfo.Data, callInfo.TimeToBeReceived);
-            using (var databusStream = DataBus.Get(newDatabusKey))
+            if (callInfo.Md5 != null)
             {
-                Hasher.Verify(databusStream, callInfo.Md5);
+                using (var databusStream = DataBus.Get(newDatabusKey))
+                {
+                    Hasher.Verify(databusStream, callInfo.Md5);
+                }
             }
 
             var specificDataBusHeaderToUpdate = callInfo.ReadDataBus();

@@ -42,10 +42,6 @@ namespace NServiceBus.Gateway.Receiving
             string md5;
             headers.TryGetValue(HttpHeaders.ContentMD5, out md5);
 
-            if (string.IsNullOrWhiteSpace(md5))
-            {
-                throw new ChannelException(400, "Required header '" + HttpHeaders.ContentMD5 + "' missing.");
-            }
             return md5;
         }
 
