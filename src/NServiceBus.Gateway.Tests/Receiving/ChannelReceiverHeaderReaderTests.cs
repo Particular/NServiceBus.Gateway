@@ -1,7 +1,6 @@
 namespace NServiceBus.Core.Tests
 {
     using System.Collections.Generic;
-    using Gateway.Channels.Http;
     using Gateway.HeaderManagement;
     using Gateway.Receiving;
     using NUnit.Framework;
