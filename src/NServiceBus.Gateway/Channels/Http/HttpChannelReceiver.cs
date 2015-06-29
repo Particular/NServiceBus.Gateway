@@ -48,6 +48,15 @@ namespace NServiceBus.Gateway.Channels.Http
             {
                 listener.Close();
             }
+            try
+            {
+                receiverTask.Wait(TimeSpan.FromSeconds(10));
+            }
+            catch (AggregateException ex)
+            {
+                ex.Handle(e => e is TaskCanceledException);
+            }
+
             // Do not dispose the task, see http://blogs.msdn.com/b/pfxteam/archive/2012/03/25/10287435.aspx
             if (concurencyLimiter != null)
             {
