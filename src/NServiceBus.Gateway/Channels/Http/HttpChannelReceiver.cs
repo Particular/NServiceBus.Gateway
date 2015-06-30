@@ -122,7 +122,14 @@ namespace NServiceBus.Gateway.Channels.Http
                 try
                 {
                     var context = listener.GetContext();
-                    new Task(() => Handle(context)).Start(scheduler);
+
+                    Task.Factory
+                        .StartNew(
+                            () => Handle(context),
+                            cancellationToken,
+                            TaskCreationOptions.HideScheduler,
+                            scheduler
+                            );
                 }
                 catch (HttpListenerException ex)
                 {
