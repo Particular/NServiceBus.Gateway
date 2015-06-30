@@ -1,6 +1,7 @@
 namespace NServiceBus.Gateway.Channels.Http
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -14,16 +15,15 @@ namespace NServiceBus.Gateway.Channels.Http
 
     class HttpChannelReceiver : IChannelReceiver
     {
-        public event EventHandler<DataReceivedOnChannelArgs> DataReceived;
+        public event EventHandler<DataReceivedOnChannelArgs> DataReceived = delegate { };
 
         public void Start(string address, int numberOfWorkerThreads)
         {
+            concurencyLimiter = new SemaphoreSlim(numberOfWorkerThreads, numberOfWorkerThreads);
             tokenSource = new CancellationTokenSource();
             listener = new HttpListener();
 
             listener.Prefixes.Add(address);
-
-            scheduler = new MTATaskScheduler(numberOfWorkerThreads, String.Format("NServiceBus Gateway Channel Receiver Thread for [{0}]", address));
 
             try
             {
@@ -32,11 +32,11 @@ namespace NServiceBus.Gateway.Channels.Http
             catch (Exception ex)
             {
                 var message = string.Format("Failed to start listener for {0} make sure that you have admin privileges", address);
-                throw new Exception(message,ex);
+                throw new Exception(message, ex);
             }
 
             var token = tokenSource.Token;
-            Task.Factory.StartNew(HttpServer, token, token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            receiverTask = Task.Factory.StartNew(state => HandleRequestAsync(state), token, token, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
         }
 
         public void Dispose()
@@ -49,20 +49,78 @@ namespace NServiceBus.Gateway.Channels.Http
             {
                 listener.Close();
             }
-            if (scheduler != null)
+            try
             {
-                scheduler.Dispose();
+                receiverTask.Wait(TimeSpan.FromSeconds(10));
+            }
+            catch (AggregateException ex)
+            {
+                ex.Handle(e => e is TaskCanceledException);
+            }
+
+            try
+            {
+                Task.WaitAll(runningTasks.Values.ToArray());
+            }
+            catch (AggregateException ex)
+            {
+                ex.Handle(e => e is TaskCanceledException);
+            }
+
+            // Do not dispose the task, see http://blogs.msdn.com/b/pfxteam/archive/2012/03/25/10287435.aspx
+            if (concurencyLimiter != null)
+            {
+                concurencyLimiter.Dispose();
             }
         }
 
-        public void Handle(HttpListenerContext context)
+        private async Task HandleRequestAsync(object o)
+        {
+            var cancellationToken = (CancellationToken)o;
+
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    var context = await listener.GetContextAsync().ConfigureAwait(false);
+
+                    var worker = Task.Run(() => Handle(context, cancellationToken), cancellationToken);
+
+                    var runningTask = worker.ContinueWith(t =>
+                    {
+                        Task task;
+                        runningTasks.TryRemove(t, out task);
+                    }, cancellationToken);
+
+                    runningTasks.AddOrUpdate(runningTask, runningTask, (k, v) => runningTask).Forget();
+                }
+                catch (HttpListenerException ex)
+                {
+                    // a HttpListenerException can occur on listener.GetContext when we shutdown. this can be ignored
+                    if (!cancellationToken.IsCancellationRequested)
+                    {
+                        Logger.Error("Gateway failed to receive incoming request.", ex);
+                    }
+                    break;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    Logger.Error("Gateway failed to receive incoming request.", ex);
+                    break;
+                }
+            }
+        }
+
+        async Task Handle(HttpListenerContext context, CancellationToken token)
         {
             try
             {
+                await concurencyLimiter.WaitAsync(token).ConfigureAwait(false);
+
                 DataReceived(this, new DataReceivedOnChannelArgs
                 {
                     Headers = GetHeaders(context),
-                    Data = GetMessageStream(context)
+                    Data = await GetMessageStream(context, token).ConfigureAwait(false)
                 });
                 ReportSuccess(context);
 
@@ -77,9 +135,13 @@ namespace NServiceBus.Gateway.Channels.Http
                 Logger.Error("Unexpected error", ex);
                 CloseResponseAndWarn(context, "Unexpected server error", 502);
             }
+            finally
+            {
+                concurencyLimiter.Release();
+            }
         }
 
-        static MemoryStream GetMessageStream(HttpListenerContext context)
+        static async Task<MemoryStream> GetMessageStream(HttpListenerContext context, CancellationToken token)
         {
             if (context.Request.QueryString.AllKeys.Contains("Message"))
             {
@@ -90,7 +152,7 @@ namespace NServiceBus.Gateway.Channels.Http
 
             var streamToReturn = new MemoryStream();
 
-            context.Request.InputStream.CopyTo(streamToReturn, MaximumBytesToRead);
+            await context.Request.InputStream.CopyToAsync(streamToReturn, MaximumBytesToRead, token).ConfigureAwait(false);
             streamToReturn.Position = 0;
 
             return streamToReturn;
@@ -110,35 +172,6 @@ namespace NServiceBus.Gateway.Channels.Http
             }
 
             return headers;
-        }
-
-
-        void HttpServer(object o)
-        {
-            var cancellationToken = (CancellationToken) o;
-
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                try
-                {
-                    var context = listener.GetContext();
-                    new Task(() => Handle(context)).Start(scheduler);
-                }
-                catch (HttpListenerException ex)
-                {
-                    // a HttpListenerException can occur on listener.GetContext when we shutdown. this can be ignored
-                    if (!cancellationToken.IsCancellationRequested)
-                    {
-                        Logger.Error("Gateway failed to receive incoming request.", ex);
-                    }
-                    break;
-                }
-                catch (InvalidOperationException ex)
-                {
-                    Logger.Error("Gateway failed to receive incoming request.", ex);
-                    break;
-                }
-            }
         }
 
         static void ReportSuccess(HttpListenerContext context)
@@ -187,8 +220,10 @@ namespace NServiceBus.Gateway.Channels.Http
         const int MaximumBytesToRead = 100000;
 
         static ILog Logger = LogManager.GetLogger<HttpChannelReceiver>();
+        Task receiverTask;
+        ConcurrentDictionary<Task, Task> runningTasks = new ConcurrentDictionary<Task, Task>();
+        SemaphoreSlim concurencyLimiter;
         HttpListener listener;
-        MTATaskScheduler scheduler;
         CancellationTokenSource tokenSource;
     }
 }
