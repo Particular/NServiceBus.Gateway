@@ -1,6 +1,7 @@
 namespace NServiceBus.Gateway.Channels.Http
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -57,6 +58,15 @@ namespace NServiceBus.Gateway.Channels.Http
                 ex.Handle(e => e is TaskCanceledException);
             }
 
+            try
+            {
+                Task.WaitAll(runningTasks.Values.ToArray());
+            }
+            catch (AggregateException ex)
+            {
+                ex.Handle(e => e is TaskCanceledException);
+            }
+
             // Do not dispose the task, see http://blogs.msdn.com/b/pfxteam/archive/2012/03/25/10287435.aspx
             if (concurencyLimiter != null)
             {
@@ -74,9 +84,15 @@ namespace NServiceBus.Gateway.Channels.Http
                 {
                     var context = await listener.GetContextAsync().ConfigureAwait(false);
 
-                    await concurencyLimiter.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    var worker = Task.Run(() => Handle(context, cancellationToken), cancellationToken);
 
-                    await Task.Run(() => Handle(context, cancellationToken), cancellationToken).ConfigureAwait(false);
+                    var runningTask = worker.ContinueWith(t =>
+                    {
+                        Task task;
+                        runningTasks.TryRemove(t, out task);
+                    }, cancellationToken);
+
+                    runningTasks.AddOrUpdate(runningTask, runningTask, (k, v) => runningTask).Forget();
                 }
                 catch (HttpListenerException ex)
                 {
@@ -99,6 +115,8 @@ namespace NServiceBus.Gateway.Channels.Http
         {
             try
             {
+                await concurencyLimiter.WaitAsync(token).ConfigureAwait(false);
+
                 DataReceived(this, new DataReceivedOnChannelArgs
                 {
                     Headers = GetHeaders(context),
@@ -203,6 +221,7 @@ namespace NServiceBus.Gateway.Channels.Http
 
         static ILog Logger = LogManager.GetLogger<HttpChannelReceiver>();
         Task receiverTask;
+        ConcurrentDictionary<Task, Task> runningTasks = new ConcurrentDictionary<Task, Task>();
         SemaphoreSlim concurencyLimiter;
         HttpListener listener;
         CancellationTokenSource tokenSource;
