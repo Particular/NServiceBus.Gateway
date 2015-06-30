@@ -68,36 +68,30 @@ namespace NServiceBus.Gateway.Channels.Http
         {
             var cancellationToken = (CancellationToken)o;
 
-            try
+            while (!cancellationToken.IsCancellationRequested)
             {
-                await concurencyLimiter.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-                while (!cancellationToken.IsCancellationRequested)
+                try
                 {
-                    try
-                    {
-                        var context = await listener.GetContextAsync().ConfigureAwait(false);
-                        await Task.Run(() => Handle(context, cancellationToken), cancellationToken).ConfigureAwait(false);
-                    }
-                    catch (HttpListenerException ex)
-                    {
-                        // a HttpListenerException can occur on listener.GetContext when we shutdown. this can be ignored
-                        if (!cancellationToken.IsCancellationRequested)
-                        {
-                            Logger.Error("Gateway failed to receive incoming request.", ex);
-                        }
-                        break;
-                    }
-                    catch (InvalidOperationException ex)
+                    var context = await listener.GetContextAsync().ConfigureAwait(false);
+
+                    await concurencyLimiter.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+                    await Task.Run(() => Handle(context, cancellationToken), cancellationToken).ConfigureAwait(false);
+                }
+                catch (HttpListenerException ex)
+                {
+                    // a HttpListenerException can occur on listener.GetContext when we shutdown. this can be ignored
+                    if (!cancellationToken.IsCancellationRequested)
                     {
                         Logger.Error("Gateway failed to receive incoming request.", ex);
-                        break;
                     }
+                    break;
                 }
-            }
-            finally
-            {
-                concurencyLimiter.Release();
+                catch (InvalidOperationException ex)
+                {
+                    Logger.Error("Gateway failed to receive incoming request.", ex);
+                    break;
+                }
             }
         }
 
@@ -122,6 +116,10 @@ namespace NServiceBus.Gateway.Channels.Http
             {
                 Logger.Error("Unexpected error", ex);
                 CloseResponseAndWarn(context, "Unexpected server error", 502);
+            }
+            finally
+            {
+                concurencyLimiter.Release();
             }
         }
 
