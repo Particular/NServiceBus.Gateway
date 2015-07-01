@@ -19,7 +19,6 @@ namespace NServiceBus.Gateway.Tests.Routing
                                      {
                                          Type = "http",
                                          Address = "http://x.y"
-
                                      };
 
             message.Headers.Add(Headers.OriginatingSite, defaultChannel.ToString());
