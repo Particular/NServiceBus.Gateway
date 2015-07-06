@@ -86,13 +86,14 @@ namespace NServiceBus.Gateway.Channels.Http
 
                     var worker = Task.Run(() => Handle(context, cancellationToken), cancellationToken);
 
-                    var runningTask = worker.ContinueWith(t =>
+                    worker.ContinueWith(t =>
                     {
                         Task task;
-                        runningTasks.TryRemove(t, out task);
-                    }, cancellationToken);
+                        runningTasks.TryRemove(worker, out task);
+                    }, cancellationToken, TaskContinuationOptions.AttachedToParent, TaskScheduler.Default)
+                    .Forget();
 
-                    runningTasks.AddOrUpdate(runningTask, runningTask, (k, v) => runningTask).Forget();
+                    runningTasks.AddOrUpdate(worker, worker, (k, v) => worker).Forget();
                 }
                 catch (HttpListenerException ex)
                 {
@@ -125,6 +126,10 @@ namespace NServiceBus.Gateway.Channels.Http
                 ReportSuccess(context);
 
                 Logger.Debug("Http request processing complete.");
+            }
+            catch (OperationCanceledException ex)
+            {
+                Logger.Info("Operation cancelled while shutting down the gateway", ex);
             }
             catch (ChannelException ex)
             {
