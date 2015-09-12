@@ -22,7 +22,13 @@ namespace NServiceBus.Gateway.Tests.HeaderManagement
             addressOfOriginatingEndpoint = Address.Parse( "EndpointLocatedInSiteA");
 
 
-            incomingMessage = new TransportMessage(Guid.NewGuid().ToString(), new Dictionary<string, string>() { { Headers.ReplyToAddress, addressOfOriginatingEndpoint.ToString()} });
+            var existingHeaders = new Dictionary<string, string>
+            {
+                {
+                    Headers.ReplyToAddress, addressOfOriginatingEndpoint.ToString()
+                }
+            };
+            incomingMessage = new TransportMessage(Guid.NewGuid().ToString(), existingHeaders);
 
             incomingMessage.Headers[Headers.OriginatingSite] = originatingSite;
             incomingMessage.Headers[Headers.HttpFrom] = originatingSite;

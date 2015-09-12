@@ -54,7 +54,7 @@ namespace NServiceBus.Gateway.Channels
             senders.Add(type.ToLower(), sender);
         }
 
-        readonly IDictionary<string, Type> receivers = new Dictionary<string, Type>();
-        readonly IDictionary<string, Type> senders = new Dictionary<string, Type>();
+        Dictionary<string, Type> receivers = new Dictionary<string, Type>();
+        Dictionary<string, Type> senders = new Dictionary<string, Type>();
     }
 }

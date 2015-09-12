@@ -10,7 +10,7 @@
         {
             lock (headers)
             {
-                IDictionary<string, string> collection;
+                Dictionary<string, string> collection;
                 if (!headers.TryGetValue(clientId, out collection))
                 {
                     collection = new Dictionary<string, string>();
@@ -31,7 +31,7 @@
 
             lock (headers)
             {
-                IDictionary<string, string> collection;
+                Dictionary<string, string> collection;
                 if (!headers.TryGetValue(clientId, out collection))
                 {
                     var message = string.Format("Expected {0} databus properties. None were received. Please resubmit.",expectedDatabusProperties.Count);
@@ -54,7 +54,7 @@
             return input;
         }
 
-        readonly IDictionary<string, IDictionary<string, string>> headers 
-            = new Dictionary<string, IDictionary<string, string>>();
+        Dictionary<string, Dictionary<string, string>> headers 
+            = new Dictionary<string, Dictionary<string, string>>();
     }
 }

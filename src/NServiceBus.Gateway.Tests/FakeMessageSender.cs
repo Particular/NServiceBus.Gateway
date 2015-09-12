@@ -30,7 +30,7 @@
         }
 
         SendDetails details;
-        readonly ManualResetEvent messageReceived;
+        ManualResetEvent messageReceived;
 
         public class SendDetails
         {

@@ -18,11 +18,11 @@ namespace NServiceBus
     /// <summary>Provides a scheduler that uses MTA threads.</summary>
     sealed class MTATaskScheduler : TaskScheduler, IDisposable
     {
-        private bool disposed;
+        bool disposed;
         /// <summary>Stores the queued tasks to be executed by our pool of STA threads.</summary>
-        private BlockingCollection<Task> tasks;
+        BlockingCollection<Task> tasks;
         /// <summary>The MTA threads used by the scheduler.</summary>
-        private readonly List<Thread> _threads;
+        List<Thread> threads;
 
         /// <summary>Initializes a new instance of the MTATaskScheduler class with the specified concurrency level.</summary>
         /// <param name="numberOfThreads">The number of threads that should be created and used by this scheduler.</param>
@@ -36,7 +36,7 @@ namespace NServiceBus
             tasks = new BlockingCollection<Task>();
 
             // Create the threads to be used by this scheduler
-            _threads = Enumerable.Range(0, numberOfThreads).Select(i =>
+            threads = Enumerable.Range(0, numberOfThreads).Select(i =>
                        {
                            var thread = new Thread(() =>
                            {
@@ -56,7 +56,7 @@ namespace NServiceBus
                        }).ToList();
 
             // Start all of the threads
-            _threads.ForEach(t => t.Start());
+            threads.ForEach(t => t.Start());
         }
 
         /// <summary>Queues a Task to be executed by this scheduler.</summary>
@@ -87,7 +87,7 @@ namespace NServiceBus
         /// <summary>Gets the maximum concurrency level supported by this scheduler.</summary>
         public override int MaximumConcurrencyLevel
         {
-            get { return _threads.Count; }
+            get { return threads.Count; }
         }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace NServiceBus
                 tasks.CompleteAdding();
 
                 // Wait for all threads to finish processing tasks
-                foreach (var thread in _threads)
+                foreach (var thread in threads)
                 {
                     thread.Join();
                 }

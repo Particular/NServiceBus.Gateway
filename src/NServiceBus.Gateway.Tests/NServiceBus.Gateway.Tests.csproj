@@ -54,7 +54,6 @@
     <Compile Include="FakeMessageSender.cs" />
     <Compile Include="FakeTransport.cs" />
     <Compile Include="HeaderManagement\When_receiving_a_message_from_another_site.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Receiving\ChannelReceiverHeaderReaderTests.cs" />
     <Compile Include="Receiving\HasherTests.cs" />
     <Compile Include="RegularMessage.cs" />
@@ -73,11 +72,4 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

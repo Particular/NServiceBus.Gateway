@@ -1,20 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.Gateway", "NServiceBus.Gateway\NServiceBus.Gateway.csproj", "{25AD2314-8D8F-4950-B12C-D80487E666C9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.Gateway.Tests", "NServiceBus.Gateway.Tests\NServiceBus.Gateway.Tests.csproj", "{D74233B9-F8A2-4C17-BFD9-0ED50025C1B5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.Gateway.AcceptanceTests", "NServiceBus.Gateway.AcceptanceTests\NServiceBus.Gateway.AcceptanceTests.csproj", "{A294B9AD-3AC4-4A1D-8A51-14921F35AD08}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{2363B7C9-41EE-43BE-97A7-38A42A181C7D}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C8CB39B4-1287-49D4-8A35-19EC854F88EC}"
-	ProjectSection(SolutionItems) = preProject
-		..\packaging\nuget\nservicebus.gateway.nuspec = ..\packaging\nuget\nservicebus.gateway.nuspec
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

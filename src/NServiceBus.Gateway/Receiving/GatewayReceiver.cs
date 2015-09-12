@@ -83,6 +83,6 @@ namespace NServiceBus.Gateway.Receiving
         }
 
         static ILog Logger = LogManager.GetLogger<GatewayReceiver>();
-        readonly ICollection<IReceiveMessagesFromSites> activeReceivers;
+        List<IReceiveMessagesFromSites> activeReceivers;
     }
 }
