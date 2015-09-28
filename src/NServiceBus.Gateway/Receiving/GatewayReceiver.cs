@@ -45,14 +45,14 @@ namespace NServiceBus.Gateway.Receiving
             return true;
         }
 
-        public Address InputAddress
+        public string InputAddress
         {
             get { return null; }
         }
 
         public bool Disabled { get; set; }
 
-        public Address ReplyToAddress { get; set; }
+        public string ReplyToAddress { get; set; }
 
         public void Start()
         {

@@ -14,6 +14,7 @@
     using NServiceBus.Gateway.Routing.Endpoints;
     using NServiceBus.Gateway.Routing.Sites;
     using NServiceBus.Gateway.Sending;
+    using Transports;
 
     /// <summary>
     /// Used to configure the gateway.
@@ -39,7 +40,12 @@
                 txConfig.ConfigureProperty(c => c.ConfiguredTimeout, configSection.TransactionTimeout);
             }
 
-            var gatewayInputAddress = Address.Parse(context.Settings.EndpointName()).SubScope("gateway");
+            string gatewayInputAddress;
+
+            var consistencyGuarantee = context.Settings.Get<TransportDefinition>().GetDefaultConsistencyGuarantee();
+
+            var gatewayPipeline = context.AddSatellitePipeline("Gateway", "gateway", consistencyGuarantee, PushRuntimeSettings.Default, out gatewayInputAddress);
+            gatewayPipeline.Register<MoveFaultsToErrorQueueBehavior.Registration>();
 
             ConfigureChannels(context);
 
@@ -69,7 +75,7 @@
             context.Container.RegisterSingleton<IChannelFactory>(channelFactory);
         }
 
-        static void ConfigureSender(FeatureConfigurationContext context, Address gatewayInputAddress)
+        static void ConfigureSender(FeatureConfigurationContext context, string gatewayInputAddress)
         {
             if (!context.Container.HasComponent<IForwardMessagesToSites>())
             {
@@ -114,7 +120,7 @@
                 .ConfigureProperty(p => p.Sites, sites);
         }
 
-        static void ConfigureReceiver(FeatureConfigurationContext context, Address gatewayInputAddress)
+        static void ConfigureReceiver(FeatureConfigurationContext context, string gatewayInputAddress)
         {
             if (!context.Container.HasComponent<IReceiveMessagesFromSites>())
             {
@@ -128,13 +134,13 @@
 
             context.Container.ConfigureComponent<DataBusHeaderManager>(DependencyLifecycle.InstancePerCall);
 
-            var endpointName = context.Settings.EndpointName();
+            var endpointName = context.Settings.EndpointName().ToString();
 
             context.Container.ConfigureComponent<GatewayHttpListenerInstaller>(DependencyLifecycle.InstancePerCall)
                 .ConfigureProperty(t => t.Enabled, true);
 
             context.Container.ConfigureComponent<DefaultEndpointRouter>(DependencyLifecycle.SingleInstance)
-                .ConfigureProperty(x => x.MainInputAddress, Address.Parse(endpointName));
+                .ConfigureProperty(x => x.MainInputAddress, endpointName);
 
             context.Container.ConfigureComponent<GatewayReceiver>(DependencyLifecycle.SingleInstance)
                 .ConfigureProperty(t => t.ReplyToAddress, gatewayInputAddress)

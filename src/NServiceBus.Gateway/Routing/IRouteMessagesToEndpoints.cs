@@ -6,12 +6,12 @@ namespace NServiceBus.Gateway.Routing
     public interface IRouteMessagesToEndpoints
     {
         /// <summary>
-        /// Retrieves the <see cref="Address"/> to forward the message to.
+        /// Retrieves the address to forward the message to.
         /// </summary>
         /// <param name="messageToSend">The message to send.</param>
         /// <returns>The destination address.</returns>
 // ReSharper disable UnusedParameter.Global
-        Address GetDestinationFor(TransportMessage messageToSend);
+        string GetDestinationFor(TransportMessage messageToSend);
 // ReSharper restore UnusedParameter.Global
     }
 }

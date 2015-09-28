@@ -2,9 +2,9 @@ namespace NServiceBus.Gateway.Routing.Endpoints
 {
     class DefaultEndpointRouter : IRouteMessagesToEndpoints
     {
-        public Address MainInputAddress { get; set; }
+        public string MainInputAddress { get; set; }
 
-        public Address GetDestinationFor(TransportMessage messageToSend)
+        public string GetDestinationFor(TransportMessage messageToSend)
         {
             return MainInputAddress;
         }
