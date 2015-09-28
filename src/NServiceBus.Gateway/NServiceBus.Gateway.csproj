@@ -100,7 +100,7 @@
     <Compile Include="Routing\Sites\OriginatingSiteHeaderRouter.cs" />
     <Compile Include="Sending\CallInfo.cs" />
     <Compile Include="CallType.cs" />
-    <Compile Include="Sending\GatewaySender.cs" />
+    <Compile Include="Sending\GatewaySendBehavior.cs" />
     <Compile Include="Sending\IForwardMessagesToSites.cs" />
     <Compile Include="Sending\SingleCallChannelForwarder.cs" />
     <Compile Include="Utils\Hasher.cs" />

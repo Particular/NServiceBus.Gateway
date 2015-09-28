@@ -14,6 +14,7 @@
     using NServiceBus.Gateway.Routing.Endpoints;
     using NServiceBus.Gateway.Routing.Sites;
     using NServiceBus.Gateway.Sending;
+    using Pipeline;
     using Transports;
 
     /// <summary>
@@ -45,13 +46,12 @@
             var consistencyGuarantee = context.Settings.Get<TransportDefinition>().GetDefaultConsistencyGuarantee();
 
             var gatewayPipeline = context.AddSatellitePipeline("Gateway", "gateway", consistencyGuarantee, PushRuntimeSettings.Default, out gatewayInputAddress);
-            gatewayPipeline.Register<MoveFaultsToErrorQueueBehavior.Registration>();
 
             ConfigureChannels(context);
 
             ConfigureReceiver(context, gatewayInputAddress);
 
-            ConfigureSender(context, gatewayInputAddress);
+            ConfigureSender(context, gatewayPipeline);
         }
 
         static void ConfigureChannels(FeatureConfigurationContext context)
@@ -75,7 +75,7 @@
             context.Container.RegisterSingleton<IChannelFactory>(channelFactory);
         }
 
-        static void ConfigureSender(FeatureConfigurationContext context, string gatewayInputAddress)
+        static void ConfigureSender(FeatureConfigurationContext context, PipelineSettings gateWayPipeline)
         {
             if (!context.Container.HasComponent<IForwardMessagesToSites>())
             {
@@ -83,9 +83,7 @@
             }
 
             context.Container.ConfigureComponent<MessageNotifier>(DependencyLifecycle.SingleInstance);
-            context.Container.ConfigureComponent<GatewaySender>(DependencyLifecycle.SingleInstance)
-                .ConfigureProperty(t => t.InputAddress, gatewayInputAddress)
-                .ConfigureProperty(t => t.Disabled, false);
+            gateWayPipeline.Register<GatewaySendBehavior.Registration>();
 
             var configSection = context.Settings.GetConfigSection<GatewayConfig>();
 
