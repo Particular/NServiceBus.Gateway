@@ -1,20 +1,20 @@
 namespace NServiceBus.Gateway.HeaderManagement
 {
     using System;
+    using System.Threading.Tasks;
     using MessageMutator;
-    using Unicast.Messages;
 
-    class GatewayHeaderManager : IMutateTransportMessages, INeedInitialization
+    class GatewayHeaderManager : IMutateIncomingTransportMessages, IMutateOutgoingTransportMessages, INeedInitialization
     {
-        public void MutateIncoming(TransportMessage transportMessage)
+        public Task MutateIncoming(MutateIncomingTransportMessageContext context)
         {
             returnInfo = null;
 
-            var headers = transportMessage.Headers;
+            var headers = context.Headers;
             if (!headers.ContainsKey(Headers.HttpFrom) &&
                 !headers.ContainsKey(Headers.OriginatingSite))
             {
-                return;
+                return Task.FromResult(0);
             }
 
             string originatingSite;
@@ -26,39 +26,44 @@ namespace NServiceBus.Gateway.HeaderManagement
                 //we preserve the httpFrom to be backwards compatible with NServiceBus 2.X 
                 HttpFrom = httpFrom,
                 OriginatingSite = originatingSite,
-                ReplyToAddress = transportMessage.ReplyToAddress,
-                LegacyMode = transportMessage.IsLegacyGatewayMessage()
+                ReplyToAddress = headers[Headers.ReplyToAddress],
+                LegacyMode = headers.IsLegacyGatewayMessage()
             };
+
+            return Task.FromResult(0);
         }
 
-        public void MutateOutgoing(LogicalMessage logicalMessage, TransportMessage transportMessage)
+        public Task MutateOutgoing(MutateOutgoingTransportMessageContext context)
         {
             if (returnInfo == null)
             {
-                return;
+                return Task.FromResult(0);
             }
 
-            if (string.IsNullOrEmpty(transportMessage.CorrelationId))
+            var headers = context.OutgoingHeaders;
+            if (string.IsNullOrEmpty(headers[Headers.CorrelationId]))
             {
-                return;
+                return Task.FromResult(0);
             }
 
-            if (transportMessage.Headers.ContainsKey(Headers.HttpTo) ||
-                transportMessage.Headers.ContainsKey(Headers.DestinationSites))
+            if (headers.ContainsKey(Headers.HttpTo) ||
+                headers.ContainsKey(Headers.DestinationSites))
             {
-                return;
+                return Task.FromResult(0);
             }
 
-            transportMessage.Headers[Headers.HttpTo] = returnInfo.HttpFrom;
-            transportMessage.Headers[Headers.OriginatingSite] = returnInfo.OriginatingSite;
+            headers[Headers.HttpTo] = returnInfo.HttpFrom;
+            headers[Headers.OriginatingSite] = returnInfo.OriginatingSite;
 
-            if (!transportMessage.Headers.ContainsKey(Headers.RouteTo))
+            if (!headers.ContainsKey(Headers.RouteTo))
             {
-                transportMessage.Headers[Headers.RouteTo] = returnInfo.ReplyToAddress.ToString();
+                headers[Headers.RouteTo] = returnInfo.ReplyToAddress;
             }
 
             // send to be backwards compatible with Gateway 3.X
-            transportMessage.Headers[GatewayHeaders.LegacyMode] = returnInfo.LegacyMode.ToString();
+            headers[GatewayHeaders.LegacyMode] = returnInfo.LegacyMode.ToString();
+
+            return Task.FromResult(0);
         }
 
         public void Customize(BusConfiguration builder)
@@ -67,13 +72,15 @@ namespace NServiceBus.Gateway.HeaderManagement
                 DependencyLifecycle.InstancePerCall));
         }
 
+        // TODO: Evil!!! 
+        // TODO: We need a way to float data between incoming and outgoing mutators
         [ThreadStatic] static HttpReturnInfo returnInfo;
 
         class HttpReturnInfo
         {
             public string HttpFrom { get; set; }
             public string OriginatingSite { get; set; }
-            public Address ReplyToAddress { get; set; }
+            public string ReplyToAddress { get; set; }
             public bool LegacyMode { get; set; }
         }
     }
