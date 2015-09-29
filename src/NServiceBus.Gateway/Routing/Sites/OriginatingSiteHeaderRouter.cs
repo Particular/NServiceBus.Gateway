@@ -5,16 +5,16 @@ namespace NServiceBus.Gateway.Routing.Sites
 
     class OriginatingSiteHeaderRouter : IRouteMessagesToSites
     {
-        public IEnumerable<Site> GetDestinationSitesFor(TransportMessage messageToDispatch)
+        public IEnumerable<Site> GetDestinationSitesFor(Dictionary<string, string> headers)
         {
             string originatingSite;
-            if (messageToDispatch.Headers.TryGetValue(Headers.OriginatingSite, out originatingSite))
+            if (headers.TryGetValue(Headers.OriginatingSite, out originatingSite))
             {
                 yield return new Site
                 {
                     Channel = Channel.Parse(originatingSite),
                     Key = "Default reply channel",
-                    LegacyMode = messageToDispatch.IsLegacyGatewayMessage()
+                    LegacyMode = headers.IsLegacyGatewayMessage()
                 };
             }
         }

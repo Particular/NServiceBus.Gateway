@@ -4,7 +4,9 @@
     using System.Collections.Generic;
     using System.Linq;
     using Config;
+    using Extensibility;
     using Installation;
+    using Logging;
     using NServiceBus.Gateway;
     using NServiceBus.Gateway.Channels;
     using NServiceBus.Gateway.HeaderManagement;
@@ -15,6 +17,7 @@
     using NServiceBus.Gateway.Routing.Sites;
     using NServiceBus.Gateway.Sending;
     using Pipeline;
+    using Routing;
     using Transports;
 
     /// <summary>
@@ -24,6 +27,7 @@
     {
         internal Gateway()
         {
+            RegisterStartupTask<GatewayReceiverStartupTask>();
         }
 
         /// <summary>
@@ -51,7 +55,7 @@
 
             ConfigureReceiver(context, gatewayInputAddress);
 
-            ConfigureSender(context, gatewayPipeline);
+            ConfigureSender(context, gatewayPipeline, gatewayInputAddress);
         }
 
         static void ConfigureChannels(FeatureConfigurationContext context)
@@ -75,7 +79,7 @@
             context.Container.RegisterSingleton<IChannelFactory>(channelFactory);
         }
 
-        static void ConfigureSender(FeatureConfigurationContext context, PipelineSettings gateWayPipeline)
+        static void ConfigureSender(FeatureConfigurationContext context, PipelineSettings gateWayPipeline, string gatewayInputAddress)
         {
             if (!context.Container.HasComponent<IForwardMessagesToSites>())
             {
@@ -83,6 +87,8 @@
             }
 
             context.Container.ConfigureComponent<MessageNotifier>(DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent<GatewaySendBehavior>(DependencyLifecycle.InstancePerCall)
+                .ConfigureProperty(b => b.InputAddress, gatewayInputAddress);
             gateWayPipeline.Register<GatewaySendBehavior.Registration>();
 
             var configSection = context.Settings.GetConfigSection<GatewayConfig>();
@@ -130,6 +136,9 @@
                 context.Container.ConfigureComponent<Func<IReceiveMessagesFromSites>>(builder => () => builder.Build<IReceiveMessagesFromSites>(), DependencyLifecycle.InstancePerCall);
             }
 
+            context.Container.ConfigureComponent<GatewayReceiverStartupTask>(DependencyLifecycle.InstancePerCall)
+                .ConfigureProperty(t => t.ReplyToAddress, gatewayInputAddress);
+
             context.Container.ConfigureComponent<DataBusHeaderManager>(DependencyLifecycle.InstancePerCall);
 
             var endpointName = context.Settings.EndpointName().ToString();
@@ -139,10 +148,77 @@
 
             context.Container.ConfigureComponent<DefaultEndpointRouter>(DependencyLifecycle.SingleInstance)
                 .ConfigureProperty(x => x.MainInputAddress, endpointName);
+        }
 
-            context.Container.ConfigureComponent<GatewayReceiver>(DependencyLifecycle.SingleInstance)
-                .ConfigureProperty(t => t.ReplyToAddress, gatewayInputAddress)
-                .ConfigureProperty(t => t.Disabled, false);
+        class GatewayReceiverStartupTask : FeatureStartupTask
+        {
+            public GatewayReceiverStartupTask(IManageReceiveChannels channelManager, IRouteMessagesToEndpoints endpointRouter, IDispatchMessages dispatcher, Func<IReceiveMessagesFromSites> receiveMessagesFromSitesFactory)
+            {
+                dispatchMessages = dispatcher;
+                routeMessagesToEndpoints = endpointRouter;
+                this.receiveMessagesFromSitesFactory = receiveMessagesFromSitesFactory;
+                manageReceiveChannels = channelManager;
+            }
+
+            public string ReplyToAddress { get; set; }
+
+            protected override void OnStart()
+            {
+                foreach (var receiveChannel in manageReceiveChannels.GetReceiveChannels())
+                {
+                    var receiver = receiveMessagesFromSitesFactory();
+
+                    receiver.MessageReceived += MessageReceivedOnChannel;
+                    receiver.Start(receiveChannel, receiveChannel.NumberOfWorkerThreads);
+                    activeReceivers.Add(receiver);
+
+                    Logger.InfoFormat("Receive channel started: {0}", receiveChannel);
+                }
+            }
+
+            protected override void OnStop()
+            {
+                Logger.InfoFormat("Receiver is shutting down");
+
+                foreach (var channelReceiver in activeReceivers)
+                {
+                    Logger.InfoFormat("Stopping channel - {0}", channelReceiver.GetType());
+
+                    channelReceiver.MessageReceived -= MessageReceivedOnChannel;
+
+                    channelReceiver.Dispose();
+                }
+
+                activeReceivers.Clear();
+
+                Logger.InfoFormat("Receiver shutdown complete"); base.OnStop();
+            }
+
+            void MessageReceivedOnChannel(object sender, MessageReceivedOnChannelArgs e)
+            {
+                var body = e.Body;
+                var headers = e.Headers;
+
+                var destination = routeMessagesToEndpoints.GetDestinationFor(headers);
+
+                Logger.Info("Sending message to " + destination);
+
+                var outgoingMessage = new OutgoingMessage(headers[Headers.MessageId], headers, body);
+                outgoingMessage.Headers[Headers.ReplyToAddress] = ReplyToAddress;
+                var dispatchOptions = new DispatchOptions(new DirectToTargetDestination(destination), new ContextBag());
+                var operation = new TransportOperation(outgoingMessage, dispatchOptions);
+                dispatchMessages.Dispatch(new[]
+                {
+                    operation
+                }).GetAwaiter().GetResult();
+            }
+
+            static ILog Logger = LogManager.GetLogger<GatewayReceiverStartupTask>();
+            readonly ICollection<IReceiveMessagesFromSites> activeReceivers = new List<IReceiveMessagesFromSites>();
+            readonly IManageReceiveChannels manageReceiveChannels;
+            readonly Func<IReceiveMessagesFromSites> receiveMessagesFromSitesFactory;
+            readonly IRouteMessagesToEndpoints routeMessagesToEndpoints;
+            readonly IDispatchMessages dispatchMessages;
         }
     }
 }

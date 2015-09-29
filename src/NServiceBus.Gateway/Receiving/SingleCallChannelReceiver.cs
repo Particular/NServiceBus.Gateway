@@ -24,7 +24,7 @@
         }
 
         public IDataBus DataBus { get; set; }
-        public event EventHandler<MessageReceivedOnChannelArgs> MessageReceived;
+        public event EventHandler<MessageReceivedOnChannelArgs> MessageReceived = delegate { };
 
         public void Start(Channel channel, int numberOfWorkerThreads)
         {
@@ -47,8 +47,7 @@
                 channelReceiver.Dispose();
             }
         }
-
-
+        
         void DataReceivedOnChannel(object sender, DataReceivedOnChannelArgs e)
         {
             using (e.Data)
@@ -87,19 +86,19 @@
                     Hasher.Verify(stream, callInfo.Md5);
                 }
 
-                var msg = CreatePhysicalMessage(headerManager.Reassemble(callInfo.ClientId, callInfo.Headers));
+                var headers = CreateHeaders(headerManager.Reassemble(callInfo.ClientId, callInfo.Headers));
 
                 if (IsMsmqTransport)
                 {
-                    msg.CorrelationId = StripSlashZeroFromCorrelationId(msg.CorrelationId);
+                    headers[Headers.CorrelationId] = StripSlashZeroFromCorrelationId(headers[Headers.CorrelationId]);
                 }
           
-                msg.Body = new byte[stream.Length];
-                stream.Read(msg.Body, 0, msg.Body.Length);
+                var body = new byte[stream.Length];
+                stream.Read(body, 0, body.Length);
 
-                if (deduplicator.DeduplicateMessage(callInfo.ClientId, DateTime.UtcNow))
+                if (deduplicator.DeduplicateMessage(callInfo.ClientId, DateTime.UtcNow).GetAwaiter().GetResult())
                 {
-                    MessageReceived(this, new MessageReceivedOnChannelArgs { Message = msg });
+                    MessageReceived(this, new MessageReceivedOnChannelArgs { Body = body, Headers = headers });
                 }
                 else
                 {
@@ -108,40 +107,42 @@
             }
         }
 
-        static TransportMessage CreatePhysicalMessage(IDictionary<string, string> from)
+        static Dictionary<string, string> CreateHeaders(IDictionary<string, string> from)
         {
+            var headers = new Dictionary<string, string>();
             if (!from.ContainsKey(GatewayHeaders.IsGatewayMessage))
             {
-                var message = new TransportMessage();
                 foreach (var header in from)
                 {
-                    message.Headers[header.Key] = header.Value;
+                    headers[header.Key] = header.Value;
                 }
 
-                return message;
+                return headers;
             }
 
-            var headers = ExtractHeaders(from);
+            headers = ExtractHeaders(from);
             var to = new TransportMessage(from[NServiceBus + Id], headers);
 
-            to.CorrelationId = from[NServiceBus + CorrelationId] ?? to.Id;
+            headers[Headers.CorrelationId] = from[NServiceBus + CorrelationId] ?? to.Id;
 
             bool recoverable;
             if (bool.TryParse(from[NServiceBus + Recoverable], out recoverable))
             {
-                to.Recoverable = recoverable;
+                // TODO: How to handle this?
+                // to.Recoverable = recoverable;
             }
 
             TimeSpan timeToBeReceived;
             TimeSpan.TryParse(from[NServiceBus + TimeToBeReceived], out timeToBeReceived);
-            to.TimeToBeReceived = timeToBeReceived;
+            // TODO: How to handle this?
+            // headers[Headers.TimeToBeReceived] = timeToBeReceived;
 
-            if (to.TimeToBeReceived < MinimumTimeToBeReceived)
-            {
-                to.TimeToBeReceived = MinimumTimeToBeReceived;
-            }
+            //if (to.TimeToBeReceived < MinimumTimeToBeReceived)
+            //{
+            //    to.TimeToBeReceived = MinimumTimeToBeReceived;
+            //}
 
-            return to;
+            return headers;
         }
 
         static Dictionary<string, string> ExtractHeaders(IDictionary<string, string> from)
@@ -152,7 +153,7 @@
             {
                 if (pair.Key.Contains(NServiceBus + Headers.HeaderName))
                 {
-                    result.Add(pair.Key.Replace(NServiceBus + Headers.HeaderName + ".", String.Empty), pair.Value);
+                    result.Add(pair.Key.Replace(NServiceBus + Headers.HeaderName + ".", string.Empty), pair.Value);
                 }
             }
 
@@ -168,10 +169,10 @@
                 throw new InvalidOperationException("Databus transmission received without a configured databus");
             }
 
-            var newDatabusKey = DataBus.Put(callInfo.Data, callInfo.TimeToBeReceived);
+            var newDatabusKey = DataBus.Put(callInfo.Data, callInfo.TimeToBeReceived).GetAwaiter().GetResult();
             if (callInfo.Md5 != null)
             {
-                using (var databusStream = DataBus.Get(newDatabusKey))
+                using (var databusStream = DataBus.Get(newDatabusKey).GetAwaiter().GetResult())
                 {
                     Hasher.Verify(databusStream, callInfo.Md5);
                 }
