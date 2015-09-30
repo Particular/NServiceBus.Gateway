@@ -12,6 +12,7 @@ namespace NServiceBus.Gateway.Routing
         /// </summary>
         /// <param name="headers">The headers of the message to send.</param>
         /// <returns>The destination address.</returns>
+        // ReSharper disable once UnusedParameter.Global
         string GetDestinationFor(Dictionary<string, string> headers);
     }
 }

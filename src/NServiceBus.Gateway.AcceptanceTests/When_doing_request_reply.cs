@@ -2,7 +2,6 @@
 {
     using System;
     using System.Threading.Tasks;
-    using System.Web.WebSockets;
     using Config;
     using EndpointTemplates;
     using AcceptanceTesting;
