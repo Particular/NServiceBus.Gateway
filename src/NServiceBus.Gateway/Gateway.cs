@@ -53,8 +53,7 @@
 
             ConfigureChannels(context);
 
-            ConfigureReceiver(context, gatewayInputAddress);
-
+            ConfigureReceiver(context, gatewayPipeline, gatewayInputAddress);
             ConfigureSender(context, gatewayPipeline, gatewayInputAddress);
         }
 
@@ -124,7 +123,7 @@
                 .ConfigureProperty(p => p.Sites, sites);
         }
 
-        static void ConfigureReceiver(FeatureConfigurationContext context, string gatewayInputAddress)
+        static void ConfigureReceiver(FeatureConfigurationContext context, PipelineSettings gatewayPipeline, string gatewayInputAddress)
         {
             if (!context.Container.HasComponent<IReceiveMessagesFromSites>())
             {

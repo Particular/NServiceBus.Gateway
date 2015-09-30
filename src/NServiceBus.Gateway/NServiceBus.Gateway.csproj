@@ -78,8 +78,9 @@
     <Compile Include="GatewayHttpListenerInstaller.cs" />
     <Compile Include="GatewayTransaction.cs" />
     <Compile Include="HeaderManagement\DataBusHeaderManager.cs" />
-    <Compile Include="HeaderManagement\GatewayHeaderManager.cs" />
+    <Compile Include="HeaderManagement\GatewayIncomingBehavior.cs" />
     <Compile Include="HeaderManagement\GatewayHeaders.cs" />
+    <Compile Include="HeaderManagement\GatewayOutgoingBehavior.cs" />
     <Compile Include="Notifications\IMessageNotifier.cs" />
     <Compile Include="Notifications\MessageNotifier.cs" />
     <Compile Include="Notifications\MessageReceivedOnChannelArgs.cs" />
