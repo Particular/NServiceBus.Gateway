@@ -4,17 +4,18 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using System.Threading.Tasks;
+    using AcceptanceTesting.Customization;
     using AcceptanceTesting.Support;
     using Config.ConfigurationSource;
-    using Hosting.Helpers;
-    using Logging;
-    using NServiceBus;
-    using AcceptanceTesting;
     using Configuration.AdvanceExtensibility;
+    using Features;
+    using Hosting.Helpers;
+    using ObjectBuilder;
 
     public class DefaultServer : IEndpointSetupTemplate
     {
-        readonly List<Type> typesToInclude;
+        List<Type> typesToInclude;
 
         public DefaultServer()
         {
@@ -26,11 +27,9 @@
             this.typesToInclude = typesToInclude;
         }
 
-        public BusConfiguration GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource, Action<BusConfiguration> configurationBuilderCustomization)
+        public async Task<BusConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource, Action<BusConfiguration> configurationBuilderCustomization)
         {
-            var settings = runDescriptor.Settings;
-
-            LogManager.UseFactory(new ContextAppender(runDescriptor.ScenarioContext));
+            var settings = runDescriptor.Settings;            
 
             var types = GetTypesScopedByTestClass(endpointConfiguration);
 
@@ -39,28 +38,24 @@
             var builder = new BusConfiguration();
 
             builder.EndpointName(endpointConfiguration.EndpointName);
-            builder.TypesToScan(typesToInclude);
+            builder.TypesToIncludeInScan(typesToInclude);
             builder.CustomConfigurationSource(configSource);
             builder.EnableInstallers();
-            builder.DefineTransport(settings);
-            builder.RegisterComponents(r =>
-            {
-                r.RegisterSingleton(runDescriptor.ScenarioContext.GetType(), runDescriptor.ScenarioContext);
-                r.RegisterSingleton(typeof(ScenarioContext), runDescriptor.ScenarioContext);
-            });
 
-            string selectedBuilder;
-            if (settings.TryGetValue("Builder", out selectedBuilder))
-            {
-                builder.UseContainer(Type.GetType(selectedBuilder));
-            }
+            builder.DisableFeature<TimeoutManager>();
+            builder.DisableFeature<SecondLevelRetries>();
+            await builder.DefineTransport(settings, endpointConfiguration.BuilderType);
+            builder.DefineTransactions(settings);
+            builder.DefineBuilder(settings);
+            builder.RegisterComponents(r => { RegisterInheritanceHierarchyOfContextOnContainer(runDescriptor, r); });
+
             var serializer = settings.GetOrNull("Serializer");
 
             if (serializer != null)
             {
                 builder.UseSerialization(Type.GetType(serializer));
             }
-            builder.DefinePersistence(settings);
+            await builder.DefinePersistence(settings);
 
             builder.GetSettings().SetDefault("ScaleOut.UseSingleBrokerQueue", true);
             configurationBuilderCustomization(builder);
@@ -69,13 +64,28 @@
             return builder;
         }
 
+        static void RegisterInheritanceHierarchyOfContextOnContainer(RunDescriptor runDescriptor, IConfigureComponents r)
+        {
+            var type = runDescriptor.ScenarioContext.GetType();
+            while (type != typeof(object))
+            {
+                r.RegisterSingleton(type, runDescriptor.ScenarioContext);
+                type = type.BaseType;
+            }
+        }
+
         static IEnumerable<Type> GetTypesScopedByTestClass(EndpointConfiguration endpointConfiguration)
         {
             var assemblies = new AssemblyScanner().GetScannableAssemblies();
 
             var types = assemblies.Assemblies
                 //exclude all test types by default
-                                  .Where(a => a != Assembly.GetExecutingAssembly())
+                                  .Where(a =>
+                                  {
+                                      var references = a.GetReferencedAssemblies();
+
+                                      return references.All(an => an.Name != "nunit.framework");
+                                  })
                                   .SelectMany(a => a.GetTypes());
 
 
@@ -88,6 +98,11 @@
 
         static IEnumerable<Type> GetNestedTypeRecursive(Type rootType, Type builderType)
         {
+            if (rootType == null)
+            {
+                throw new InvalidOperationException("Make sure you nest the endpoint infrastructure inside the TestFixture as nested classes");    
+            }
+
             yield return rootType;
 
             if (typeof(IEndpointConfigurationFactory).IsAssignableFrom(rootType) && rootType != builderType)

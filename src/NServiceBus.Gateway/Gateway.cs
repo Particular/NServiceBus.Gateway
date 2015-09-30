@@ -204,6 +204,7 @@
                 Logger.Info("Sending message to " + destination);
 
                 var outgoingMessage = new OutgoingMessage(headers[Headers.MessageId], headers, body);
+                // TODO: Convert headers to delivery constraints
                 outgoingMessage.Headers[Headers.ReplyToAddress] = ReplyToAddress;
                 var dispatchOptions = new DispatchOptions(new DirectToTargetDestination(destination), new ContextBag());
                 var operation = new TransportOperation(outgoingMessage, dispatchOptions);

@@ -5,7 +5,7 @@
     using System.Linq;
     using System.Reflection;
     using AcceptanceTesting.Support;
-    using Hosting.Helpers;
+    using NServiceBus.Hosting.Helpers;
     using NServiceBus.Transports;
 
     public class AllTransports : ScenarioDescriptor
@@ -25,7 +25,7 @@
                     activeTransports = new List<RunDescriptor>
                     {
                         Transports.Default
-                    }; 
+                    };
                 }
 
                 return activeTransports;
@@ -41,6 +41,14 @@
         {
             AllTransportsFilter.Run(t => t.HasSupportForDistributedTransactions.HasValue
                                          && !t.HasSupportForDistributedTransactions.Value, Remove);
+        }
+    }
+
+    public class AllNativeMultiQueueTransactionTransports : AllTransports
+    {
+        public AllNativeMultiQueueTransactionTransports()
+        {
+            AllTransportsFilter.Run(t => !t.HasSupportForMultiQueueNativeTransactions, Remove);
         }
     }
 
@@ -68,13 +76,24 @@
         }
     }
 
+    public class MsmqOnly : ScenarioDescriptor
+    {
+        public MsmqOnly()
+        {
+            if (Transports.Default == Transports.Msmq)
+            {
+                Add(Transports.Msmq);
+            }
+        }
+    }
+
     public class TypeScanner
     {
 
         public static IEnumerable<Type> GetAllTypesAssignableTo<T>()
         {
             return AvailableAssemblies.SelectMany(a => a.GetTypes())
-                                      .Where(t => typeof (T).IsAssignableFrom(t) && t != typeof(T))
+                                      .Where(t => typeof(T).IsAssignableFrom(t) && t != typeof(T))
                                       .ToList();
         }
 
@@ -86,9 +105,14 @@
                 {
                     var result = new AssemblyScanner().GetScannableAssemblies();
 
-                    assemblies = result.Assemblies;
+                    assemblies = result.Assemblies.Where(a =>
+                    {
+                        var references = a.GetReferencedAssemblies();
+
+                        return references.All(an => an.Name != "nunit.framework");
+                    }).ToList();
                 }
-                    
+
                 return assemblies;
             }
         }

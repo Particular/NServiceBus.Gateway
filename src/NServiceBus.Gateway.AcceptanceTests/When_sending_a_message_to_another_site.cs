@@ -1,6 +1,7 @@
 ﻿namespace NServiceBus.AcceptanceTests.Gateway
 {
     using System;
+    using System.Threading.Tasks;
     using Config;
     using EndpointTemplates;
     using AcceptanceTesting;
@@ -11,9 +12,9 @@
     public class When_sending_a_message_to_another_site : NServiceBusAcceptanceTest
     {
         [Test]
-        public void Should_be_able_to_reply_to_the_message()
+        public async Task Should_be_able_to_reply_to_the_message()
         {
-            Scenario.Define<Context>()
+            await Scenario.Define<Context>()
                     .WithEndpoint<Headquarters>(b => b.Given(bus => bus.SendToSites(new[] { "SiteA" }, new MyRequest())))
                     .WithEndpoint<SiteA>()
                     .AllowExceptions()
@@ -63,9 +64,10 @@
             {
                 public Context Context { get; set; }
 
-                public void Handle(MyResponse response)
+                public Task Handle(MyResponse response)
                 {
                     Context.GotResponseBack = true;
+                    return Task.FromResult(0);
                 }
             }
         }
@@ -92,9 +94,9 @@
             {
                 public IBus Bus { get; set; }
 
-                public void Handle(MyRequest request)
+                public Task Handle(MyRequest request)
                 {
-                    Bus.Reply(new MyResponse());
+                    return Bus.ReplyAsync(new MyResponse());
                 }
             }
         }

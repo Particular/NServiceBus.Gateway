@@ -8,13 +8,16 @@
 
     public static class Transports
     {
-        public static IEnumerable<RunDescriptor> AllAvailable
+        internal static IEnumerable<RunDescriptor> AllAvailable
         {
             get
             {
-                if (availableTransports == null)
+                lock (lockObject)
                 {
-                    availableTransports = GetAllAvailable().ToList();
+                    if (availableTransports == null)
+                    {
+                        availableTransports = GetAllAvailable().ToList();
+                    }
                 }
 
                 return availableTransports;
@@ -40,7 +43,7 @@
             }
         }
 
-        static RunDescriptor Msmq
+        public static RunDescriptor Msmq
         {
             get { return AllAvailable.SingleOrDefault(r => r.Key == "MsmqTransport"); }
         }
@@ -75,16 +78,13 @@
                     runDescriptor.Settings.Add("Transport.ConnectionString", connectionString);
                     yield return runDescriptor;
                 }
-                else
-                {
-                    Console.Out.WriteLine("No connection string found for transport: {0}, test will not be executed for this transport", key);
-                }
             }
         }
 
         static IList<RunDescriptor> availableTransports;
+        static object lockObject = new object();
 
-        static readonly Dictionary<string, string> DefaultConnectionStrings = new Dictionary<string, string>
+        static Dictionary<string, string> DefaultConnectionStrings = new Dictionary<string, string>
             {
                 {"RabbitMQTransport", "host=localhost"},
                 {"SqlServerTransport", @"Server=localhost\sqlexpress;Database=nservicebus;Trusted_Connection=True;"},

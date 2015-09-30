@@ -11,10 +11,10 @@ namespace NServiceBus.Gateway.Tests.HeaderManagement
     public class When_receiving_a_message_from_another_site
     {
         GatewayHeaderManager gatewayHeaderManager;
-        TransportMessage incomingMessage;
-        TransportMessage responseMessage;
 
         string addressOfOriginatingEndpoint;
+        Dictionary<string, string> incomingHeaders;
+        Dictionary<string, string> outgoingHeaders;
         const string originatingSite = "SiteA";
         const string idOfIncomingMessage = "xyz";
 
@@ -23,41 +23,38 @@ namespace NServiceBus.Gateway.Tests.HeaderManagement
         {
             addressOfOriginatingEndpoint = "EndpointLocatedInSiteA";
 
-
-            var existingHeaders = new Dictionary<string, string>
+            incomingHeaders = new Dictionary<string, string>
             {
-                {
-                    Headers.ReplyToAddress, addressOfOriginatingEndpoint.ToString()
-                }
+                [Headers.OriginatingSite] = originatingSite,
+                [Headers.HttpFrom] = originatingSite,
+                [Headers.ReplyToAddress] = addressOfOriginatingEndpoint,
+                [Headers.MessageId] = Guid.NewGuid().ToString(),
             };
-            incomingMessage = new TransportMessage(Guid.NewGuid().ToString(), existingHeaders);
 
-            incomingMessage.Headers[Headers.OriginatingSite] = originatingSite;
-            incomingMessage.Headers[Headers.HttpFrom] = originatingSite;
             gatewayHeaderManager = new GatewayHeaderManager();
 
-            gatewayHeaderManager.MutateIncoming(incomingMessage);
+            gatewayHeaderManager.MutateIncoming(new MutateIncomingTransportMessageContext(null, incomingHeaders));
 
-            responseMessage = new TransportMessage
+            outgoingHeaders = new Dictionary<string, string>
             {
-                CorrelationId = idOfIncomingMessage
+                {Headers.CorrelationId, idOfIncomingMessage}
             };
         }
        
         [Test]
         public async Task Should_use_the_originating_siteKey_as_destination_for_response_messages()
         {      
-            await gatewayHeaderManager.MutateOutgoing(new MutateOutgoingTransportMessageContext());
+            await gatewayHeaderManager.MutateOutgoing(new MutateOutgoingTransportMessageContext(null, null, outgoingHeaders, null, incomingHeaders));
 
-            Assert.AreEqual(responseMessage.Headers[Headers.HttpTo], originatingSite);
+            Assert.AreEqual(outgoingHeaders[Headers.HttpTo], originatingSite);
         }
 
         [Test]
         public async Task Should_route_the_response_to_the_replyTo_address_specified_in_the_incoming_message()
         {
-            await gatewayHeaderManager.MutateOutgoing(new MutateOutgoingTransportMessageContext());
+            await gatewayHeaderManager.MutateOutgoing(new MutateOutgoingTransportMessageContext(null, null, outgoingHeaders, null, incomingHeaders));
 
-            Assert.AreEqual(responseMessage.Headers[Headers.RouteTo], addressOfOriginatingEndpoint);
+            Assert.AreEqual(outgoingHeaders[Headers.RouteTo], addressOfOriginatingEndpoint);
         }
     }
 }

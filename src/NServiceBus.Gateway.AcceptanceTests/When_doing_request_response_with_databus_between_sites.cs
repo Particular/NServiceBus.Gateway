@@ -1,6 +1,7 @@
 ﻿namespace NServiceBus.AcceptanceTests.Gateway
 {
     using System;
+    using System.Threading.Tasks;
     using Config;
     using EndpointTemplates;
     using AcceptanceTesting;
@@ -16,9 +17,13 @@
         {
             Scenario.Define<Context>()
                 .WithEndpoint<SiteA>(
-                    b => b.Given((bus, context) =>
-                        bus.SendToSites(new[] { "SiteB" }, new MyRequest { Payload = new DataBusProperty<byte[]>(PayloadToSend) })
-                            .Register(result => context.GotCallback = true)))
+                    b => b.Given(async (bus, context) =>
+                    {
+                        var options = new SendOptions();
+                        options.RouteToSites("SiteB");
+                        context.Response = await bus.Request<MyResponse>(new MyRequest { Payload = new DataBusProperty<byte[]>(PayloadToSend) }, options);
+                        context.GotCallback = true;
+                    }))
                 .WithEndpoint<SiteB>()
                 .Done(c => c.GotResponseBack && c.GotCallback)
                 .Repeat(r => r.For(Transports.Default))
@@ -30,6 +35,7 @@
                         "The large payload should be marshalled correctly using the databus");
                     Assert.AreEqual(@"http,http://localhost:25899/SiteA/", c.OriginatingSiteForRequest);
                     Assert.AreEqual(@"http,http://localhost:25899/SiteB/", c.OriginatingSiteForResponse);
+                    Assert.NotNull(c.Response);
                 })
                 .Run();
         }
@@ -38,6 +44,7 @@
         {
             public bool GotResponseBack { get; set; }
             public bool GotCallback { get; set; }
+            public MyResponse Response { get; set; }
             public byte[] SiteBReceivedPayload { get; set; }
             public byte[] SiteAReceivedPayloadInResponse { get; set; }
             public string OriginatingSiteForRequest { get; set; }
@@ -51,7 +58,7 @@
                 EndpointSetup<DefaultServer>(c =>
                     {
                         c.EnableFeature<Features.Gateway>();
-                        c.FileShareDataBus(@".\databus\siteA");
+                        c.UseDataBus<FileShareDataBus>().BasePath(@".\databus\siteA");
                     }).WithConfig<GatewayConfig>(c =>
                      {
                          c.Sites = new SiteCollection
@@ -81,13 +88,15 @@
                 public Context Context { get; set; }
                 public IBus Bus { get; set; }
 
-                public void Handle(MyResponse response)
+                public Task Handle(MyResponse response)
                 {
                     Context.GotResponseBack = true;
                     Context.SiteAReceivedPayloadInResponse = response.OriginalPayload.Value;
 
                     // Inspect the headers to find the originating site address 
                     Context.OriginatingSiteForResponse = Bus.CurrentMessageContext.Headers[Headers.OriginatingSite];
+
+                    return Task.FromResult(0);
                 }
             }
         }
@@ -99,7 +108,7 @@
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.EnableFeature<Features.Gateway>();
-                    c.FileShareDataBus(@".\databus\siteB");
+                    c.UseDataBus<FileShareDataBus>().BasePath(@".\databus\siteB");
                 })
                    .WithConfig<GatewayConfig>(c =>
                    {
@@ -121,10 +130,10 @@
                 public IBus Bus { get; set; }
                 public Context Context { get; set; }
 
-                public void Handle(MyRequest request)
+                public async Task Handle(MyRequest request)
                 {
                     Context.SiteBReceivedPayload = request.Payload.Value;
-                    Bus.Reply(new MyResponse { OriginalPayload = request.Payload });
+                    await Bus.ReplyAsync(new MyResponse { OriginalPayload = request.Payload });
 
                     // Inspect the headers to find the originating site address
                     Context.OriginatingSiteForRequest = Bus.CurrentMessageContext.Headers[Headers.OriginatingSite];
