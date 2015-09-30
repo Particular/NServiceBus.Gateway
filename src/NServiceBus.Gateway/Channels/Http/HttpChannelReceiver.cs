@@ -23,7 +23,7 @@ namespace NServiceBus.Gateway.Channels.Http
 
             listener.Prefixes.Add(address);
 
-            scheduler = new MTATaskScheduler(numberOfWorkerThreads, String.Format("NServiceBus Gateway Channel Receiver Thread for [{0}]", address));
+            scheduler = new MTATaskScheduler(numberOfWorkerThreads, $"NServiceBus Gateway Channel Receiver Thread for [{address}]");
 
             try
             {
@@ -31,7 +31,7 @@ namespace NServiceBus.Gateway.Channels.Http
             }
             catch (Exception ex)
             {
-                var message = string.Format("Failed to start listener for {0} make sure that you have admin privileges", address);
+                var message = $"Failed to start listener for {address} make sure that you have admin privileges";
                 throw new Exception(message,ex);
             }
 
@@ -41,18 +41,9 @@ namespace NServiceBus.Gateway.Channels.Http
 
         public void Dispose()
         {
-            if (tokenSource != null)
-            {
-                tokenSource.Cancel();
-            }
-            if (listener != null)
-            {
-                listener.Close();
-            }
-            if (scheduler != null)
-            {
-                scheduler.Dispose();
-            }
+            tokenSource?.Cancel();
+            listener?.Close();
+            scheduler?.Dispose();
         }
 
         public void Handle(HttpListenerContext context)

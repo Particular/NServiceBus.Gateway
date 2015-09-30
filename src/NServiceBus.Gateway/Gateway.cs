@@ -35,6 +35,8 @@
         /// </summary>
         protected override void Setup(FeatureConfigurationContext context)
         {
+            context.Pipeline.Register<GatewayIncomingBehavior.Registration>();
+            context.Pipeline.Register<GatewayOutgoingBehavior.Registration>();
 
             var txConfig = context.Container.ConfigureComponent<GatewayTransaction>(DependencyLifecycle.InstancePerCall);
 
