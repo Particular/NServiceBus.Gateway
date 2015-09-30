@@ -86,7 +86,6 @@
     <Compile Include="When_sending_a_message_via_the_gateway.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
