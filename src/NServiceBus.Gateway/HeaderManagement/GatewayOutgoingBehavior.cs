@@ -2,26 +2,25 @@ namespace NServiceBus.Gateway.HeaderManagement
 {
     using System;
     using System.Threading.Tasks;
+    using OutgoingPipeline;
     using Pipeline;
-    using Pipeline.Contexts;
-    using TransportDispatch;
 
-    class GatewayOutgoingBehavior : Behavior<OutgoingContext>
+    class GatewayOutgoingBehavior : Behavior<IOutgoingPhysicalMessageContext>
     {
-        public override async Task Invoke(OutgoingContext context, Func<Task> next)
+        public override async Task Invoke(IOutgoingPhysicalMessageContext context, Func<Task> next)
         {
             GatewayIncomingBehavior.State state;
-            if (!context.TryGet(out state))
+            if (!context.Extensions.TryGet(out state))
             {
                 await next().ConfigureAwait(false);
             }
 
-            context.SetHeader(Headers.HttpTo, state.HttpFrom);
-            context.SetHeader(Headers.OriginatingSite, state.OriginatingSite);
+            context.Headers[Headers.HttpTo] = state.HttpFrom;
+            context.Headers[Headers.OriginatingSite] = state.OriginatingSite;
             // TODO: Discuss, is it safe to always set this?
-            context.SetHeader(Headers.RouteTo, state.ReplyToAddress);
+            context.Headers[Headers.RouteTo] = state.ReplyToAddress;
             // send to be backwards compatible with Gateway 3.X
-            context.SetHeader(GatewayHeaders.LegacyMode, state.LegacyMode.ToString());
+            context.Headers[GatewayHeaders.LegacyMode] = state.LegacyMode.ToString();
 
             await next().ConfigureAwait(false);
         }

@@ -14,7 +14,7 @@ namespace NServiceBus.Installation
         public IManageReceiveChannels ChannelManager { get; set; }
         public bool Enabled { get; set; }
 
-        public Task InstallAsync(string identity, Configure config)
+        public Task Install(string identity)
         {
             if (!Enabled)
             {
@@ -71,7 +71,7 @@ netsh http add urlacl url={1} user=""{0}""", uri, identity);
                 Verb = "runas",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
-                Arguments = string.Format(@"http add urlacl url={0} user=""{1}""", uri, identity),
+                Arguments = $@"http add urlacl url={uri} user=""{identity}""",
                 FileName = "netsh",
                 WorkingDirectory = Path.GetTempPath()
             };

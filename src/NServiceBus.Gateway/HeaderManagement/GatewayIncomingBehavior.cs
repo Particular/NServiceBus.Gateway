@@ -4,11 +4,11 @@ namespace NServiceBus.Gateway.HeaderManagement
     using System.Threading.Tasks;
     using Pipeline;
 
-    class GatewayIncomingBehavior : PhysicalMessageProcessingStageBehavior
+    class GatewayIncomingBehavior : Behavior<IIncomingPhysicalMessageContext>
     {
-        public override Task Invoke(Context context, Func<Task> next)
+        public override Task Invoke(IIncomingPhysicalMessageContext context, Func<Task> next)
         {
-            var message = context.GetPhysicalMessage();
+            var message = context.Message;
 
             var headers = message.Headers;
             if (!headers.ContainsKey(Headers.HttpFrom) &&
@@ -22,7 +22,7 @@ namespace NServiceBus.Gateway.HeaderManagement
             string httpFrom;
             headers.TryGetValue(Headers.HttpFrom, out httpFrom);
 
-            var state = context.GetOrCreate<State>();
+            var state = context.Extensions.GetOrCreate<State>();
             //we preserve the httpFrom to be backwards compatible with NServiceBus 2.X 
             state.HttpFrom = httpFrom;
             state.OriginatingSite = originatingSite;

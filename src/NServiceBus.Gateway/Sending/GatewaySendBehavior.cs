@@ -36,11 +36,9 @@ namespace NServiceBus.Gateway.Sending
 
         public string InputAddress { get; set; }
 
-        protected async override Task Terminate(PhysicalMessageProcessingStageBehavior.Context context)
+        protected override async Task Terminate(IIncomingPhysicalMessageContext context)
         {
-            // TODO: Is this even correct? bus.Send(unicast.Settings.Get<Address>("MasterNode.Address").SubScope("gateway"), message);
-
-            var message = context.GetPhysicalMessage();
+            var message = context.Message;
             var headers = message.Headers;
             var body = message.Body;
             
@@ -79,10 +77,10 @@ namespace NServiceBus.Gateway.Sending
             headers[Headers.DestinationSites] = destinationSite.Key;
 
             var message = new OutgoingMessage(headers[Headers.MessageId], headers, body);
-            var dispatchOptions = new DispatchOptions(new DirectToTargetDestination(InputAddress), new ContextBag());
+            var dispatchOptions = new DispatchOptions(new UnicastAddressTag(InputAddress), DispatchConsistency.Default);
             var operation = new TransportOperation(message, dispatchOptions);
 
-            return dispatcher.Dispatch(new[] { operation });
+            return dispatcher.Dispatch(new[] { operation }, new ContextBag());
         }
 
         void SendToSite(byte[] body, Dictionary<string, string> headers, Site targetSite)

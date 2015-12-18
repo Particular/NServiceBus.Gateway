@@ -3,7 +3,9 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using Config;
+    using ConsistencyGuarantees;
     using Extensibility;
     using Installation;
     using Logging;
@@ -27,7 +29,7 @@
     {
         internal Gateway()
         {
-            RegisterStartupTask<GatewayReceiverStartupTask>();
+            
         }
 
         /// <summary>
@@ -49,14 +51,17 @@
 
             string gatewayInputAddress;
 
-            var consistencyGuarantee = context.Settings.Get<TransportDefinition>().GetDefaultConsistencyGuarantee();
+            var requiredTransactionSupport = context.Settings.GetRequiredTransactionModeForReceives();
 
-            var gatewayPipeline = context.AddSatellitePipeline("Gateway", "gateway", consistencyGuarantee, PushRuntimeSettings.Default, out gatewayInputAddress);
+            var gatewayPipeline = context.AddSatellitePipeline("Gateway", "gateway", requiredTransactionSupport, PushRuntimeSettings.Default, out gatewayInputAddress);
 
             ConfigureChannels(context);
 
             ConfigureReceiver(context, gatewayInputAddress);
             ConfigureSender(context, gatewayPipeline, gatewayInputAddress);
+
+
+            context.RegisterStartupTask(b => new GatewayReceiverStartupTask(b.Build<IManageReceiveChannels>(), b.Build<IRouteMessagesToEndpoints>(), b.Build<IDispatchMessages>(), b.Build<Func<IReceiveMessagesFromSites>>()));
         }
 
         static void ConfigureChannels(FeatureConfigurationContext context)
@@ -163,7 +168,7 @@
 
             public string ReplyToAddress { get; set; }
 
-            protected override void OnStart()
+            protected override async Task OnStart(IBusSession context)
             {
                 foreach (var receiveChannel in manageReceiveChannels.GetReceiveChannels())
                 {
@@ -175,9 +180,11 @@
 
                     Logger.InfoFormat("Receive channel started: {0}", receiveChannel);
                 }
+
+                await Task.Delay(12456); //TODO JS. Merge stuff from async PR
             }
 
-            protected override void OnStop()
+            protected override Task OnStop(IBusSession context)
             {
                 Logger.InfoFormat("Receiver is shutting down");
 
@@ -192,7 +199,8 @@
 
                 activeReceivers.Clear();
 
-                Logger.InfoFormat("Receiver shutdown complete"); base.OnStop();
+                Logger.InfoFormat("Receiver shutdown complete");
+                return Task.FromResult(0);
             }
 
             void MessageReceivedOnChannel(object sender, MessageReceivedOnChannelArgs e)
@@ -207,12 +215,12 @@
                 var outgoingMessage = new OutgoingMessage(headers[Headers.MessageId], headers, body);
                 // TODO: Convert headers to delivery constraints
                 outgoingMessage.Headers[Headers.ReplyToAddress] = ReplyToAddress;
-                var dispatchOptions = new DispatchOptions(new DirectToTargetDestination(destination), new ContextBag());
+                var dispatchOptions = new DispatchOptions(new UnicastAddressTag(destination), DispatchConsistency.Default);
                 var operation = new TransportOperation(outgoingMessage, dispatchOptions);
                 dispatchMessages.Dispatch(new[]
                 {
                     operation
-                }).GetAwaiter().GetResult();
+                }, new ContextBag()).GetAwaiter().GetResult();
             }
 
             static ILog Logger = LogManager.GetLogger<GatewayReceiverStartupTask>();

@@ -6,10 +6,12 @@
     using Channels;
     using DataBus;
     using Deduplication;
+    using Extensibility;
     using HeaderManagement;
     using Logging;
     using Notifications;
     using Sending;
+    using Transports;
     using Utils;
 
     class SingleCallChannelReceiver : IReceiveMessagesFromSites
@@ -96,7 +98,7 @@
                 var body = new byte[stream.Length];
                 stream.Read(body, 0, body.Length);
 
-                if (deduplicator.DeduplicateMessage(callInfo.ClientId, DateTime.UtcNow).GetAwaiter().GetResult())
+                if (deduplicator.DeduplicateMessage(callInfo.ClientId, DateTime.UtcNow, new ContextBag()).GetAwaiter().GetResult())
                 {
                     MessageReceived(this, new MessageReceivedOnChannelArgs { Body = body, Headers = headers });
                 }
@@ -121,9 +123,9 @@
             }
 
             headers = ExtractHeaders(from);
-            var to = new TransportMessage(from[NServiceBus + Id], headers);
+            var to = new OutgoingMessage(from[NServiceBus + Id], headers, null);
 
-            headers[Headers.CorrelationId] = from[NServiceBus + CorrelationId] ?? to.Id;
+            headers[Headers.CorrelationId] = from[NServiceBus + CorrelationId] ?? to.MessageId;
 
             bool recoverable;
             if (bool.TryParse(from[NServiceBus + Recoverable], out recoverable))
