@@ -63,7 +63,7 @@
     <Compile Include="Channels\Http\HttpChannelReceiver.cs" />
     <Compile Include="Channels\Http\HttpChannelSender.cs" />
     <Compile Include="Channels\Http\HttpHeaders.cs" />
-    <Compile Include="Channels\Http\MTATaskScheduler.cs" />
+    <Compile Include="Channels\Http\TaskExtensions.cs" />
     <Compile Include="Channels\IChannelFactory.cs" />
     <Compile Include="Channels\IChannelReceiver.cs" />
     <Compile Include="Channels\IChannelSender.cs" />
