@@ -39,8 +39,7 @@
     {
         public AllDtcTransports()
         {
-            AllTransportsFilter.Run(t => t.HasSupportForDistributedTransactions.HasValue
-                                         && !t.HasSupportForDistributedTransactions.Value, Remove);
+            AllTransportsFilter.Run(t => t.GetSupportedTransactionMode() != TransportTransactionMode.TransactionScope, Remove);
         }
     }
 
@@ -48,34 +47,10 @@
     {
         public AllNativeMultiQueueTransactionTransports()
         {
-            AllTransportsFilter.Run(t => !t.HasSupportForMultiQueueNativeTransactions, Remove);
+            AllTransportsFilter.Run(t => t.GetSupportedTransactionMode() < TransportTransactionMode.SendsAtomicWithReceive, Remove);
         }
     }
-
-    public class AllBrokerTransports : AllTransports
-    {
-        public AllBrokerTransports()
-        {
-            AllTransportsFilter.Run(t => !t.HasNativePubSubSupport, Remove);
-        }
-    }
-
-    public class AllTransportsWithCentralizedPubSubSupport : AllTransports
-    {
-        public AllTransportsWithCentralizedPubSubSupport()
-        {
-            AllTransportsFilter.Run(t => !t.HasSupportForCentralizedPubSub, Remove);
-        }
-    }
-
-    public class AllTransportsWithMessageDrivenPubSub : AllTransports
-    {
-        public AllTransportsWithMessageDrivenPubSub()
-        {
-            AllTransportsFilter.Run(t => t.HasNativePubSubSupport, Remove);
-        }
-    }
-
+    
     public class MsmqOnly : ScenarioDescriptor
     {
         public MsmqOnly()

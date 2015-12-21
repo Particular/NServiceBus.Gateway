@@ -116,11 +116,9 @@
             {
                 public Context Context { get; set; }
 
-                public IBus Bus { get; set; }
-
-                public Task Handle(MyRequest response)
+                public Task Handle(MyRequest response, IMessageHandlerContext context)
                 {
-                    Context.MySpecialHeader = Bus.CurrentMessageContext.Headers["MySpecialHeader"];
+                    Context.MySpecialHeader = context.MessageHeaders["MySpecialHeader"];
                     Context.GotMessage = true;
                     return Task.FromResult(0);
                 }

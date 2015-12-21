@@ -17,7 +17,7 @@
         {
             Scenario.Define<Context>()
                 .WithEndpoint<SiteA>(
-                    b => b.Given(async (bus, context) =>
+                    b => b.When(async (bus, context) =>
                     {
                         var options = new SendOptions();
                         options.RouteToSites("SiteB");
@@ -86,15 +86,14 @@
             public class MyResponseHandler : IHandleMessages<MyResponse>
             {
                 public Context Context { get; set; }
-                public IBus Bus { get; set; }
-
-                public Task Handle(MyResponse response)
+                
+                public Task Handle(MyResponse response, IMessageHandlerContext context)
                 {
                     Context.GotResponseBack = true;
                     Context.SiteAReceivedPayloadInResponse = response.OriginalPayload.Value;
 
                     // Inspect the headers to find the originating site address 
-                    Context.OriginatingSiteForResponse = Bus.CurrentMessageContext.Headers[Headers.OriginatingSite];
+                    Context.OriginatingSiteForResponse = context.MessageHeaders[Headers.OriginatingSite];
 
                     return Task.FromResult(0);
                 }
@@ -127,16 +126,15 @@
 
             public class MyRequestHandler : IHandleMessages<MyRequest>
             {
-                public IBus Bus { get; set; }
                 public Context Context { get; set; }
 
-                public async Task Handle(MyRequest request)
+                public async Task Handle(MyRequest request, IMessageHandlerContext context)
                 {
                     Context.SiteBReceivedPayload = request.Payload.Value;
-                    await Bus.ReplyAsync(new MyResponse { OriginalPayload = request.Payload });
+                    await context.Reply(new MyResponse { OriginalPayload = request.Payload });
 
                     // Inspect the headers to find the originating site address
-                    Context.OriginatingSiteForRequest = Bus.CurrentMessageContext.Headers[Headers.OriginatingSite];
+                    Context.OriginatingSiteForRequest = context.MessageHeaders[Headers.OriginatingSite];
                 }
             }
         }

@@ -14,7 +14,7 @@
         {
             var context = await Scenario.Define<Context>()
                 .WithEndpoint<SiteA>(
-                    b => b.Given(async(bus, c) =>
+                    b => b.When(async(bus, c) =>
                     {
                         var options = new SendOptions();
                         options.RouteToSites("SiteB");
@@ -22,7 +22,6 @@
                         c.GotCallback = true;
                     }))
                 .WithEndpoint<SiteB>()
-                .AllowExceptions()
                 .Done(c => c.GotCallback)
                 .Run();
 
@@ -88,10 +87,9 @@
 
             public class MyRequestHandler : IHandleMessages<MyRequest>
             {
-                public IBus Bus { get; set; }
-                public Task Handle(MyRequest request)
+                public async Task Handle(MyRequest request, IMessageHandlerContext context)
                 {
-                    return Bus.ReplyAsync(1);
+                    await context.Reply(1);
                 }
             }
         }
