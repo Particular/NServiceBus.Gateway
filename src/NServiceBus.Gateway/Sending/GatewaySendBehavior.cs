@@ -44,12 +44,12 @@ namespace NServiceBus.Gateway.Sending
             
             var destinationSites = GetDestinationSitesFor(headers);
 
-            //if there is more than 1 destination we break it up into multiple dispatcher
+            //if there is more than 1 destination we break it up into multiple dispatches
             if (destinationSites.Count > 1)
             {
                 foreach (var destinationSite in destinationSites)
                 {
-                    await CloneAndSendLocal(body, headers, destinationSite);
+                    await CloneAndSendLocal(body, headers, destinationSite).ConfigureAwait(false);
                 }
 
                 return;
@@ -62,7 +62,7 @@ namespace NServiceBus.Gateway.Sending
                 throw new InvalidOperationException("No destination found for message");
             }
 
-            SendToSite(body, headers, destination);
+            await SendToSite(body, headers, destination).ConfigureAwait(false);
         }
 
 
@@ -83,13 +83,13 @@ namespace NServiceBus.Gateway.Sending
             return dispatcher.Dispatch(new[] { operation }, new ContextBag());
         }
 
-        void SendToSite(byte[] body, Dictionary<string, string> headers, Site targetSite)
+        async Task SendToSite(byte[] body, Dictionary<string, string> headers, Site targetSite)
         {
             headers[Headers.OriginatingSite] = GetDefaultAddressForThisSite();
 
             var forwarder = builder.Build<IForwardMessagesToSites>();
 
-            forwarder.Forward(body, headers, targetSite);
+            await forwarder.Forward(body, headers, targetSite).ConfigureAwait(false);
 
             messageNotifier.RaiseMessageForwarded(settings.LocalAddress(), targetSite.Channel.Type, body, headers);
         }

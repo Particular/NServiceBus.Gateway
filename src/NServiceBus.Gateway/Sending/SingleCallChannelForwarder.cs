@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
     using Channels;
     using Channels.Http;
     using DataBus;
@@ -23,7 +24,7 @@
 
         public IDataBus DataBus { get; set; }
 
-        public void Forward(byte[] body, Dictionary<string, string> headers, Site targetSite)
+        public async Task Forward(byte[] body, Dictionary<string, string> headers, Site targetSite)
         {
             var toHeaders = MapToHeaders(headers);
 
@@ -31,11 +32,11 @@
 
             //databus properties have to be available at the receiver site
             //before the body of the message is forwarded on the bus
-            TransmitDataBusProperties(channelSender, targetSite, toHeaders);
+            await TransmitDataBusProperties(channelSender, targetSite, toHeaders).ConfigureAwait(false);
 
             using (var messagePayload = new MemoryStream(body))
             {
-                Transmit(channelSender, targetSite, CallType.SingleCallSubmit, toHeaders, messagePayload);
+                await Transmit(channelSender, targetSite, CallType.SingleCallSubmit, toHeaders, messagePayload).ConfigureAwait(false);
             }
         }
 
@@ -70,7 +71,7 @@
             return to;
         }
 
-        void Transmit(IChannelSender channelSender, Site targetSite, CallType callType,
+        async Task Transmit(IChannelSender channelSender, Site targetSite, CallType callType,
             IDictionary<string, string> headers, Stream data)
         {
             headers[GatewayHeaders.IsGatewayMessage] = Boolean.TrueString;
@@ -79,10 +80,10 @@
 
             Logger.DebugFormat("Sending message - {0} to: {1}", callType, targetSite.Channel.Address);
 
-            channelSender.Send(targetSite.Channel.Address, headers, data);
+            await channelSender.Send(targetSite.Channel.Address, headers, data).ConfigureAwait(false);
         }
 
-        void TransmitDataBusProperties(IChannelSender channelSender, Site targetSite,
+        async Task TransmitDataBusProperties(IChannelSender channelSender, Site targetSite,
             IDictionary<string, string> headers)
         {
             var headersToSend = new Dictionary<string, string>(headers);
@@ -102,7 +103,7 @@
 
                 using (var stream = DataBus.Get(databusKeyForThisProperty).GetAwaiter().GetResult())
                 {
-                    Transmit(channelSender, targetSite, CallType.SingleCallDatabusProperty, headersToSend, stream);
+                    await Transmit(channelSender, targetSite, CallType.SingleCallDatabusProperty, headersToSend, stream).ConfigureAwait(false);
                 }
             }
         }

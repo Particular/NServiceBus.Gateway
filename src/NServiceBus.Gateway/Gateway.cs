@@ -168,7 +168,7 @@
 
             public string ReplyToAddress { get; set; }
 
-            protected override async Task OnStart(IBusSession context)
+            protected override Task OnStart(IBusSession context)
             {
                 foreach (var receiveChannel in manageReceiveChannels.GetReceiveChannels())
                 {
@@ -181,7 +181,7 @@
                     Logger.InfoFormat("Receive channel started: {0}", receiveChannel);
                 }
 
-                await Task.Delay(12456); //TODO JS. Merge stuff from async PR
+                return Task.FromResult(0);
             }
 
             protected override Task OnStop(IBusSession context)
