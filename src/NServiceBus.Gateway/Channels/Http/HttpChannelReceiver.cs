@@ -31,7 +31,7 @@ namespace NServiceBus.Gateway.Channels.Http
             }
             catch (Exception ex)
             {
-                var message = string.Format("Failed to start listener for {0} make sure that you have admin privileges", address);
+                var message = $"Failed to start listener for {address} make sure that you have admin privileges";
                 throw new Exception(message, ex);
             }
 
@@ -43,6 +43,7 @@ namespace NServiceBus.Gateway.Channels.Http
         {
             tokenSource?.Cancel();
             listener?.Close();
+
             try
             {
                 receiverTask.Wait(TimeSpan.FromSeconds(10));
