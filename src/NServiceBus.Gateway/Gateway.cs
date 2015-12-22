@@ -3,9 +3,11 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Security.Cryptography;
     using System.Threading.Tasks;
     using Config;
     using ConsistencyGuarantees;
+    using DeliveryConstraints;
     using Extensibility;
     using Installation;
     using Logging;
@@ -18,6 +20,7 @@
     using NServiceBus.Gateway.Routing.Endpoints;
     using NServiceBus.Gateway.Routing.Sites;
     using NServiceBus.Gateway.Sending;
+    using Performance.TimeToBeReceived;
     using Pipeline;
     using Routing;
     using Transports;
@@ -207,15 +210,29 @@
             {
                 var body = e.Body;
                 var headers = e.Headers;
+                var id = e.Id;
+                var recoverable = e.Recoverable;
+                var timeToBeReceived = e.TimeToBeReceived;
 
                 var destination = routeMessagesToEndpoints.GetDestinationFor(headers);
 
                 Logger.Info("Sending message to " + destination);
 
-                var outgoingMessage = new OutgoingMessage(headers[Headers.MessageId], headers, body);
-                // TODO: Convert headers to delivery constraints
+                var outgoingMessage = new OutgoingMessage(id, headers, body);
                 outgoingMessage.Headers[Headers.ReplyToAddress] = ReplyToAddress;
-                var dispatchOptions = new DispatchOptions(new UnicastAddressTag(destination), DispatchConsistency.Default);
+
+                var deliveryConstraints = new List<DeliveryConstraint>
+                {
+                    new DiscardIfNotReceivedBefore(timeToBeReceived)
+                };
+
+                if(!recoverable)
+                {
+                    deliveryConstraints.Add(new NonDurableDelivery());
+                }
+
+                var dispatchOptions = new DispatchOptions(new UnicastAddressTag(destination), DispatchConsistency.Default, deliveryConstraints);
+
                 var operation = new TransportOperation(outgoingMessage, dispatchOptions);
                 dispatchMessages.Dispatch(new[]
                 {

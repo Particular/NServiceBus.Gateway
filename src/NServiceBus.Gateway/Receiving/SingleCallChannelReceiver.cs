@@ -87,20 +87,34 @@
                 {
                     Hasher.Verify(stream, callInfo.Md5);
                 }
-
-                var headers = CreateHeaders(headerManager.Reassemble(callInfo.ClientId, callInfo.Headers));
-
+                
+                var headers = headerManager.ReassembleDataBusProperties(callInfo.ClientId, callInfo.Headers);
+                var args = CreateMessageReceivedArgsWithDefaultValues(callInfo.TimeToBeReceived, headers[NServiceBus + Id]);
+                
+                var isGatewayMessage = IsGatewayMessage(headers);
+                if (isGatewayMessage)
+                {
+                    args.Headers = MapGatewayMessageHeaders(headers);
+                    args.Recoverable = GetRecoverable(headers);
+                    args.TimeToBeReceived = GetTimeToBeReceived(headers);
+                }
+                else
+                {
+                    args.Headers = MapCustomMessageHeaders(headers);
+                }
+                
                 if (IsMsmqTransport)
                 {
-                    headers[Headers.CorrelationId] = StripSlashZeroFromCorrelationId(headers[Headers.CorrelationId]);
+                    args.Headers[Headers.CorrelationId] = StripSlashZeroFromCorrelationId(args.Headers[Headers.CorrelationId]);
                 }
           
                 var body = new byte[stream.Length];
                 stream.Read(body, 0, body.Length);
+                args.Body = body;
 
                 if (deduplicator.DeduplicateMessage(callInfo.ClientId, DateTime.UtcNow, new ContextBag()).GetAwaiter().GetResult())
                 {
-                    MessageReceived(this, new MessageReceivedOnChannelArgs { Body = body, Headers = headers });
+                    MessageReceived(this, args);
                 }
                 else
                 {
@@ -109,42 +123,53 @@
             }
         }
 
-        static Dictionary<string, string> CreateHeaders(IDictionary<string, string> from)
+        static MessageReceivedOnChannelArgs CreateMessageReceivedArgsWithDefaultValues(TimeSpan defaultTimeToBeReceived, string id)
+        {
+            return new MessageReceivedOnChannelArgs
+            {
+                Recoverable = false,
+                Id = id,
+                TimeToBeReceived = defaultTimeToBeReceived
+            };
+        }
+
+        static bool IsGatewayMessage(IDictionary<string, string> headers)
+        {
+            return headers.ContainsKey(GatewayHeaders.IsGatewayMessage);
+        }
+
+        static bool GetRecoverable(IDictionary<string, string> headers)
+        {
+            bool recoverable = bool.TryParse(headers[NServiceBus + Recoverable], out recoverable) && recoverable;
+            return recoverable;
+        }
+
+        static TimeSpan GetTimeToBeReceived(IDictionary<string, string> headers)
+        {
+            TimeSpan timeToBeReceived;
+            TimeSpan.TryParse(headers[NServiceBus + TimeToBeReceived], out timeToBeReceived);
+
+            return timeToBeReceived < MinimumTimeToBeReceived ? MinimumTimeToBeReceived : timeToBeReceived;
+        }
+
+        static Dictionary<string, string> MapCustomMessageHeaders(IDictionary<string, string> receivedHeaders)
         {
             var headers = new Dictionary<string, string>();
-            if (!from.ContainsKey(GatewayHeaders.IsGatewayMessage))
+            
+            foreach (var header in receivedHeaders)
             {
-                foreach (var header in from)
-                {
-                    headers[header.Key] = header.Value;
-                }
-
-                return headers;
+                headers[header.Key] = header.Value;
             }
-
-            headers = ExtractHeaders(from);
-            var to = new OutgoingMessage(from[NServiceBus + Id], headers, null);
-
-            headers[Headers.CorrelationId] = from[NServiceBus + CorrelationId] ?? to.MessageId;
-
-            bool recoverable;
-            if (bool.TryParse(from[NServiceBus + Recoverable], out recoverable))
-            {
-                // TODO: How to handle this?
-                // to.Recoverable = recoverable;
-            }
-
-            TimeSpan timeToBeReceived;
-            TimeSpan.TryParse(from[NServiceBus + TimeToBeReceived], out timeToBeReceived);
-            // TODO: How to handle this?
-            // headers[Headers.TimeToBeReceived] = timeToBeReceived;
-
-            //if (to.TimeToBeReceived < MinimumTimeToBeReceived)
-            //{
-            //    to.TimeToBeReceived = MinimumTimeToBeReceived;
-            //}
 
             return headers;
+        }
+
+        static Dictionary<string, string> MapGatewayMessageHeaders(IDictionary<string, string> receivedHeaders)
+        {
+            var gatewayMessageHeaders = ExtractHeaders(receivedHeaders);
+            gatewayMessageHeaders[Headers.CorrelationId] = receivedHeaders[NServiceBus + CorrelationId] ?? receivedHeaders[NServiceBus + Id];
+
+            return gatewayMessageHeaders;
         }
 
         static Dictionary<string, string> ExtractHeaders(IDictionary<string, string> from)

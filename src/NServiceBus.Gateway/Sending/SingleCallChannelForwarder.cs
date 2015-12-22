@@ -42,13 +42,19 @@
 
         Dictionary<string,string> MapToHeaders(Dictionary<string, string> fromHeaders)
         {
+            var recoverable = true;
+            bool nonDurable;
+            if(bool.TryParse(fromHeaders[Headers.NonDurableMessage], out nonDurable))
+            {
+                recoverable = !nonDurable;
+            }
+
             var to = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
             {
                 [NServiceBus + Id] = fromHeaders[Headers.MessageId],
                 [NServiceBus + CorrelationId] = GetCorrelationForBackwardsCompatibility(fromHeaders),
-                // TODO: How to handle this?
-                //[NServiceBus + Recoverable] = @from.Recoverable.ToString(),
-                //[NServiceBus + TimeToBeReceived] = @from.TimeToBeReceived.ToString()
+                [NServiceBus + Recoverable] = recoverable.ToString(),
+                [NServiceBus + TimeToBeReceived] = fromHeaders[Headers.TimeToBeReceived]
             };
 
             string reply;
