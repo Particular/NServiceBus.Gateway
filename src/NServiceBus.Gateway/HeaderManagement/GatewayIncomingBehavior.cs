@@ -14,7 +14,7 @@ namespace NServiceBus.Gateway.HeaderManagement
             if (!headers.ContainsKey(Headers.HttpFrom) &&
                 !headers.ContainsKey(Headers.OriginatingSite))
             {
-                return Task.FromResult(0);
+                return next();
             }
 
             string originatingSite;
