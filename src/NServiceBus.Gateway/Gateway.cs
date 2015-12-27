@@ -227,13 +227,16 @@
                     deliveryConstraints.Add(new NonDurableDelivery());
                 }
 
-                var dispatchOptions = new DispatchOptions(new UnicastAddressTag(destination), DispatchConsistency.Default, deliveryConstraints);
+                var operation = new UnicastTransportOperation(outgoingMessage, destination, deliveryConstraints);
+                dispatchMessages.Dispatch(WrapInOperations(operation), new ContextBag()).GetAwaiter().GetResult();
+            }
 
-                var operation = new TransportOperation(outgoingMessage, dispatchOptions);
-                dispatchMessages.Dispatch(new[]
+            static TransportOperations WrapInOperations(UnicastTransportOperation operation)
+            {
+                return new TransportOperations(Enumerable.Empty<MulticastTransportOperation>(), new[]
                 {
-                    operation
-                }, new ContextBag()).GetAwaiter().GetResult();
+                operation
+            });
             }
 
             static ILog Logger = LogManager.GetLogger<GatewayReceiverStartupTask>();

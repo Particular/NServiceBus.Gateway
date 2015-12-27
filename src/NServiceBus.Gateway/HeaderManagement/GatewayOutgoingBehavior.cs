@@ -7,12 +7,12 @@ namespace NServiceBus.Gateway.HeaderManagement
 
     class GatewayOutgoingBehavior : Behavior<IOutgoingPhysicalMessageContext>
     {
-        public override async Task Invoke(IOutgoingPhysicalMessageContext context, Func<Task> next)
+        public override Task Invoke(IOutgoingPhysicalMessageContext context, Func<Task> next)
         {
             GatewayIncomingBehavior.State state;
             if (!context.Extensions.TryGet(out state))
             {
-                await next().ConfigureAwait(false);
+                return next();
             }
 
             context.Headers[Headers.HttpTo] = state.HttpFrom;
@@ -22,7 +22,7 @@ namespace NServiceBus.Gateway.HeaderManagement
             // send to be backwards compatible with Gateway 3.X
             context.Headers[GatewayHeaders.LegacyMode] = state.LegacyMode.ToString();
 
-            await next().ConfigureAwait(false);
+            return next();
         }
 
         public class Registration : RegisterStep

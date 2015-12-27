@@ -3,6 +3,7 @@ namespace NServiceBus.Gateway.Sending
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Threading.Tasks;
     using Extensibility;
     using Notifications;
@@ -77,10 +78,17 @@ namespace NServiceBus.Gateway.Sending
             headers[Headers.DestinationSites] = destinationSite.Key;
 
             var message = new OutgoingMessage(headers[Headers.MessageId], headers, body);
-            var dispatchOptions = new DispatchOptions(new UnicastAddressTag(InputAddress), DispatchConsistency.Default);
-            var operation = new TransportOperation(message, dispatchOptions);
+            var operation = new UnicastTransportOperation(message, InputAddress);
 
-            return dispatcher.Dispatch(new[] { operation }, new ContextBag());
+            return dispatcher.Dispatch(WrapInOperations(operation), new ContextBag());
+        }
+
+        static TransportOperations WrapInOperations(UnicastTransportOperation operation)
+        {
+            return new TransportOperations(Enumerable.Empty<MulticastTransportOperation>(), new[]
+            {
+                operation
+            });
         }
 
         async Task SendToSite(byte[] body, Dictionary<string, string> headers, Site targetSite)
