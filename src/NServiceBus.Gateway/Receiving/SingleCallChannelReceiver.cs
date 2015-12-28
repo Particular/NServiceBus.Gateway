@@ -140,12 +140,20 @@
 
         static bool GetRecoverable(IDictionary<string, string> headers)
         {
+            if (!headers.ContainsKey(NServiceBus + Recoverable))
+            {
+                return true;
+            }
             bool recoverable = bool.TryParse(headers[NServiceBus + Recoverable], out recoverable) && recoverable;
             return recoverable;
         }
 
         static TimeSpan GetTimeToBeReceived(IDictionary<string, string> headers)
         {
+            if (!headers.ContainsKey(NServiceBus + TimeToBeReceived))
+            {
+                return TimeSpan.MaxValue;
+            }
             TimeSpan timeToBeReceived;
             TimeSpan.TryParse(headers[NServiceBus + TimeToBeReceived], out timeToBeReceived);
 

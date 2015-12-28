@@ -42,20 +42,28 @@
 
         Dictionary<string,string> MapToHeaders(Dictionary<string, string> fromHeaders)
         {
-            var recoverable = true;
-            bool nonDurable;
-            if(bool.TryParse(fromHeaders[Headers.NonDurableMessage], out nonDurable))
-            {
-                recoverable = !nonDurable;
-            }
-
             var to = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
             {
                 [NServiceBus + Id] = fromHeaders[Headers.MessageId],
                 [NServiceBus + CorrelationId] = GetCorrelationForBackwardsCompatibility(fromHeaders),
-                [NServiceBus + Recoverable] = recoverable.ToString(),
-                [NServiceBus + TimeToBeReceived] = fromHeaders[Headers.TimeToBeReceived]
             };
+
+            if (fromHeaders.ContainsKey(Headers.NonDurableMessage))
+            {
+                var recoverable = true;
+                bool nonDurable;
+                if (bool.TryParse(fromHeaders[Headers.NonDurableMessage], out nonDurable))
+                {
+                    recoverable = !nonDurable;
+                }
+
+                to.Add(NServiceBus + Recoverable, recoverable.ToString());
+            }
+
+            if (fromHeaders.ContainsKey(Headers.TimeToBeReceived))
+            {
+                to.Add(NServiceBus + TimeToBeReceived, fromHeaders[Headers.TimeToBeReceived]);
+            }
 
             string reply;
             if (fromHeaders.TryGetValue(Headers.ReplyToAddress, out reply)) //Handles SendOnly endpoints, where ReplyToAddress is not set
