@@ -7,7 +7,7 @@ namespace NServiceBus.Gateway.Utils
 
     class Hasher
     {
-        public static string Hash(Stream stream)
+        public static string Hash(Stream stream)//TODO should probably be awaited
         {
             var position = stream.Position;
             var hash = MD5.Create().ComputeHash(stream);
@@ -17,7 +17,7 @@ namespace NServiceBus.Gateway.Utils
             return Convert.ToBase64String(hash);
         }
 
-        public static void Verify(Stream input, string md5Hash)
+        public static void Verify(Stream input, string md5Hash) //TODO should probably be awaited
         {
             if (md5Hash != Hash(input))
             {

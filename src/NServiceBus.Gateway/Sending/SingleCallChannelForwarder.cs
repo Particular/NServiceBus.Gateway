@@ -115,7 +115,7 @@
 
                 var databusKeyForThisProperty = headers[headerKey];
 
-                using (var stream = DataBus.Get(databusKeyForThisProperty).GetAwaiter().GetResult())
+                using (var stream = await DataBus.Get(databusKeyForThisProperty).ConfigureAwait(false))
                 {
                     await Transmit(channelSender, targetSite, CallType.SingleCallDatabusProperty, headersToSend, stream).ConfigureAwait(false);
                 }

@@ -3,6 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Threading.Tasks;
+    using System.Transactions;
     using Channels;
     using DataBus;
     using Deduplication;
@@ -50,7 +52,7 @@
             }
         }
         
-        void DataReceivedOnChannel(object sender, DataReceivedOnChannelArgs e)
+        async void DataReceivedOnChannel(object sender, DataReceivedOnChannelArgs e)
         {
             using (e.Data)
             {
@@ -63,10 +65,10 @@
                     switch (callInfo.Type)
                     {
                         case CallType.SingleCallDatabusProperty:
-                            HandleDatabusProperty(callInfo);
+                            await HandleDatabusProperty(callInfo).ConfigureAwait(false);
                             break;
                         case CallType.SingleCallSubmit:
-                            HandleSubmit(callInfo);
+                            await HandleSubmit(callInfo).ConfigureAwait(false);
                             break;
                         default:
                             throw new Exception("Unknown call type: " + callInfo.Type);
@@ -76,11 +78,11 @@
             }
         }
 
-        void HandleSubmit(CallInfo callInfo)
+        async Task HandleSubmit(CallInfo callInfo)
         {
             using (var stream = new MemoryStream())
             {
-                callInfo.Data.CopyTo(stream);
+                await callInfo.Data.CopyToAsync(stream).ConfigureAwait(false);
                 stream.Position = 0;
 
                 if (callInfo.Md5 != null)
@@ -109,12 +111,12 @@
                 }
           
                 var body = new byte[stream.Length];
-                stream.Read(body, 0, body.Length);
+                await stream.ReadAsync(body, 0, body.Length).ConfigureAwait(false);
                 args.Body = body;
 
-                if (deduplicator.DeduplicateMessage(callInfo.ClientId, DateTime.UtcNow, new ContextBag()).GetAwaiter().GetResult())
+                if (await deduplicator.DeduplicateMessage(callInfo.ClientId, DateTime.UtcNow, new ContextBag()).ConfigureAwait(false))
                 {
-                    MessageReceived(this, args);
+                    MessageReceived(this, args);//TODO: JS this should be awaited somehow
                 }
                 else
                 {
@@ -197,17 +199,17 @@
 
         public bool IsMsmqTransport{ get; set; }
 
-        void HandleDatabusProperty(CallInfo callInfo)
+        async Task HandleDatabusProperty(CallInfo callInfo)
         {
             if (DataBus == null)
             {
                 throw new InvalidOperationException("Databus transmission received without a configured databus");
             }
 
-            var newDatabusKey = DataBus.Put(callInfo.Data, callInfo.TimeToBeReceived).GetAwaiter().GetResult();
+            var newDatabusKey = await DataBus.Put(callInfo.Data, callInfo.TimeToBeReceived).ConfigureAwait(false);
             if (callInfo.Md5 != null)
             {
-                using (var databusStream = DataBus.Get(newDatabusKey).GetAwaiter().GetResult())
+                using (var databusStream = await DataBus.Get(newDatabusKey).ConfigureAwait(false))
                 {
                     Hasher.Verify(databusStream, callInfo.Md5);
                 }

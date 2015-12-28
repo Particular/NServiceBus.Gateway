@@ -202,7 +202,7 @@
                 return Task.FromResult(0);
             }
 
-            void MessageReceivedOnChannel(object sender, MessageReceivedOnChannelArgs e)
+            async void MessageReceivedOnChannel(object sender, MessageReceivedOnChannelArgs e)
             {
                 var body = e.Body;
                 var headers = e.Headers;
@@ -228,7 +228,7 @@
                 }
 
                 var operation = new UnicastTransportOperation(outgoingMessage, destination, deliveryConstraints);
-                dispatchMessages.Dispatch(WrapInOperations(operation), new ContextBag()).GetAwaiter().GetResult();
+                await dispatchMessages.Dispatch(WrapInOperations(operation), new ContextBag()).ConfigureAwait(false);
             }
 
             static TransportOperations WrapInOperations(UnicastTransportOperation operation)
