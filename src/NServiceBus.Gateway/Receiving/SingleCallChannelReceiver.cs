@@ -28,13 +28,13 @@
         }
 
         public IDataBus DataBus { get; set; }
-        public event EventHandler<MessageReceivedOnChannelArgs> MessageReceived = delegate { };
 
-        public void Start(Channel channel, int numberOfWorkerThreads)
+
+        public void Start(Channel channel, int numberOfWorkerThreads, Func<MessageReceivedOnChannelArgs, Task> messageReceivedHandler)
         {
+            _messageReceivedHandler = messageReceivedHandler;
             channelReceiver = channelFactory.GetReceiver(channel.Type);
-            channelReceiver.DataReceived += DataReceivedOnChannel;
-            channelReceiver.Start(channel.Address, numberOfWorkerThreads);
+            channelReceiver.Start(channel.Address, numberOfWorkerThreads, DataReceivedOnChannel);
         }
 
         public void Dispose()
@@ -45,14 +45,10 @@
 
         void DisposeManaged()
         {
-            if (channelReceiver != null)
-            {
-                channelReceiver.DataReceived -= DataReceivedOnChannel;
-                channelReceiver.Dispose();
-            }
+            channelReceiver?.Dispose();
         }
-        
-        async void DataReceivedOnChannel(object sender, DataReceivedOnChannelArgs e)
+
+        async Task DataReceivedOnChannel(DataReceivedOnChannelArgs e)
         {
             using (e.Data)
             {
@@ -116,7 +112,7 @@
 
                 if (await deduplicator.DeduplicateMessage(callInfo.ClientId, DateTime.UtcNow, new ContextBag()).ConfigureAwait(false))
                 {
-                    MessageReceived(this, args);//TODO: JS this should be awaited somehow
+                    await _messageReceivedHandler(args).ConfigureAwait(false);
                 }
                 else
                 {
@@ -252,5 +248,6 @@
         const string Recoverable = "Recoverable";
         const string TimeToBeReceived = "TimeToBeReceived";
         static readonly TimeSpan MinimumTimeToBeReceived = TimeSpan.FromSeconds(1);
+        private Func<MessageReceivedOnChannelArgs, Task> _messageReceivedHandler;
     }
 }

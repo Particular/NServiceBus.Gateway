@@ -173,8 +173,7 @@
                 {
                     var receiver = receiveMessagesFromSitesFactory();
 
-                    receiver.MessageReceived += MessageReceivedOnChannel;
-                    receiver.Start(receiveChannel, receiveChannel.NumberOfWorkerThreads);
+                    receiver.Start(receiveChannel, receiveChannel.NumberOfWorkerThreads, MessageReceivedOnChannel);
                     activeReceivers.Add(receiver);
 
                     Logger.InfoFormat("Receive channel started: {0}", receiveChannel);
@@ -191,8 +190,6 @@
                 {
                     Logger.InfoFormat("Stopping channel - {0}", channelReceiver.GetType());
 
-                    channelReceiver.MessageReceived -= MessageReceivedOnChannel;
-
                     channelReceiver.Dispose();
                 }
 
@@ -202,7 +199,7 @@
                 return Task.FromResult(0);
             }
 
-            async void MessageReceivedOnChannel(object sender, MessageReceivedOnChannelArgs e)
+            async Task MessageReceivedOnChannel(MessageReceivedOnChannelArgs e)
             {
                 var body = e.Body;
                 var headers = e.Headers;

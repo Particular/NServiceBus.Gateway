@@ -15,10 +15,10 @@ namespace NServiceBus.Gateway.Channels.Http
 
     class HttpChannelReceiver : IChannelReceiver
     {
-        public event EventHandler<DataReceivedOnChannelArgs> DataReceived = delegate { };
-
-        public void Start(string address, int numberOfWorkerThreads)
+        public void Start(string address, int numberOfWorkerThreads, Func<DataReceivedOnChannelArgs, Task> dataReceivedOnChannel)
         {
+            _dataReceivedHandler = dataReceivedOnChannel;
+
             concurencyLimiter = new SemaphoreSlim(numberOfWorkerThreads, numberOfWorkerThreads);
             tokenSource = new CancellationTokenSource();
             listener = new HttpListener();
@@ -110,11 +110,12 @@ namespace NServiceBus.Gateway.Channels.Http
             {
                 await concurencyLimiter.WaitAsync(token).ConfigureAwait(false);
 
-                DataReceived(this, new DataReceivedOnChannelArgs
+                await _dataReceivedHandler(new DataReceivedOnChannelArgs
                 {
                     Headers = GetHeaders(context),
                     Data = await GetMessageStream(context, token).ConfigureAwait(false)
-                });
+                }).ConfigureAwait(false);
+
                 ReportSuccess(context);
 
                 Logger.Debug("Http request processing complete.");
@@ -223,5 +224,6 @@ namespace NServiceBus.Gateway.Channels.Http
         SemaphoreSlim concurencyLimiter;
         HttpListener listener;
         CancellationTokenSource tokenSource;
+        private Func<DataReceivedOnChannelArgs, Task> _dataReceivedHandler;
     }
 }
