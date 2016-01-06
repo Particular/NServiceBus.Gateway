@@ -34,7 +34,7 @@ namespace NServiceBus.Gateway.Receiving
                     return timeToBeReceived;
                 }
             }
-            return TimeSpan.FromHours(1);
+            return TimeSpan.MaxValue;
         }
 
         public static string ReadMd5(IDictionary<string, string> headers)
