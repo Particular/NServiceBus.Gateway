@@ -3,11 +3,9 @@ namespace NServiceBus.Gateway.Sending
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using System.Threading.Tasks;
     using Extensibility;
     using Notifications;
-    using NServiceBus.Routing;
     using ObjectBuilder;
     using Pipeline;
     using Receiving;

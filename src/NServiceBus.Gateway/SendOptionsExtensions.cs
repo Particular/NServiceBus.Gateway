@@ -1,7 +1,8 @@
 namespace NServiceBus
 {
     using Extensibility;
-    using Gateway.Sending;
+    using Gateway;
+    using Gateway.Routing;
 
     /// <summary>
     /// 
@@ -16,7 +17,8 @@ namespace NServiceBus
         public static void RouteToSites(this SendOptions options, params string[] siteKeys)
         {
             options.SetHeader(Headers.DestinationSites, string.Join(",", siteKeys));
-            options.RouteToSatellite("gateway");
+            options.GetExtensions().Set(new RouteThroughGateway());
+            options.RouteToLocalEndpointInstance();
         }
     }
 }

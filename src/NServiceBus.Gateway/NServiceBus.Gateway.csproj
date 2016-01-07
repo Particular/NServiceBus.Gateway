@@ -91,6 +91,8 @@
     <Compile Include="Receiving\IManageReceiveChannels.cs" />
     <Compile Include="Receiving\IReceiveMessagesFromSites.cs" />
     <Compile Include="Receiving\SingleCallChannelReceiver.cs" />
+    <Compile Include="Routing\RouteThroughGateway.cs" />
+    <Compile Include="Routing\RouteToGatewayBehaviour.cs" />
     <Compile Include="Routing\Endpoints\DefaultEndpointRouter.cs" />
     <Compile Include="Routing\IRouteMessagesToEndpoints.cs" />
     <Compile Include="Routing\IRouteMessagesToSites.cs" />

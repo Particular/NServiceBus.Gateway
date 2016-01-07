@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Security.Cryptography;
     using System.Threading.Tasks;
     using Config;
     using ConsistencyGuarantees;
@@ -22,7 +21,6 @@
     using NServiceBus.Gateway.Sending;
     using Performance.TimeToBeReceived;
     using Pipeline;
-    using Routing;
     using Transports;
 
     /// <summary>
@@ -62,9 +60,15 @@
 
             ConfigureReceiver(context);
             ConfigureSender(context, gatewayPipeline, gatewayInputAddress);
-
+            ConfigureRouteToGateway(context, gatewayInputAddress);
 
             context.RegisterStartupTask(b => new GatewayReceiverStartupTask(b.Build<IManageReceiveChannels>(), b.Build<IRouteMessagesToEndpoints>(), b.Build<IDispatchMessages>(), b.Build<Func<IReceiveMessagesFromSites>>(), gatewayInputAddress));
+        }
+
+        static void ConfigureRouteToGateway(FeatureConfigurationContext context, string gatewayAddress)
+        {
+            context.Pipeline.Register<RouteToGatewayBehaviour.Registration>();
+            context.Container.ConfigureComponent(b => new RouteToGatewayBehaviour(gatewayAddress), DependencyLifecycle.SingleInstance);
         }
 
         static void ConfigureChannels(FeatureConfigurationContext context)
