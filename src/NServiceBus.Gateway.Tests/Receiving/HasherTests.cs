@@ -1,5 +1,6 @@
 namespace NServiceBus.Core.Tests
 {
+    using System.Threading.Tasks;
     using Gateway.Receiving;
     using Gateway.Utils;
     using NUnit.Framework;
@@ -9,16 +10,16 @@ namespace NServiceBus.Core.Tests
     {
 
         [Test]
-        public void Valid_Md5_can_be_verified()
+        public async void Valid_Md5_can_be_verified()
         {
-            Hasher.Verify("myData".ConvertToStream(), Hasher.Hash("myData".ConvertToStream()));
+            await Hasher.Verify("myData".ConvertToStream(), "4HJGsZlkhfKtZTbdlkaTgw==");
         }
 
         [Test]
-        public void Invalid_hash_throws_ChannelException()
+        [ExpectedException(typeof(ChannelException))]
+        public async void Invalid_hash_throws_ChannelException()
         {
-            Assert.Throws<ChannelException>(() => Hasher.Verify("myData".ConvertToStream(), "invalidHash"));
+             await Hasher.Verify("myData".ConvertToStream(), "invalidHash");
         }
-
     }
 }

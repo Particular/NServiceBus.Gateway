@@ -90,7 +90,7 @@
         {
             headers[GatewayHeaders.IsGatewayMessage] = Boolean.TrueString;
             headers["NServiceBus.CallType"] = Enum.GetName(typeof(CallType), callType);
-            headers[HttpHeaders.ContentMD5] = Hasher.Hash(data);
+            headers[HttpHeaders.ContentMD5] = await Hasher.Hash(data).ConfigureAwait(false);
 
             Logger.DebugFormat("Sending message - {0} to: {1}", callType, targetSite.Channel.Address);
 

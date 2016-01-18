@@ -83,7 +83,7 @@
 
                 if (callInfo.Md5 != null)
                 {
-                    Hasher.Verify(stream, callInfo.Md5);
+                    await Hasher.Verify(stream, callInfo.Md5).ConfigureAwait(false);
                 }
                 
                 var headers = headerManager.ReassembleDataBusProperties(callInfo.ClientId, callInfo.Headers);
@@ -207,7 +207,7 @@
             {
                 using (var databusStream = await DataBus.Get(newDatabusKey).ConfigureAwait(false))
                 {
-                    Hasher.Verify(databusStream, callInfo.Md5);
+                   await Hasher.Verify(databusStream, callInfo.Md5).ConfigureAwait(false);
                 }
             }
 
