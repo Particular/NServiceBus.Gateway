@@ -8,7 +8,7 @@ namespace NServiceBus.Gateway.Utils
 
     class Hasher
     {
-        internal static async Task Verify(Stream input, string md5Hash)
+        public static async Task Verify(Stream input, string md5Hash)
         {
             if (md5Hash != await Hash(input).ConfigureAwait(false))
             {
@@ -16,7 +16,7 @@ namespace NServiceBus.Gateway.Utils
             }
         }
 
-        internal static async Task<string> Hash(Stream stream)
+        public static async Task<string> Hash(Stream stream)
         {
             var position = stream.Position;
             byte[] hash;

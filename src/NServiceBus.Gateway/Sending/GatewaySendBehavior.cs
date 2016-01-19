@@ -106,15 +106,6 @@ namespace NServiceBus.Gateway.Sending
             return $"{defaultChannel.Type},{defaultChannel.Address}";
         }
 
-        //TODO: public Action<TransportReceiver> GetReceiverCustomization()
-        //{
-        //    return transport =>
-        //    {
-        //        transport.TransactionSettings.TransactionTimeout =
-        //            GatewayTransaction.Timeout(transport.TransactionSettings.TransactionTimeout);
-        //    };
-        //}
-
         public class Registration : RegisterStep
         {
             public Registration()
