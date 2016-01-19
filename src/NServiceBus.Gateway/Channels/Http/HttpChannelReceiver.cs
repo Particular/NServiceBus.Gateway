@@ -17,7 +17,7 @@ namespace NServiceBus.Gateway.Channels.Http
     {
         public void Start(string address, int numberOfWorkerThreads, Func<DataReceivedOnChannelArgs, Task> dataReceivedOnChannel)
         {
-            _dataReceivedHandler = dataReceivedOnChannel;
+            dataReceivedHandler = dataReceivedOnChannel;
 
             concurencyLimiter = new SemaphoreSlim(numberOfWorkerThreads, numberOfWorkerThreads);
             tokenSource = new CancellationTokenSource();
@@ -110,7 +110,7 @@ namespace NServiceBus.Gateway.Channels.Http
             {
                 await concurencyLimiter.WaitAsync(token).ConfigureAwait(false);
 
-                await _dataReceivedHandler(new DataReceivedOnChannelArgs
+                await dataReceivedHandler(new DataReceivedOnChannelArgs
                 {
                     Headers = GetHeaders(context),
                     Data = await GetMessageStream(context, token).ConfigureAwait(false)
@@ -224,6 +224,6 @@ namespace NServiceBus.Gateway.Channels.Http
         SemaphoreSlim concurencyLimiter;
         HttpListener listener;
         CancellationTokenSource tokenSource;
-        private Func<DataReceivedOnChannelArgs, Task> _dataReceivedHandler;
+        private Func<DataReceivedOnChannelArgs, Task> dataReceivedHandler;
     }
 }

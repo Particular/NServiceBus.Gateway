@@ -30,7 +30,7 @@
 
         public void Start(Channel channel, int numberOfWorkerThreads, Func<MessageReceivedOnChannelArgs, Task> messageReceivedHandler)
         {
-            _messageReceivedHandler = messageReceivedHandler;
+            this.messageReceivedHandler = messageReceivedHandler;
             channelReceiver = channelFactory.GetReceiver(channel.Type);
             channelReceiver.Start(channel.Address, numberOfWorkerThreads, DataReceivedOnChannel);
         }
@@ -110,7 +110,7 @@
 
                 if (await deduplicator.DeduplicateMessage(callInfo.ClientId, DateTime.UtcNow, new ContextBag()).ConfigureAwait(false))
                 {
-                    await _messageReceivedHandler(args).ConfigureAwait(false);
+                    await messageReceivedHandler(args).ConfigureAwait(false);
                 }
                 else
                 {
@@ -246,6 +246,6 @@
         const string Recoverable = "Recoverable";
         const string TimeToBeReceived = "TimeToBeReceived";
         static readonly TimeSpan MinimumTimeToBeReceived = TimeSpan.FromSeconds(1);
-        private Func<MessageReceivedOnChannelArgs, Task> _messageReceivedHandler;
+        private Func<MessageReceivedOnChannelArgs, Task> messageReceivedHandler;
     }
 }
