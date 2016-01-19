@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
-    using System.Transactions;
     using Channels;
     using DataBus;
     using Deduplication;
@@ -13,7 +12,6 @@
     using Logging;
     using Notifications;
     using Sending;
-    using Transports;
     using Utils;
 
     class SingleCallChannelReceiver : IReceiveMessagesFromSites

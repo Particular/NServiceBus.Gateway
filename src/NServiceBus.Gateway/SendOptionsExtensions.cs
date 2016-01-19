@@ -1,7 +1,6 @@
 namespace NServiceBus
 {
     using Extensibility;
-    using Gateway;
     using Gateway.Routing;
 
     /// <summary>

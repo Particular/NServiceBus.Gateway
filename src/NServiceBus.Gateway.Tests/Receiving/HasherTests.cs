@@ -1,6 +1,5 @@
 namespace NServiceBus.Core.Tests
 {
-    using System.Threading.Tasks;
     using Gateway.Receiving;
     using Gateway.Utils;
     using NUnit.Framework;
