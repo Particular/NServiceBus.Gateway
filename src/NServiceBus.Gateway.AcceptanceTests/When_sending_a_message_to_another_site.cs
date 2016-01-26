@@ -12,9 +12,9 @@
     public class When_sending_a_message_to_another_site : NServiceBusAcceptanceTest
     {
         [Test]
-        public async Task Should_be_able_to_reply_to_the_message()
+        public void  Should_be_able_to_reply_to_the_message()
         {
-            await Scenario.Define<Context>()
+            Scenario.Define<Context>()
                     .WithEndpoint<Headquarters>(b => b.When(async (bus,c) => await bus.SendToSites(new[] { "SiteA" }, new MyRequest())))
                     .WithEndpoint<SiteA>()
                     .Done(c => c.GotResponseBack)
@@ -92,9 +92,9 @@
             public class MyRequestHandler : IHandleMessages<MyRequest>
             {
 
-                public async Task Handle(MyRequest request, IMessageHandlerContext context)
+                public Task Handle(MyRequest request, IMessageHandlerContext context)
                 {
-                    await context.Reply(new MyResponse());
+                    return context.Reply(new MyResponse());
                 }
             }
         }

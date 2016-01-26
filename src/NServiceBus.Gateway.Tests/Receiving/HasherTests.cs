@@ -15,10 +15,9 @@ namespace NServiceBus.Core.Tests
         }
 
         [Test]
-        [ExpectedException(typeof(ChannelException))]
-        public async void Invalid_hash_throws_ChannelException()
+        public void Invalid_hash_throws_ChannelException()
         {
-             await Hasher.Verify("myData".ConvertToStream(), "invalidHash");
+            Assert.That(async () => { await Hasher.Verify("myData".ConvertToStream(), "invalidHash"); }, Throws.Exception.TypeOf<ChannelException>());
         }
     }
 }

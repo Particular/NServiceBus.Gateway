@@ -87,9 +87,9 @@
 
             public class MyRequestHandler : IHandleMessages<MyRequest>
             {
-                public async Task Handle(MyRequest request, IMessageHandlerContext context)
+                public Task Handle(MyRequest request, IMessageHandlerContext context)
                 {
-                    await context.Reply(new MyResponse());
+                    return context.Reply(new MyResponse());
                 }
             }
         }

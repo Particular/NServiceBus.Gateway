@@ -14,7 +14,7 @@
         {
             var context = await Scenario.Define<Context>()
                 .WithEndpoint<SiteA>(
-                    b => b.When(async(bus, c) =>
+                    b => b.When(async (bus, c) =>
                     {
                         var options = new SendOptions();
                         options.RouteToSites("SiteB");
@@ -87,9 +87,9 @@
 
             public class MyRequestHandler : IHandleMessages<MyRequest>
             {
-                public async Task Handle(MyRequest request, IMessageHandlerContext context)
+                public Task Handle(MyRequest request, IMessageHandlerContext context)
                 {
-                    await context.Reply(1);
+                    return context.Reply(1);
                 }
             }
         }

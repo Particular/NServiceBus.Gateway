@@ -21,12 +21,8 @@ namespace NServiceBus.Gateway.Tests.Routing
             {
                 Sites = section.SitesAsDictionary()
             };
-
-
-            var headers = new Dictionary<string, string>
-            {
-                {Headers.DestinationSites, "SiteA"}
-            };
+            
+            var headers = new Dictionary<string, string>{{Headers.DestinationSites, "SiteA"}};
 
             var sites = router.GetDestinationSitesFor(headers);
 

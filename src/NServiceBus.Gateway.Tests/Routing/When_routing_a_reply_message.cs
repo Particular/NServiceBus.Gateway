@@ -20,10 +20,7 @@ namespace NServiceBus.Gateway.Tests.Routing
                                          Address = "http://x.y"
                                      };
 
-            var headers = new Dictionary<string, string>
-            {
-                {Headers.OriginatingSite, defaultChannel.ToString()}
-            };
+            var headers = new Dictionary<string, string>{{Headers.OriginatingSite, defaultChannel.ToString()}};
 
             Assert.AreEqual(defaultChannel, router.GetDestinationSitesFor(headers).First().Channel);
         }
