@@ -31,13 +31,13 @@ namespace NServiceBus.Gateway.Utils
 
         private static async Task<byte[]> ComputeHashAsync(HashAlgorithm algorithm, Stream inputStream)
         { 
-           const int BufferSize = 4096;
+            const int BufferSize = 4096;
 
-           algorithm.Initialize();
+            algorithm.Initialize();
 
-           var buffer = new byte[BufferSize];
-           var streamLength = inputStream.Length;
-           while (true)
+            var buffer = new byte[BufferSize];
+            var streamLength = inputStream.Length;
+            while (true)
             {
                 var read = await inputStream.ReadAsync(buffer, 0, BufferSize).ConfigureAwait(false);
                 if (inputStream.Position == streamLength)
