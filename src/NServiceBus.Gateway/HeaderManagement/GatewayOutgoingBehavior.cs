@@ -9,18 +9,27 @@ namespace NServiceBus.Gateway.HeaderManagement
     {
         public override Task Invoke(IOutgoingPhysicalMessageContext context, Func<Task> next)
         {
-            GatewayIncomingBehavior.State state;
-            if (!context.Extensions.TryGet(out state))
+            GatewayIncomingBehavior.ReturnState returnState;
+            var noReturnInfo = !context.Extensions.TryGet(out returnState);
+
+            var correlationIdMissing = !context.Headers.ContainsKey(Headers.CorrelationId);
+            var normalSend = context.Headers.ContainsKey(Headers.DestinationSites);
+            var legacySend = context.Headers.ContainsKey(Headers.HttpTo);
+
+            if (noReturnInfo || correlationIdMissing || legacySend || normalSend)
             {
                 return next();
             }
-
-            context.Headers[Headers.HttpTo] = state.HttpFrom;
-            context.Headers[Headers.OriginatingSite] = state.OriginatingSite;
-            // TODO: Discuss, is it safe to always set this?
-            context.Headers[Headers.RouteTo] = state.ReplyToAddress;
+            
+            //handle response message
+            context.Headers[Headers.HttpTo] = returnState.HttpFrom;
+            context.Headers[Headers.OriginatingSite] = returnState.OriginatingSite;
+            if (!context.Headers.ContainsKey(Headers.RouteTo))
+            {
+                context.Headers[Headers.RouteTo] = returnState.ReplyToAddress;
+            }
             // send to be backwards compatible with Gateway 3.X
-            context.Headers[GatewayHeaders.LegacyMode] = state.LegacyMode.ToString();
+            context.Headers[GatewayHeaders.LegacyMode] = returnState.LegacyMode.ToString();
 
             return next();
         }

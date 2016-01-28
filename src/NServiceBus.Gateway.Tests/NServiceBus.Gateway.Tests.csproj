@@ -51,8 +51,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config\When_routing_using_the_configuration_source.cs" />
-    <Compile Include="HeaderManagement\When_receiving_a_message_from_another_site.cs" />
+    <Compile Include="IncomingPhysicalMessageContextFake.cs" />
+    <Compile Include="OutgoingPhysicalMessageContextFake.cs" />
     <Compile Include="Receiving\ChannelReceiverHeaderReaderTests.cs" />
+    <Compile Include="Receiving\GatewayIncomingBehaviorTests.cs" />
+    <Compile Include="Receiving\GatewayOutgoingBehaviorTests.cs" />
     <Compile Include="Receiving\HasherTests.cs" />
     <Compile Include="Routing\When_routing_a_reply_message.cs" />
     <Compile Include="Routing\When_routing_using_the_configuration_source.cs" />

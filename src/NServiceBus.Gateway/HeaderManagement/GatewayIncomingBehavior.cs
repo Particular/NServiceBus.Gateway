@@ -11,8 +11,9 @@ namespace NServiceBus.Gateway.HeaderManagement
             var message = context.Message;
 
             var headers = message.Headers;
-            if (!headers.ContainsKey(Headers.HttpFrom) &&
-                !headers.ContainsKey(Headers.OriginatingSite))
+            
+            var legacyMessageWithNoReturnCapability = !headers.ContainsKey(Headers.HttpFrom) && !headers.ContainsKey(Headers.OriginatingSite);
+            if (legacyMessageWithNoReturnCapability)
             {
                 return next();
             }
@@ -22,7 +23,7 @@ namespace NServiceBus.Gateway.HeaderManagement
             string httpFrom;
             headers.TryGetValue(Headers.HttpFrom, out httpFrom);
 
-            var state = context.Extensions.GetOrCreate<State>();
+            var state = context.Extensions.GetOrCreate<ReturnState>();
             //we preserve the httpFrom to be backwards compatible with NServiceBus 2.X 
             state.HttpFrom = httpFrom;
             state.OriginatingSite = originatingSite;
@@ -32,7 +33,7 @@ namespace NServiceBus.Gateway.HeaderManagement
             return next();
         }
 
-        public class State
+        public class ReturnState
         {
             public string HttpFrom { get; set; }
             public string OriginatingSite { get; set; }
