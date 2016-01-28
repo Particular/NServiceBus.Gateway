@@ -33,12 +33,5 @@ namespace NServiceBus.Gateway.HeaderManagement
 
             return next();
         }
-
-        public class Registration : RegisterStep
-        {
-            public Registration() : base("GatewayOutgoingBehavior", typeof(GatewayOutgoingBehavior), "Puts gateway related information on the headers of outgoing messages")
-            {
-            }
-        }
     }
 }
