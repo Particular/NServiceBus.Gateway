@@ -1,22 +1,21 @@
 namespace NServiceBus.Gateway.Notifications
 {
     using System;
+    using System.Collections.Generic;
 
     class MessageNotifier : IMessageNotifier
     {
-        public event EventHandler<MessageReceivedOnChannelArgs> MessageForwarded;
+        public event EventHandler<MessageReceivedOnChannelArgs> MessageForwarded = delegate { };
 
-        void IMessageNotifier.RaiseMessageForwarded(string from, string to, TransportMessage message)
+        void IMessageNotifier.RaiseMessageForwarded(string from, string to, byte[] messageBody, Dictionary<string, string> headers)
         {
-            if (MessageForwarded != null)
+            MessageForwarded(this, new MessageReceivedOnChannelArgs
             {
-                MessageForwarded(this, new MessageReceivedOnChannelArgs
-                {
-                    FromChannel = from,
-                    ToChannel = to,
-                    Message = message
-                });
-            }
+                FromChannel = from,
+                ToChannel = to,
+                Body = messageBody,
+                Headers = headers,
+            });
         }
     }
 }

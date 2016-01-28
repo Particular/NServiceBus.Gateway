@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NServiceBus.Gateway.Tests</RootNamespace>
     <AssemblyName>NServiceBus.Gateway.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\NServiceBus.snk</AssemblyOriginatorKeyFile>
@@ -33,9 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NServiceBus.Core, Version=5.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\NServiceBus.5.0.0\lib\net45\NServiceBus.Core.dll</HintPath>
+    <Reference Include="NServiceBus.Core, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NServiceBus.6.0.0-unstable1406\lib\net452\NServiceBus.Core.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
@@ -51,12 +51,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config\When_routing_using_the_configuration_source.cs" />
-    <Compile Include="FakeMessageSender.cs" />
-    <Compile Include="FakeTransport.cs" />
-    <Compile Include="HeaderManagement\When_receiving_a_message_from_another_site.cs" />
+    <Compile Include="IncomingPhysicalMessageContextFake.cs" />
+    <Compile Include="OutgoingPhysicalMessageContextFake.cs" />
     <Compile Include="Receiving\ChannelReceiverHeaderReaderTests.cs" />
+    <Compile Include="Receiving\GatewayIncomingBehaviorTests.cs" />
+    <Compile Include="Receiving\GatewayOutgoingBehaviorTests.cs" />
     <Compile Include="Receiving\HasherTests.cs" />
-    <Compile Include="RegularMessage.cs" />
     <Compile Include="Routing\When_routing_a_reply_message.cs" />
     <Compile Include="Routing\When_routing_using_the_configuration_source.cs" />
     <Compile Include="StringStreamExtensions.cs" />

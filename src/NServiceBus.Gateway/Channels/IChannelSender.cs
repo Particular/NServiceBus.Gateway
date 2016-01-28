@@ -2,6 +2,7 @@ namespace NServiceBus.Gateway.Channels
 {
     using System.Collections.Generic;
     using System.IO;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Implement to add a new channel sender.
@@ -14,6 +15,6 @@ namespace NServiceBus.Gateway.Channels
         /// <param name="remoteAddress">The destination address.</param>
         /// <param name="headers">Extra headers.</param>
         /// <param name="data">The data to be sent.</param>
-        void Send(string remoteAddress, IDictionary<string, string> headers, Stream data);
+        Task Send(string remoteAddress, IDictionary<string, string> headers, Stream data);
     }
 }

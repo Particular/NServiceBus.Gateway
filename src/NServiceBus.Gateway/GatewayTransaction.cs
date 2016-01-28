@@ -24,7 +24,8 @@
                 {
                     IsolationLevel = IsolationLevel.ReadCommitted,
                     Timeout = Timeout(TimeSpan.FromSeconds(30)),
-                });
+                }, TransactionScopeAsyncFlowOption.Enabled
+                );
         }
     }
 }

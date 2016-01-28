@@ -4,6 +4,7 @@ namespace NServiceBus.Gateway.Channels.Http
     using System.Collections.Generic;
     using System.IO;
     using System.Net;
+    using System.Threading.Tasks;
     using System.Web;
     using Logging;
 
@@ -11,7 +12,7 @@ namespace NServiceBus.Gateway.Channels.Http
     [ChannelType("https")]
     class HttpChannelSender : IChannelSender
     {
-        public void Send(string remoteUrl, IDictionary<string, string> headers, Stream data)
+        public async Task Send(string remoteUrl, IDictionary<string, string> headers, Stream data)
         {
             var request = WebRequest.Create(remoteUrl);
             request.Method = "POST";
@@ -20,15 +21,15 @@ namespace NServiceBus.Gateway.Channels.Http
             request.UseDefaultCredentials = true;
             request.ContentLength = data.Length;
 
-            using (var stream = request.GetRequestStream())
+            using (var stream = await request.GetRequestStreamAsync().ConfigureAwait(false))
             {
-                data.CopyTo(stream);
+                await data.CopyToAsync(stream).ConfigureAwait(false);
             }
 
             HttpStatusCode statusCode;
 
             //todo make the receiver send the md5 back so that we can double check that the transmission went ok
-            using (var response = (HttpWebResponse) request.GetResponse())
+            using (var response = (HttpWebResponse) await request.GetResponseAsync().ConfigureAwait(false))
             {
                 statusCode = response.StatusCode;
             }

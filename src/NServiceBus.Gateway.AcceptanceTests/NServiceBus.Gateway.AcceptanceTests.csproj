@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NServiceBus.Gateway.AcceptanceTests</RootNamespace>
     <AssemblyName>NServiceBus.Gateway.AcceptanceTests</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -31,13 +31,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NServiceBus.AcceptanceTesting, Version=5.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\NServiceBus.AcceptanceTesting.5.0.0\lib\net45\NServiceBus.AcceptanceTesting.dll</HintPath>
+    <Reference Include="NServiceBus.AcceptanceTesting, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NServiceBus.AcceptanceTesting.6.0.0-unstable1406\lib\net452\NServiceBus.AcceptanceTesting.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="NServiceBus.Core, Version=5.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\NServiceBus.5.0.0\lib\net45\NServiceBus.Core.dll</HintPath>
+    <Reference Include="NServiceBus.Callbacks, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NServiceBus.Callbacks.1.0.0-unstable0026\lib\net452\NServiceBus.Callbacks.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NServiceBus.Core, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NServiceBus.6.0.0-unstable1406\lib\net452\NServiceBus.Core.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
@@ -61,22 +65,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EndpointTemplates\ConfigureExtensions.cs" />
-    <Compile Include="EndpointTemplates\ContextAppender.cs" />
     <Compile Include="EndpointTemplates\DefaultPublisher.cs" />
     <Compile Include="EndpointTemplates\DefaultServer.cs" />
     <Compile Include="NServiceBusAcceptanceTest.cs" />
-    <Compile Include="ScenarioDescriptors\AllBuilders.cs" />
     <Compile Include="ScenarioDescriptors\AllOutboxCapableStorages.cs" />
-    <Compile Include="ScenarioDescriptors\AllSerializers.cs" />
+    <Compile Include="ScenarioDescriptors\AllTransactionSettings.cs" />
     <Compile Include="ScenarioDescriptors\AllTransports.cs" />
     <Compile Include="ScenarioDescriptors\Builders.cs" />
     <Compile Include="ScenarioDescriptors\Persistence.cs" />
-    <Compile Include="ScenarioDescriptors\Serializers.cs" />
+    <Compile Include="ScenarioDescriptors\TransactionSettings.cs" />
     <Compile Include="ScenarioDescriptors\Transports.cs" />
-    <Compile Include="SubscriptionBehavior.cs" />
     <Compile Include="When_doing_request_response_between_sites.cs" />
     <Compile Include="When_doing_request_response_with_databus_between_sites.cs" />
-    <Compile Include="When_doing_request_return.cs" />
+    <Compile Include="When_doing_request_reply.cs" />
     <Compile Include="When_sending_a_message_to_another_site.cs" />
     <Compile Include="When_sending_a_message_via_the_gateway.cs" />
   </ItemGroup>
@@ -90,6 +91,9 @@
       <Project>{25ad2314-8d8f-4950-b12c-d80487e666c9}</Project>
       <Name>NServiceBus.Gateway</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

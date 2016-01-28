@@ -1,5 +1,6 @@
 ﻿namespace NServiceBus.Gateway
 {
+    using System.Collections.Generic;
     using HeaderManagement;
 
     /// <summary>
@@ -15,13 +16,13 @@
         ///     or v4 site is configured to forward messages using legacy mode,
         ///     false otherwise
         /// </returns>
-        public static bool IsLegacyGatewayMessage(this TransportMessage message)
+        public static bool IsLegacyGatewayMessage(this IDictionary<string, string> headers)
         {
             var legacyMode = true;
 
             // Gateway v3 would never have sent this header
             string legacyModeString;
-            if (message.Headers.TryGetValue(GatewayHeaders.LegacyMode, out legacyModeString))
+            if (headers.TryGetValue(GatewayHeaders.LegacyMode, out legacyModeString))
             {
                 bool.TryParse(legacyModeString, out legacyMode);
             }

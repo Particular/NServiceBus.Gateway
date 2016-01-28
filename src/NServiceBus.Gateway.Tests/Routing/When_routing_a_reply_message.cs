@@ -1,5 +1,6 @@
 namespace NServiceBus.Gateway.Tests.Routing
 {
+    using System.Collections.Generic;
     using System.Linq;
     using Channels;
     using Gateway.Routing.Sites;
@@ -13,17 +14,15 @@ namespace NServiceBus.Gateway.Tests.Routing
         {
             var router = new OriginatingSiteHeaderRouter();
 
-            var message = new TransportMessage();
-
             var defaultChannel = new Channel
                                      {
                                          Type = "http",
                                          Address = "http://x.y"
                                      };
 
-            message.Headers.Add(Headers.OriginatingSite, defaultChannel.ToString());
+            var headers = new Dictionary<string, string>{{Headers.OriginatingSite, defaultChannel.ToString()}};
 
-            Assert.AreEqual(defaultChannel, router.GetDestinationSitesFor(message).First().Channel);
+            Assert.AreEqual(defaultChannel, router.GetDestinationSitesFor(headers).First().Channel);
         }
 
 
@@ -31,10 +30,8 @@ namespace NServiceBus.Gateway.Tests.Routing
         public void Should_return_empty_list_if_header_is_missing()
         {
             var router = new OriginatingSiteHeaderRouter();
-
-            var message = new TransportMessage();
-            
-            Assert.AreEqual(0, router.GetDestinationSitesFor(message).Count());
+          
+            Assert.AreEqual(0, router.GetDestinationSitesFor(new Dictionary<string, string>()).Count());
         }
     }
 }

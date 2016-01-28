@@ -1,17 +1,18 @@
 namespace NServiceBus.Gateway.Routing
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Implement this interface to override the default implementation of how messages are routed to the endpoint when received. 
     /// </summary>
     public interface IRouteMessagesToEndpoints
     {
         /// <summary>
-        /// Retrieves the <see cref="Address"/> to forward the message to.
+        /// Retrieves the address to forward the message to.
         /// </summary>
-        /// <param name="messageToSend">The message to send.</param>
+        /// <param name="headers">The headers of the message to send.</param>
         /// <returns>The destination address.</returns>
-// ReSharper disable UnusedParameter.Global
-        Address GetDestinationFor(TransportMessage messageToSend);
-// ReSharper restore UnusedParameter.Global
+        // ReSharper disable once UnusedParameter.Global
+        string GetDestinationFor(Dictionary<string, string> headers);
     }
 }

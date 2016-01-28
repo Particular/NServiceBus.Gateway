@@ -9,13 +9,14 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NServiceBus.Gateway</RootNamespace>
     <AssemblyName>NServiceBus.Gateway</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\NServiceBus.snk</AssemblyOriginatorKeyFile>
     <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>fb72b4d0</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -41,9 +42,9 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NServiceBus.Core, Version=5.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\NServiceBus.5.0.0\lib\net45\NServiceBus.Core.dll</HintPath>
+    <Reference Include="NServiceBus.Core, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NServiceBus.6.0.0-unstable1406\lib\net452\NServiceBus.Core.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -62,7 +63,7 @@
     <Compile Include="Channels\Http\HttpChannelReceiver.cs" />
     <Compile Include="Channels\Http\HttpChannelSender.cs" />
     <Compile Include="Channels\Http\HttpHeaders.cs" />
-    <Compile Include="Channels\Http\MTATaskScheduler.cs" />
+    <Compile Include="Channels\Http\TaskExtensions.cs" />
     <Compile Include="Channels\IChannelFactory.cs" />
     <Compile Include="Channels\IChannelReceiver.cs" />
     <Compile Include="Channels\IChannelSender.cs" />
@@ -77,20 +78,21 @@
     <Compile Include="GatewayHttpListenerInstaller.cs" />
     <Compile Include="GatewayTransaction.cs" />
     <Compile Include="HeaderManagement\DataBusHeaderManager.cs" />
-    <Compile Include="HeaderManagement\GatewayHeaderManager.cs" />
+    <Compile Include="HeaderManagement\GatewayIncomingBehavior.cs" />
     <Compile Include="HeaderManagement\GatewayHeaders.cs" />
+    <Compile Include="HeaderManagement\GatewayOutgoingBehavior.cs" />
     <Compile Include="Notifications\IMessageNotifier.cs" />
-    <Compile Include="Notifications\INotifyAboutMessages.cs" />
     <Compile Include="Notifications\MessageNotifier.cs" />
     <Compile Include="Notifications\MessageReceivedOnChannelArgs.cs" />
     <Compile Include="Receiving\ChannelException.cs" />
     <Compile Include="Receiving\ChannelReceiverHeaderReader.cs" />
     <Compile Include="Receiving\ConfigurationBasedChannelManager.cs" />
     <Compile Include="Receiving\ConventionBasedChannelManager.cs" />
-    <Compile Include="Receiving\GatewayReceiver.cs" />
     <Compile Include="Receiving\IManageReceiveChannels.cs" />
     <Compile Include="Receiving\IReceiveMessagesFromSites.cs" />
     <Compile Include="Receiving\SingleCallChannelReceiver.cs" />
+    <Compile Include="Routing\RouteThroughGateway.cs" />
+    <Compile Include="Routing\RouteToGatewayBehaviour.cs" />
     <Compile Include="Routing\Endpoints\DefaultEndpointRouter.cs" />
     <Compile Include="Routing\IRouteMessagesToEndpoints.cs" />
     <Compile Include="Routing\IRouteMessagesToSites.cs" />
@@ -100,9 +102,10 @@
     <Compile Include="Routing\Sites\OriginatingSiteHeaderRouter.cs" />
     <Compile Include="Sending\CallInfo.cs" />
     <Compile Include="CallType.cs" />
-    <Compile Include="Sending\GatewaySender.cs" />
+    <Compile Include="Sending\GatewaySendBehavior.cs" />
     <Compile Include="Sending\IForwardMessagesToSites.cs" />
     <Compile Include="Sending\SingleCallChannelForwarder.cs" />
+    <Compile Include="SendOptionsExtensions.cs" />
     <Compile Include="Utils\Hasher.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -110,6 +113,9 @@
       <Link>nservicebus.gateway.nuspec</Link>
     </None>
     <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

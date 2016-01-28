@@ -1,34 +1,38 @@
 ﻿namespace NServiceBus.AcceptanceTests.Gateway
 {
     using System;
+    using System.Threading.Tasks;
     using Config;
     using EndpointTemplates;
     using AcceptanceTesting;
     using NUnit.Framework;
 
-    public class When_doing_request_return : NServiceBusAcceptanceTest
+    public class When_doing_request_reply : NServiceBusAcceptanceTest
     {
         [Test]
-        public void Callback_should_be_fired()
+        public async Task Callback_should_be_fired()
         {
-            var context = new Context();
-
-            Scenario.Define(context)
+            var context = await Scenario.Define<Context>()
                 .WithEndpoint<SiteA>(
-                    b => b.Given((bus, c) =>
-                        bus.SendToSites(new[] { "SiteB" }, new MyRequest())
-                            .Register(result => c.GotCallback = true)))
+                    b => b.When(async (bus, c) =>
+                    {
+                        var options = new SendOptions();
+                        options.RouteToSites("SiteB");
+                        c.Response = await bus.Request<int>(new MyRequest(), options);
+                        c.GotCallback = true;
+                    }))
                 .WithEndpoint<SiteB>()
-                .AllowExceptions()
                 .Done(c => c.GotCallback)
                 .Run();
 
             Assert.IsTrue(context.GotCallback);
+            Assert.AreEqual(1, context.Response);
         }
 
         public class Context : ScenarioContext
         {
             public bool GotCallback { get; set; }
+            public int Response { get; set; }
         }
 
         public class SiteA : EndpointConfigurationBuilder
@@ -83,10 +87,9 @@
 
             public class MyRequestHandler : IHandleMessages<MyRequest>
             {
-                public IBus Bus { get; set; }
-                public void Handle(MyRequest request)
+                public Task Handle(MyRequest request, IMessageHandlerContext context)
                 {
-                    Bus.Return(1);
+                    return context.Reply(1);
                 }
             }
         }

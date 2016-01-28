@@ -1,6 +1,7 @@
 ﻿namespace NServiceBus.AcceptanceTests.Gateway
 {
     using System;
+    using System.Threading.Tasks;
     using Config;
     using EndpointTemplates;
     using AcceptanceTesting;
@@ -12,13 +13,17 @@
         static readonly byte[] PayloadToSend = new byte[1024 * 1024 * 10];
 
         [Test]
-        public void Should_be_able_to_reply_to_the_message_using_databus()
+        public async void Should_be_able_to_reply_to_the_message_using_databus()
         {
-            Scenario.Define<Context>()
+            await Scenario.Define<Context>()
                 .WithEndpoint<SiteA>(
-                    b => b.Given((bus, context) =>
-                        bus.SendToSites(new[] { "SiteB" }, new MyRequest { Payload = new DataBusProperty<byte[]>(PayloadToSend) })
-                            .Register(result => context.GotCallback = true)))
+                    b => b.When(async (bus, context) =>
+                    {
+                        var options = new SendOptions();
+                        options.RouteToSites("SiteB");
+                        context.Response = await bus.Request<MyResponse>(new MyRequest { Payload = new DataBusProperty<byte[]>(PayloadToSend) }, options);
+                        context.GotCallback = true;
+                    }))
                 .WithEndpoint<SiteB>()
                 .Done(c => c.GotResponseBack && c.GotCallback)
                 .Repeat(r => r.For(Transports.Default))
@@ -30,6 +35,7 @@
                         "The large payload should be marshalled correctly using the databus");
                     Assert.AreEqual(@"http,http://localhost:25899/SiteA/", c.OriginatingSiteForRequest);
                     Assert.AreEqual(@"http,http://localhost:25899/SiteB/", c.OriginatingSiteForResponse);
+                    Assert.NotNull(c.Response);
                 })
                 .Run();
         }
@@ -38,6 +44,7 @@
         {
             public bool GotResponseBack { get; set; }
             public bool GotCallback { get; set; }
+            public MyResponse Response { get; set; }
             public byte[] SiteBReceivedPayload { get; set; }
             public byte[] SiteAReceivedPayloadInResponse { get; set; }
             public string OriginatingSiteForRequest { get; set; }
@@ -51,7 +58,7 @@
                 EndpointSetup<DefaultServer>(c =>
                     {
                         c.EnableFeature<Features.Gateway>();
-                        c.FileShareDataBus(@".\databus\siteA");
+                        c.UseDataBus<FileShareDataBus>().BasePath(@".\databus\siteA");
                     }).WithConfig<GatewayConfig>(c =>
                      {
                          c.Sites = new SiteCollection
@@ -79,15 +86,16 @@
             public class MyResponseHandler : IHandleMessages<MyResponse>
             {
                 public Context Context { get; set; }
-                public IBus Bus { get; set; }
-
-                public void Handle(MyResponse response)
+                
+                public Task Handle(MyResponse response, IMessageHandlerContext context)
                 {
                     Context.GotResponseBack = true;
                     Context.SiteAReceivedPayloadInResponse = response.OriginalPayload.Value;
 
                     // Inspect the headers to find the originating site address 
-                    Context.OriginatingSiteForResponse = Bus.CurrentMessageContext.Headers[Headers.OriginatingSite];
+                    Context.OriginatingSiteForResponse = context.MessageHeaders[Headers.OriginatingSite];
+
+                    return Task.FromResult(0);
                 }
             }
         }
@@ -99,7 +107,7 @@
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.EnableFeature<Features.Gateway>();
-                    c.FileShareDataBus(@".\databus\siteB");
+                    c.UseDataBus<FileShareDataBus>().BasePath(@".\databus\siteB");
                 })
                    .WithConfig<GatewayConfig>(c =>
                    {
@@ -118,16 +126,15 @@
 
             public class MyRequestHandler : IHandleMessages<MyRequest>
             {
-                public IBus Bus { get; set; }
                 public Context Context { get; set; }
 
-                public void Handle(MyRequest request)
+                public async Task Handle(MyRequest request, IMessageHandlerContext context)
                 {
                     Context.SiteBReceivedPayload = request.Payload.Value;
-                    Bus.Reply(new MyResponse { OriginalPayload = request.Payload });
+                    await context.Reply(new MyResponse { OriginalPayload = request.Payload });
 
                     // Inspect the headers to find the originating site address
-                    Context.OriginatingSiteForRequest = Bus.CurrentMessageContext.Headers[Headers.OriginatingSite];
+                    Context.OriginatingSiteForRequest = context.MessageHeaders[Headers.OriginatingSite];
                 }
             }
         }

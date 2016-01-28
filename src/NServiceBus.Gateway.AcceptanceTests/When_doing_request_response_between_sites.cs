@@ -1,6 +1,7 @@
 ﻿namespace NServiceBus.AcceptanceTests.Gateway
 {
     using System;
+    using System.Threading.Tasks;
     using Config;
     using EndpointTemplates;
     using AcceptanceTesting;
@@ -9,26 +10,29 @@
     public class When_doing_request_response_between_sites : NServiceBusAcceptanceTest
     {
         [Test]
-        public void Callback_should_be_fired()
+        public async Task Callback_should_be_fired()
         {
-            var context = new Context();
-
-            Scenario.Define(context)
+            var context = await Scenario.Define<Context>()
                 .WithEndpoint<SiteA>(
-                    b => b.Given((bus, c) =>
-                        bus.SendToSites(new[] { "SiteB" }, new MyRequest())
-                            .Register(result => c.GotCallback = true)))
+                    b => b.When(async (bus, c) =>
+                    {
+                        var options = new SendOptions();
+                        options.RouteToSites("SiteB");
+                        c.Response = await bus.Request<MyResponse>(new MyRequest(), options);
+                        c.GotCallback = true;
+                    }))
                 .WithEndpoint<SiteB>()
-                .AllowExceptions()
                 .Done(c => c.GotCallback)
                 .Run();
 
             Assert.IsTrue(context.GotCallback);
+            Assert.NotNull(context.Response);
         }
 
         public class Context : ScenarioContext
         {
             public bool GotCallback { get; set; }
+            public MyResponse Response { get; set; }
         }
 
         public class SiteA : EndpointConfigurationBuilder
@@ -83,10 +87,9 @@
 
             public class MyRequestHandler : IHandleMessages<MyRequest>
             {
-                public IBus Bus { get; set; }
-                public void Handle(MyRequest request)
+                public Task Handle(MyRequest request, IMessageHandlerContext context)
                 {
-                    Bus.Reply(new MyResponse());
+                    return context.Reply(new MyResponse());
                 }
             }
         }

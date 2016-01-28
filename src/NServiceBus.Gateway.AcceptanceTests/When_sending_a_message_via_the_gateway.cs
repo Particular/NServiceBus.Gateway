@@ -4,6 +4,7 @@
     using System.IO;
     using System.Net;
     using System.Security.Cryptography;
+    using System.Threading.Tasks;
     using System.Web;
     using Config;
     using EndpointTemplates;
@@ -14,9 +15,9 @@
     public class When_sending_a_message_via_the_gateway : NServiceBusAcceptanceTest
     {
         [Test]
-        public void Should_process_message()
+        public async Task Should_process_message()
         {
-            Scenario.Define<Context>()
+            await Scenario.Define<Context>()
                 .WithEndpoint<Headquarters>(b => b.When(bus =>
                 {
                     var webRequest = (HttpWebRequest)WebRequest.Create("http://localhost:25898/Headquarters/");
@@ -59,6 +60,7 @@
                         {
                         }
                     }
+                    return Task.FromResult(0);
                 }))
                 .Done(c => c.GotMessage)
                 .Repeat(r => r.For(Transports.Default))
@@ -114,12 +116,11 @@
             {
                 public Context Context { get; set; }
 
-                public IBus Bus { get; set; }
-
-                public void Handle(MyRequest response)
+                public Task Handle(MyRequest response, IMessageHandlerContext context)
                 {
+                    Context.MySpecialHeader = context.MessageHeaders["MySpecialHeader"];
                     Context.GotMessage = true;
-                    Context.MySpecialHeader = Bus.GetMessageHeader(response, "MySpecialHeader");
+                    return Task.FromResult(0);
                 }
             }
         }

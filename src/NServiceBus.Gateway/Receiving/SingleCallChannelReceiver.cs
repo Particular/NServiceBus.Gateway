@@ -3,9 +3,11 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Threading.Tasks;
     using Channels;
     using DataBus;
     using Deduplication;
+    using Extensibility;
     using HeaderManagement;
     using Logging;
     using Notifications;
@@ -24,13 +26,13 @@
         }
 
         public IDataBus DataBus { get; set; }
-        public event EventHandler<MessageReceivedOnChannelArgs> MessageReceived;
 
-        public void Start(Channel channel, int numberOfWorkerThreads)
+
+        public void Start(Channel channel, int numberOfWorkerThreads, Func<MessageReceivedOnChannelArgs, Task> messageReceivedHandler)
         {
+            this.messageReceivedHandler = messageReceivedHandler;
             channelReceiver = channelFactory.GetReceiver(channel.Type);
-            channelReceiver.DataReceived += DataReceivedOnChannel;
-            channelReceiver.Start(channel.Address, numberOfWorkerThreads);
+            channelReceiver.Start(channel.Address, numberOfWorkerThreads, DataReceivedOnChannel);
         }
 
         public void Dispose()
@@ -41,15 +43,10 @@
 
         void DisposeManaged()
         {
-            if (channelReceiver != null)
-            {
-                channelReceiver.DataReceived -= DataReceivedOnChannel;
-                channelReceiver.Dispose();
-            }
+            channelReceiver?.Dispose();
         }
 
-
-        void DataReceivedOnChannel(object sender, DataReceivedOnChannelArgs e)
+        async Task DataReceivedOnChannel(DataReceivedOnChannelArgs e)
         {
             using (e.Data)
             {
@@ -62,10 +59,10 @@
                     switch (callInfo.Type)
                     {
                         case CallType.SingleCallDatabusProperty:
-                            HandleDatabusProperty(callInfo);
+                            await HandleDatabusProperty(callInfo).ConfigureAwait(false);
                             break;
                         case CallType.SingleCallSubmit:
-                            HandleSubmit(callInfo);
+                            await HandleSubmit(callInfo).ConfigureAwait(false);
                             break;
                         default:
                             throw new Exception("Unknown call type: " + callInfo.Type);
@@ -75,31 +72,45 @@
             }
         }
 
-        void HandleSubmit(CallInfo callInfo)
+        async Task HandleSubmit(CallInfo callInfo)
         {
             using (var stream = new MemoryStream())
             {
-                callInfo.Data.CopyTo(stream);
+                await callInfo.Data.CopyToAsync(stream).ConfigureAwait(false);
                 stream.Position = 0;
 
                 if (callInfo.Md5 != null)
                 {
-                    Hasher.Verify(stream, callInfo.Md5);
+                    await Hasher.Verify(stream, callInfo.Md5).ConfigureAwait(false);
                 }
-
-                var msg = CreatePhysicalMessage(headerManager.Reassemble(callInfo.ClientId, callInfo.Headers));
-
+                
+                var headers = headerManager.ReassembleDataBusProperties(callInfo.ClientId, callInfo.Headers);
+                var args = CreateMessageReceivedArgsWithDefaultValues(callInfo.TimeToBeReceived, headers[NServiceBus + Id]);
+                
+                var isGatewayMessage = IsGatewayMessage(headers);
+                if (isGatewayMessage)
+                {
+                    args.Headers = MapGatewayMessageHeaders(headers);
+                    args.Recoverable = GetRecoverable(headers);
+                    args.TimeToBeReceived = GetTimeToBeReceived(headers);
+                }
+                else
+                {
+                    args.Headers = MapCustomMessageHeaders(headers);
+                }
+                
                 if (IsMsmqTransport)
                 {
-                    msg.CorrelationId = StripSlashZeroFromCorrelationId(msg.CorrelationId);
+                    args.Headers[Headers.CorrelationId] = StripSlashZeroFromCorrelationId(args.Headers[Headers.CorrelationId]);
                 }
           
-                msg.Body = new byte[stream.Length];
-                stream.Read(msg.Body, 0, msg.Body.Length);
+                var body = new byte[stream.Length];
+                await stream.ReadAsync(body, 0, body.Length).ConfigureAwait(false);
+                args.Body = body;
 
-                if (deduplicator.DeduplicateMessage(callInfo.ClientId, DateTime.UtcNow))
+                if (await deduplicator.DeduplicateMessage(callInfo.ClientId, DateTime.UtcNow, new ContextBag()).ConfigureAwait(false))
                 {
-                    MessageReceived(this, new MessageReceivedOnChannelArgs { Message = msg });
+                    await messageReceivedHandler(args).ConfigureAwait(false);
                 }
                 else
                 {
@@ -108,40 +119,61 @@
             }
         }
 
-        static TransportMessage CreatePhysicalMessage(IDictionary<string, string> from)
+        static MessageReceivedOnChannelArgs CreateMessageReceivedArgsWithDefaultValues(TimeSpan defaultTimeToBeReceived, string id)
         {
-            if (!from.ContainsKey(GatewayHeaders.IsGatewayMessage))
+            return new MessageReceivedOnChannelArgs
             {
-                var message = new TransportMessage();
-                foreach (var header in from)
-                {
-                    message.Headers[header.Key] = header.Value;
-                }
+                Recoverable = false,
+                Id = id,
+                TimeToBeReceived = defaultTimeToBeReceived
+            };
+        }
 
-                return message;
-            }
+        static bool IsGatewayMessage(IDictionary<string, string> headers)
+        {
+            return headers.ContainsKey(GatewayHeaders.IsGatewayMessage);
+        }
 
-            var headers = ExtractHeaders(from);
-            var to = new TransportMessage(from[NServiceBus + Id], headers);
-
-            to.CorrelationId = from[NServiceBus + CorrelationId] ?? to.Id;
-
-            bool recoverable;
-            if (bool.TryParse(from[NServiceBus + Recoverable], out recoverable))
+        static bool GetRecoverable(IDictionary<string, string> headers)
+        {
+            if (!headers.ContainsKey(NServiceBus + Recoverable))
             {
-                to.Recoverable = recoverable;
+                return true;
             }
+            bool recoverable = bool.TryParse(headers[NServiceBus + Recoverable], out recoverable) && recoverable;
+            return recoverable;
+        }
 
+        static TimeSpan GetTimeToBeReceived(IDictionary<string, string> headers)
+        {
+            if (!headers.ContainsKey(NServiceBus + TimeToBeReceived))
+            {
+                return TimeSpan.MaxValue;
+            }
             TimeSpan timeToBeReceived;
-            TimeSpan.TryParse(from[NServiceBus + TimeToBeReceived], out timeToBeReceived);
-            to.TimeToBeReceived = timeToBeReceived;
+            TimeSpan.TryParse(headers[NServiceBus + TimeToBeReceived], out timeToBeReceived);
 
-            if (to.TimeToBeReceived < MinimumTimeToBeReceived)
+            return timeToBeReceived < MinimumTimeToBeReceived ? MinimumTimeToBeReceived : timeToBeReceived;
+        }
+
+        static Dictionary<string, string> MapCustomMessageHeaders(IDictionary<string, string> receivedHeaders)
+        {
+            var headers = new Dictionary<string, string>();
+            
+            foreach (var header in receivedHeaders)
             {
-                to.TimeToBeReceived = MinimumTimeToBeReceived;
+                headers[header.Key] = header.Value;
             }
 
-            return to;
+            return headers;
+        }
+
+        static Dictionary<string, string> MapGatewayMessageHeaders(IDictionary<string, string> receivedHeaders)
+        {
+            var gatewayMessageHeaders = ExtractHeaders(receivedHeaders);
+            gatewayMessageHeaders[Headers.CorrelationId] = receivedHeaders[NServiceBus + CorrelationId] ?? receivedHeaders[NServiceBus + Id];
+
+            return gatewayMessageHeaders;
         }
 
         static Dictionary<string, string> ExtractHeaders(IDictionary<string, string> from)
@@ -152,7 +184,7 @@
             {
                 if (pair.Key.Contains(NServiceBus + Headers.HeaderName))
                 {
-                    result.Add(pair.Key.Replace(NServiceBus + Headers.HeaderName + ".", String.Empty), pair.Value);
+                    result.Add(pair.Key.Replace(NServiceBus + Headers.HeaderName + ".", string.Empty), pair.Value);
                 }
             }
 
@@ -161,19 +193,19 @@
 
         public bool IsMsmqTransport{ get; set; }
 
-        void HandleDatabusProperty(CallInfo callInfo)
+        async Task HandleDatabusProperty(CallInfo callInfo)
         {
             if (DataBus == null)
             {
                 throw new InvalidOperationException("Databus transmission received without a configured databus");
             }
 
-            var newDatabusKey = DataBus.Put(callInfo.Data, callInfo.TimeToBeReceived);
+            var newDatabusKey = await DataBus.Put(callInfo.Data, callInfo.TimeToBeReceived).ConfigureAwait(false);
             if (callInfo.Md5 != null)
             {
-                using (var databusStream = DataBus.Get(newDatabusKey))
+                using (var databusStream = await DataBus.Get(newDatabusKey).ConfigureAwait(false))
                 {
-                    Hasher.Verify(databusStream, callInfo.Md5);
+                   await Hasher.Verify(databusStream, callInfo.Md5).ConfigureAwait(false);
                 }
             }
 
@@ -214,5 +246,6 @@
         const string Recoverable = "Recoverable";
         const string TimeToBeReceived = "TimeToBeReceived";
         static readonly TimeSpan MinimumTimeToBeReceived = TimeSpan.FromSeconds(1);
+        private Func<MessageReceivedOnChannelArgs, Task> messageReceivedHandler;
     }
 }

@@ -1,7 +1,12 @@
 namespace NServiceBus.Gateway.Notifications
 {
-    interface IMessageNotifier : INotifyAboutMessages
+    using System;
+    using System.Collections.Generic;
+
+    interface IMessageNotifier
     {
-        void RaiseMessageForwarded(string fromChannel, string toChannel, TransportMessage message);
+        event EventHandler<MessageReceivedOnChannelArgs> MessageForwarded;
+
+        void RaiseMessageForwarded(string fromChannel, string toChannel, byte[] messageBody, Dictionary<string, string> headers);
     }
 }

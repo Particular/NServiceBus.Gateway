@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
     using Channels;
     using Channels.Http;
     using DataBus;
@@ -23,63 +24,80 @@
 
         public IDataBus DataBus { get; set; }
 
-        public void Forward(TransportMessage message, Site targetSite)
+        public async Task Forward(byte[] body, Dictionary<string, string> headers, Site targetSite)
         {
-            var headers = MapToHeaders(message);
+            var toHeaders = MapToHeaders(headers);
 
             var channelSender = channelFactory.GetSender(targetSite.Channel.Type);
 
             //databus properties have to be available at the receiver site
             //before the body of the message is forwarded on the bus
-            TransmitDataBusProperties(channelSender, targetSite, headers);
+            await TransmitDataBusProperties(channelSender, targetSite, toHeaders).ConfigureAwait(false);
 
-            using (var messagePayload = new MemoryStream(message.Body))
+            using (var messagePayload = new MemoryStream(body))
             {
-                Transmit(channelSender, targetSite, CallType.SingleCallSubmit, headers, messagePayload);
+                await Transmit(channelSender, targetSite, CallType.SingleCallSubmit, toHeaders, messagePayload).ConfigureAwait(false);
             }
         }
 
-        Dictionary<string,string> MapToHeaders(TransportMessage from)
+        Dictionary<string,string> MapToHeaders(Dictionary<string, string> fromHeaders)
         {
-            var to = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);
-
-            to[NServiceBus + Id] = from.Id;
-            to[NServiceBus + CorrelationId] = GetCorrelationForBackwardsCompatibility(from);
-            to[NServiceBus + Recoverable] = from.Recoverable.ToString();
-            to[NServiceBus + TimeToBeReceived] = from.TimeToBeReceived.ToString();
-
-            if (from.ReplyToAddress != null) //Handles SendOnly endpoints, where ReplyToAddress is not set
+            var to = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
             {
-                to[NServiceBus + ReplyToAddress] = from.ReplyToAddress.ToString();
+                [NServiceBus + Id] = fromHeaders[Headers.MessageId],
+                [NServiceBus + CorrelationId] = GetCorrelationForBackwardsCompatibility(fromHeaders),
+            };
+
+            if (fromHeaders.ContainsKey(Headers.NonDurableMessage))
+            {
+                var recoverable = true;
+                bool nonDurable;
+                if (bool.TryParse(fromHeaders[Headers.NonDurableMessage], out nonDurable))
+                {
+                    recoverable = !nonDurable;
+                }
+
+                to.Add(NServiceBus + Recoverable, recoverable.ToString());
+            }
+
+            if (fromHeaders.ContainsKey(Headers.TimeToBeReceived))
+            {
+                to.Add(NServiceBus + TimeToBeReceived, fromHeaders[Headers.TimeToBeReceived]);
+            }
+
+            string reply;
+            if (fromHeaders.TryGetValue(Headers.ReplyToAddress, out reply)) //Handles SendOnly endpoints, where ReplyToAddress is not set
+            {
+                to[NServiceBus + ReplyToAddress] = reply;
             }
 
             SetBackwardsCompatibilityHeaders(to);
 
             string replyToAddress;
-            if (from.Headers.TryGetValue(ReplyToAddress, out replyToAddress))
+            if (fromHeaders.TryGetValue(ReplyToAddress, out replyToAddress))
             {
                 to[Headers.RouteTo] = replyToAddress;
             }
 
-            from.Headers.ToList()
+            fromHeaders.ToList()
                 .ForEach(header => to[NServiceBus + Headers.HeaderName + "." + header.Key] = header.Value);
 
             return to;
         }
 
-        void Transmit(IChannelSender channelSender, Site targetSite, CallType callType,
+        async Task Transmit(IChannelSender channelSender, Site targetSite, CallType callType,
             IDictionary<string, string> headers, Stream data)
         {
             headers[GatewayHeaders.IsGatewayMessage] = Boolean.TrueString;
             headers["NServiceBus.CallType"] = Enum.GetName(typeof(CallType), callType);
-            headers[HttpHeaders.ContentMD5] = Hasher.Hash(data);
+            headers[HttpHeaders.ContentMD5] = await Hasher.Hash(data).ConfigureAwait(false);
 
             Logger.DebugFormat("Sending message - {0} to: {1}", callType, targetSite.Channel.Address);
 
-            channelSender.Send(targetSite.Channel.Address, headers, data);
+            await channelSender.Send(targetSite.Channel.Address, headers, data).ConfigureAwait(false);
         }
 
-        void TransmitDataBusProperties(IChannelSender channelSender, Site targetSite,
+        async Task TransmitDataBusProperties(IChannelSender channelSender, Site targetSite,
             IDictionary<string, string> headers)
         {
             var headersToSend = new Dictionary<string, string>(headers);
@@ -97,9 +115,9 @@
 
                 var databusKeyForThisProperty = headers[headerKey];
 
-                using (var stream = DataBus.Get(databusKeyForThisProperty))
+                using (var stream = await DataBus.Get(databusKeyForThisProperty).ConfigureAwait(false))
                 {
-                    Transmit(channelSender, targetSite, CallType.SingleCallDatabusProperty, headersToSend, stream);
+                    await Transmit(channelSender, targetSite, CallType.SingleCallDatabusProperty, headersToSend, stream).ConfigureAwait(false);
                 }
             }
         }
@@ -112,17 +130,17 @@
             }
         }
 
-        string GetCorrelationForBackwardsCompatibility(TransportMessage message)
+        string GetCorrelationForBackwardsCompatibility(Dictionary<string, string> headers)
         {
-            var correlationIdToStore = message.CorrelationId;
+            var correlationIdToStore = headers[Headers.CorrelationId];
 
             if (IsMsmqTransport)
             {
                 Guid correlationId;
 
-                if (Guid.TryParse(message.CorrelationId, out correlationId))
+                if (Guid.TryParse(headers[Headers.CorrelationId], out correlationId))
                 {
-                    correlationIdToStore = message.CorrelationId + "\\0";
+                    correlationIdToStore = headers[Headers.CorrelationId] + "\\0";
                     //msmq required the id's to be in the {guid}\{incrementing number} format so we need to fake a \0 at the end to make it compatible                
                 }
             }

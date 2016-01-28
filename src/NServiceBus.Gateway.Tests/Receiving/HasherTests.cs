@@ -9,16 +9,15 @@ namespace NServiceBus.Core.Tests
     {
 
         [Test]
-        public void Valid_Md5_can_be_verified()
+        public async void Valid_Md5_can_be_verified()
         {
-            Hasher.Verify("myData".ConvertToStream(), Hasher.Hash("myData".ConvertToStream()));
+            await Hasher.Verify("myData".ConvertToStream(), "4HJGsZlkhfKtZTbdlkaTgw==");
         }
 
         [Test]
         public void Invalid_hash_throws_ChannelException()
         {
-            Assert.Throws<ChannelException>(() => Hasher.Verify("myData".ConvertToStream(), "invalidHash"));
+            Assert.That(async () => { await Hasher.Verify("myData".ConvertToStream(), "invalidHash"); }, Throws.Exception.TypeOf<ChannelException>());
         }
-
     }
 }

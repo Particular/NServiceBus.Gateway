@@ -25,7 +25,7 @@
                     activeTransports = new List<RunDescriptor>
                     {
                         Transports.Default
-                    }; 
+                    };
                 }
 
                 return activeTransports;
@@ -39,32 +39,26 @@
     {
         public AllDtcTransports()
         {
-            AllTransportsFilter.Run(t => t.HasSupportForDistributedTransactions.HasValue
-                                         && !t.HasSupportForDistributedTransactions.Value, Remove);
+            AllTransportsFilter.Run(t => t.GetSupportedTransactionMode() != TransportTransactionMode.TransactionScope, Remove);
         }
     }
 
-    public class AllBrokerTransports : AllTransports
+    public class AllNativeMultiQueueTransactionTransports : AllTransports
     {
-        public AllBrokerTransports()
+        public AllNativeMultiQueueTransactionTransports()
         {
-            AllTransportsFilter.Run(t => !t.HasNativePubSubSupport, Remove);
+            AllTransportsFilter.Run(t => t.GetSupportedTransactionMode() < TransportTransactionMode.SendsAtomicWithReceive, Remove);
         }
     }
-
-    public class AllTransportsWithCentralizedPubSubSupport : AllTransports
+    
+    public class MsmqOnly : ScenarioDescriptor
     {
-        public AllTransportsWithCentralizedPubSubSupport()
+        public MsmqOnly()
         {
-            AllTransportsFilter.Run(t => !t.HasSupportForCentralizedPubSub, Remove);
-        }
-    }
-
-    public class AllTransportsWithMessageDrivenPubSub : AllTransports
-    {
-        public AllTransportsWithMessageDrivenPubSub()
-        {
-            AllTransportsFilter.Run(t => t.HasNativePubSubSupport, Remove);
+            if (Transports.Default == Transports.Msmq)
+            {
+                Add(Transports.Msmq);
+            }
         }
     }
 
@@ -74,7 +68,7 @@
         public static IEnumerable<Type> GetAllTypesAssignableTo<T>()
         {
             return AvailableAssemblies.SelectMany(a => a.GetTypes())
-                                      .Where(t => typeof (T).IsAssignableFrom(t) && t != typeof(T))
+                                      .Where(t => typeof(T).IsAssignableFrom(t) && t != typeof(T))
                                       .ToList();
         }
 
@@ -86,9 +80,14 @@
                 {
                     var result = new AssemblyScanner().GetScannableAssemblies();
 
-                    assemblies = result.Assemblies;
+                    assemblies = result.Assemblies.Where(a =>
+                    {
+                        var references = a.GetReferencedAssemblies();
+
+                        return references.All(an => an.Name != "nunit.framework");
+                    }).ToList();
                 }
-                    
+
                 return assemblies;
             }
         }

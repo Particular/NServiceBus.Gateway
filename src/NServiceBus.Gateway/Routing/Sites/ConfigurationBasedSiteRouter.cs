@@ -4,10 +4,10 @@ namespace NServiceBus.Gateway.Routing.Sites
 
     class ConfigurationBasedSiteRouter : IRouteMessagesToSites
     {
-        public IEnumerable<Site> GetDestinationSitesFor(TransportMessage messageToDispatch)
+        public IEnumerable<Site> GetDestinationSitesFor(Dictionary<string, string> headers)
         {
             string destinationSites;
-            if (messageToDispatch.Headers.TryGetValue(Headers.DestinationSites, out destinationSites))
+            if (headers.TryGetValue(Headers.DestinationSites, out destinationSites))
             {
                 var siteKeys = destinationSites.Split(',');
 

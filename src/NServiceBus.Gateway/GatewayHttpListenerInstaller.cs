@@ -4,6 +4,7 @@ namespace NServiceBus.Installation
     using System.Diagnostics;
     using System.IO;
     using System.Security.Principal;
+    using System.Threading.Tasks;
     using Gateway.Receiving;
     using Logging;
 
@@ -13,11 +14,11 @@ namespace NServiceBus.Installation
         public IManageReceiveChannels ChannelManager { get; set; }
         public bool Enabled { get; set; }
 
-        public void Install(string identity, Configure config)
+        public Task Install(string identity)
         {
             if (!Enabled)
             {
-                return;
+                return Task.FromResult(0);
             }
 
             if (Environment.OSVersion.Version.Major <= 5)
@@ -26,7 +27,7 @@ namespace NServiceBus.Installation
 @"Did not attempt to grant user '{0}' HttpListener permissions since you are running an old OS. Processing will continue. 
 To manually perform this action run the following command for each url from an admin console:
 httpcfg set urlacl /u {{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} /a D:(A;;GX;;;""{0}"")", identity);
-                return;
+                return Task.FromResult(0);
             }
             if (!ElevateChecker.IsCurrentUserElevated())
             {
@@ -34,7 +35,7 @@ httpcfg set urlacl /u {{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} /a 
 @"Did not attempt to grant user '{0}' HttpListener permissions since process is not running with elevate privileges. Processing will continue. 
 To manually perform this action run the following command for each url from an admin console:
 netsh http add urlacl url={{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} user=""{0}""", identity);
-                return;
+                return Task.FromResult(0);
             }
 
             foreach (var receiveChannel in ChannelManager.GetReceiveChannels())
@@ -59,6 +60,7 @@ netsh http add urlacl url={1} user=""{0}""", uri, identity);
                     logger.Warn(message, exception);
                 }
             }
+            return Task.FromResult(0);
         }
 
         static internal void StartNetshProcess(string identity, Uri uri)
@@ -69,7 +71,7 @@ netsh http add urlacl url={1} user=""{0}""", uri, identity);
                 Verb = "runas",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
-                Arguments = string.Format(@"http add urlacl url={0} user=""{1}""", uri, identity),
+                Arguments = $@"http add urlacl url={uri} user=""{identity}""",
                 FileName = "netsh",
                 WorkingDirectory = Path.GetTempPath()
             };

@@ -5,10 +5,10 @@ namespace NServiceBus.Gateway.Routing.Sites
 
     class KeyPrefixConventionSiteRouter : IRouteMessagesToSites
     {
-        public IEnumerable<Site> GetDestinationSitesFor(TransportMessage messageToDispatch)
+        public IEnumerable<Site> GetDestinationSitesFor(Dictionary<string, string> headers)
         {
             string sites;
-            if (messageToDispatch.Headers.TryGetValue(Headers.DestinationSites, out sites))
+            if (headers.TryGetValue(Headers.DestinationSites, out sites))
             {
                 var siteKeys = sites.Split(',');
 
