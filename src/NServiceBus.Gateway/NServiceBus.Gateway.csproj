@@ -81,7 +81,6 @@
     <Compile Include="HeaderManagement\GatewayIncomingBehavior.cs" />
     <Compile Include="HeaderManagement\GatewayHeaders.cs" />
     <Compile Include="HeaderManagement\GatewayOutgoingBehavior.cs" />
-    <Compile Include="Notifications\IMessageNotifier.cs" />
     <Compile Include="Notifications\MessageNotifier.cs" />
     <Compile Include="Notifications\MessageReceivedOnChannelArgs.cs" />
     <Compile Include="Receiving\ChannelException.cs" />
@@ -106,6 +105,8 @@
     <Compile Include="Sending\IForwardMessagesToSites.cs" />
     <Compile Include="Sending\SingleCallChannelForwarder.cs" />
     <Compile Include="SendOptionsExtensions.cs" />
+    <Compile Include="Settings\GatewayExtensions.cs" />
+    <Compile Include="Settings\GatewaySettings.cs" />
     <Compile Include="Utils\Hasher.cs" />
   </ItemGroup>
   <ItemGroup>

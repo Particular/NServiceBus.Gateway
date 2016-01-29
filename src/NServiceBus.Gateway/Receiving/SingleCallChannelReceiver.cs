@@ -16,21 +16,19 @@
 
     class SingleCallChannelReceiver : IReceiveMessagesFromSites
     {
-        public SingleCallChannelReceiver(IChannelFactory channelFactory, IDeduplicateMessages deduplicator,
-            DataBusHeaderManager headerManager, GatewayTransaction transaction)
+        public SingleCallChannelReceiver(IChannelFactory channelFactory, IDeduplicateMessages deduplicator)
         {
             this.channelFactory = channelFactory;
             this.deduplicator = deduplicator;
-            this.headerManager = headerManager;
-            this.transaction = transaction;
+            headerManager = new DataBusHeaderManager();
         }
 
         public IDataBus DataBus { get; set; }
 
 
-        public void Start(Channel channel, int numberOfWorkerThreads, Func<MessageReceivedOnChannelArgs, Task> messageReceivedHandler)
+        public void Start(Channel channel, int numberOfWorkerThreads, Func<MessageReceivedOnChannelArgs, Task> receivedHandler)
         {
-            this.messageReceivedHandler = messageReceivedHandler;
+            messageReceivedHandler = receivedHandler;
             channelReceiver = channelFactory.GetReceiver(channel.Type);
             channelReceiver.Start(channel.Address, numberOfWorkerThreads, DataReceivedOnChannel);
         }
@@ -54,7 +52,7 @@
 
                 Logger.DebugFormat("Received message of type {0} for client id: {1}", callInfo.Type, callInfo.ClientId);
 
-                using (var scope = transaction.Scope())
+                using (var scope = GatewayTransaction.Scope())
                 {
                     switch (callInfo.Type)
                     {
@@ -234,8 +232,6 @@
         IChannelFactory channelFactory;
         IDeduplicateMessages deduplicator;
         DataBusHeaderManager headerManager;
-
-        readonly GatewayTransaction transaction;
 
         IChannelReceiver channelReceiver;
 

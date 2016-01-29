@@ -5,7 +5,7 @@
 
     class GatewayTransaction
     {
-        public TimeSpan Timeout(TimeSpan defaultTimeout)
+        static TimeSpan Timeout(TimeSpan defaultTimeout)
         {
             if (ConfiguredTimeout.HasValue && ConfiguredTimeout > defaultTimeout)
             {
@@ -15,9 +15,9 @@
             return defaultTimeout;
         }
 
-        public TimeSpan? ConfiguredTimeout { get; set; }
+        public static TimeSpan? ConfiguredTimeout { private get; set; }
 
-        public TransactionScope Scope()
+        public static TransactionScope Scope()
         {
             return new TransactionScope(TransactionScopeOption.RequiresNew,
                 new TransactionOptions
