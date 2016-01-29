@@ -40,12 +40,5 @@ namespace NServiceBus.Gateway.HeaderManagement
             public string ReplyToAddress { get; set; }
             public bool LegacyMode { get; set; }
         }
-
-        public class Registration : RegisterStep
-        {
-            public Registration() : base("GatewayIncomingBehavior", typeof(GatewayIncomingBehavior), "Extracts gateway related information from the incoming message")
-            {
-            }
-        }
     }
 }

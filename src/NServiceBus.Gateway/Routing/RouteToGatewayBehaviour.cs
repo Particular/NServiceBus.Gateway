@@ -33,13 +33,5 @@
         }
 
         string gatewayAddress;
-
-        public class Registration : RegisterStep
-        {
-            public Registration()
-                : base("RouteToGateway", typeof(RouteToGatewayBehaviour), "Reroutes gateway messages to the gateway")
-            {
-            }
-        }
     }
 }

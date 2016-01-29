@@ -38,9 +38,6 @@
         /// </summary>
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Pipeline.Register<GatewayIncomingBehavior.Registration>();
-            context.Pipeline.Register<GatewayOutgoingBehavior.Registration>();
-
             var txConfig = context.Container.ConfigureComponent<GatewayTransaction>(DependencyLifecycle.InstancePerCall);
 
             var configSection = context.Settings.GetConfigSection<GatewayConfig>();
@@ -59,16 +56,13 @@
             ConfigureChannels(context);
 
             ConfigureReceiver(context);
+            context.Pipeline.Register("GatewayIncomingBehavior", typeof(GatewayIncomingBehavior), "Extracts gateway related information from the incoming message");
+            context.Pipeline.Register("GatewayOutgoingBehavior", typeof(GatewayOutgoingBehavior), "Puts gateway related information on the headers of outgoing messages");
+
             ConfigureSender(context, gatewayPipeline, gatewayInputAddress);
-            ConfigureRouteToGateway(context, gatewayInputAddress);
-
+            context.Pipeline.Register("RouteToGateway", b => new RouteToGatewayBehaviour(gatewayInputAddress), "Reroutes gateway messages to the gateway");
+            
             context.RegisterStartupTask(b => new GatewayReceiverStartupTask(b.Build<IManageReceiveChannels>(), b.Build<IRouteMessagesToEndpoints>(), b.Build<IDispatchMessages>(), b.Build<Func<IReceiveMessagesFromSites>>(), gatewayInputAddress));
-        }
-
-        static void ConfigureRouteToGateway(FeatureConfigurationContext context, string gatewayAddress)
-        {
-            context.Pipeline.Register<RouteToGatewayBehaviour.Registration>();
-            context.Container.ConfigureComponent(b => new RouteToGatewayBehaviour(gatewayAddress), DependencyLifecycle.SingleInstance);
         }
 
         static void ConfigureChannels(FeatureConfigurationContext context)
