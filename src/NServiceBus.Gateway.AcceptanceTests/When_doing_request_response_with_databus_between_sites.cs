@@ -13,7 +13,7 @@
         static readonly byte[] PayloadToSend = new byte[1024 * 1024 * 10];
 
         [Test]
-        public async void Should_be_able_to_reply_to_the_message_using_databus()
+        public async Task Should_be_able_to_reply_to_the_message_using_databus()
         {
             await Scenario.Define<Context>()
                 .WithEndpoint<SiteA>(

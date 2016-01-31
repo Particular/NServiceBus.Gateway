@@ -12,9 +12,9 @@
     public class When_sending_a_message_to_another_site : NServiceBusAcceptanceTest
     {
         [Test]
-        public void  Should_be_able_to_reply_to_the_message()
+        public async Task Should_be_able_to_reply_to_the_message()
         {
-            Scenario.Define<Context>()
+            await Scenario.Define<Context>()
                     .WithEndpoint<Headquarters>(b => b.When(async (bus,c) => await bus.SendToSites(new[] { "SiteA" }, new MyRequest())))
                     .WithEndpoint<SiteA>()
                     .Done(c => c.GotResponseBack)
@@ -41,7 +41,7 @@
                                     new SiteConfig
                                         {
                                             Key = "SiteA",
-                                            Address = "http://localhost:25899/SiteA/",
+                                            Address = "http://localhost:25999/SiteA/",
                                             ChannelType = "http"
                                         }
                                 };
@@ -50,7 +50,7 @@
                                 {
                                     new ChannelConfig
                                         {
-                                             Address = "http://localhost:25899/Headquarters/",
+                                             Address = "http://localhost:25999/Headquarters/",
                                             ChannelType = "http"
                                         }
                                 };
@@ -82,7 +82,7 @@
                                 {
                                     new ChannelConfig
                                         {
-                                             Address = "http://localhost:25899/SiteA/",
+                                             Address = "http://localhost:25999/SiteA/",
                                             ChannelType = "http"
                                         }
                                 };

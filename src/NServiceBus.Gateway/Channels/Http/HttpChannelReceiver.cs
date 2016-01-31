@@ -96,6 +96,15 @@ namespace NServiceBus.Gateway.Channels.Http
                     }
                     break;
                 }
+                catch (ObjectDisposedException ex)
+                {
+                    // a ObjectDisposedException can occur on listener.GetContext when we shutdown. this can be ignored
+                    if (!cancellationToken.IsCancellationRequested && ex.ObjectName == typeof(HttpListener).FullName)
+                    {
+                        Logger.Error("Gateway failed to receive incoming request.", ex);
+                    }
+                    break;
+                }
                 catch (InvalidOperationException ex)
                 {
                     Logger.Error("Gateway failed to receive incoming request.", ex);
