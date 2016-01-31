@@ -16,15 +16,13 @@
 
     class SingleCallChannelReceiver : IReceiveMessagesFromSites
     {
-        public SingleCallChannelReceiver(IChannelFactory channelFactory, IDeduplicateMessages deduplicator)
+        public SingleCallChannelReceiver(IChannelFactory channelFactory, IDeduplicateMessages deduplicator, IDataBus databus)
         {
             this.channelFactory = channelFactory;
             this.deduplicator = deduplicator;
+            this.databus = databus;
             headerManager = new DataBusHeaderManager();
         }
-
-        public IDataBus DataBus { get; set; }
-
 
         public void Start(Channel channel, int numberOfWorkerThreads, Func<MessageReceivedOnChannelArgs, Task> receivedHandler)
         {
@@ -193,15 +191,15 @@
 
         async Task HandleDatabusProperty(CallInfo callInfo)
         {
-            if (DataBus == null)
+            if (databus == null)
             {
                 throw new InvalidOperationException("Databus transmission received without a configured databus");
             }
 
-            var newDatabusKey = await DataBus.Put(callInfo.Data, callInfo.TimeToBeReceived).ConfigureAwait(false);
+            var newDatabusKey = await databus.Put(callInfo.Data, callInfo.TimeToBeReceived).ConfigureAwait(false);
             if (callInfo.Md5 != null)
             {
-                using (var databusStream = await DataBus.Get(newDatabusKey).ConfigureAwait(false))
+                using (var databusStream = await databus.Get(newDatabusKey).ConfigureAwait(false))
                 {
                    await Hasher.Verify(databusStream, callInfo.Md5).ConfigureAwait(false);
                 }
@@ -231,6 +229,7 @@
 
         IChannelFactory channelFactory;
         IDeduplicateMessages deduplicator;
+        readonly IDataBus databus;
         DataBusHeaderManager headerManager;
 
         IChannelReceiver channelReceiver;

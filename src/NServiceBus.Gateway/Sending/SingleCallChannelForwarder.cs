@@ -15,14 +15,13 @@
 
     class SingleCallChannelForwarder : IForwardMessagesToSites
     {
-        public SingleCallChannelForwarder(IChannelFactory channelFactory)
+        public SingleCallChannelForwarder(IChannelFactory channelFactory, IDataBus databus)
         {
             this.channelFactory = channelFactory;
+            this.databus = databus;
         }
 
         public bool IsMsmqTransport { get; set; }
-
-        public IDataBus DataBus { get; set; }
 
         public async Task Forward(byte[] body, Dictionary<string, string> headers, Site targetSite)
         {
@@ -105,7 +104,7 @@
             foreach (
                 var headerKey in headers.Keys.Where(headerKey => headerKey.Contains("NServiceBus.DataBus.")))
             {
-                if (DataBus == null)
+                if (databus == null)
                 {
                     throw new InvalidOperationException(
                         "Can't send a message with a databus property without a databus configured");
@@ -115,7 +114,7 @@
 
                 var databusKeyForThisProperty = headers[headerKey];
 
-                using (var stream = await DataBus.Get(databusKeyForThisProperty).ConfigureAwait(false))
+                using (var stream = await databus.Get(databusKeyForThisProperty).ConfigureAwait(false))
                 {
                     await Transmit(channelSender, targetSite, CallType.SingleCallDatabusProperty, headersToSend, stream).ConfigureAwait(false);
                 }
@@ -162,5 +161,6 @@
 
         static ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
         IChannelFactory channelFactory;
+        readonly IDataBus databus;
     }
 }
