@@ -52,7 +52,7 @@
             gatewayPipeline.Register("GatewaySendProcessor", b => new GatewaySendBehavior(gatewayInputAddress, channelManager, new MessageNotifier(), b.Build<IDispatchMessages>(), context.Settings, CreateForwarder(context, channelFactory, b.BuildAll<IDataBus>()?.FirstOrDefault()), CreateSiteRouters(context)), "Processes messages to be sent to the gateway");
             context.Pipeline.Register("RouteToGateway", b => new RouteToGatewayBehaviour(gatewayInputAddress), "Reroutes gateway messages to the gateway");
 
-            RegisterHttpListenerInstaller(context);
+            RegisterHttpListenerInstaller(context, channelManager);
             context.Pipeline.Register("GatewayIncomingBehavior", typeof(GatewayIncomingBehavior), "Extracts gateway related information from the incoming message");
             context.Pipeline.Register("GatewayOutgoingBehavior", typeof(GatewayOutgoingBehavior), "Puts gateway related information on the headers of outgoing messages");
             context.RegisterStartupTask(b => new GatewayReceiverStartupTask(channelManager, channelFactory, GetEndpointRouter(context), b.Build<IDispatchMessages>(), b.Build<IDeduplicateMessages>(), b.BuildAll<IDataBus>()?.FirstOrDefault(), gatewayInputAddress));
@@ -140,10 +140,9 @@
             return messageToSitesRouters;
         }
 
-       static void RegisterHttpListenerInstaller(FeatureConfigurationContext context)
+        static void RegisterHttpListenerInstaller(FeatureConfigurationContext context, IManageReceiveChannels channelManager)
         {
-            context.Container.ConfigureComponent<GatewayHttpListenerInstaller>(DependencyLifecycle.InstancePerCall)
-                  .ConfigureProperty(t => t.Enabled, true);
+            context.Container.ConfigureComponent(() => new GatewayHttpListenerInstaller(channelManager, true), DependencyLifecycle.SingleInstance);
         }
 
         class GatewayReceiverStartupTask : FeatureStartupTask
