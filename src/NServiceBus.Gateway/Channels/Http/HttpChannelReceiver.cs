@@ -76,16 +76,15 @@ namespace NServiceBus.Gateway.Channels.Http
                 {
                     var context = await listener.GetContextAsync().ConfigureAwait(false);
 
-                    var worker = Task.Run(() => Handle(context, cancellationToken), cancellationToken);
+                    var worker = Task.Run(() => Handle(context, cancellationToken), CancellationToken.None);
+                    runningTasks.TryAdd(worker, worker);
 
                     worker.ContinueWith(t =>
                     {
                         Task task;
                         runningTasks.TryRemove(worker, out task);
-                    }, cancellationToken, TaskContinuationOptions.AttachedToParent, TaskScheduler.Default)
+                    }, TaskContinuationOptions.ExecuteSynchronously)
                     .Forget();
-
-                    runningTasks.AddOrUpdate(worker, worker, (k, v) => worker).Forget();
                 }
                 catch (HttpListenerException ex)
                 {
