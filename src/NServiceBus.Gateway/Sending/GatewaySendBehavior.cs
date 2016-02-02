@@ -6,22 +6,23 @@ namespace NServiceBus.Gateway.Sending
     using System.Threading.Tasks;
     using Extensibility;
     using Notifications;
-    using Receiving;
     using Routing;
+    using Receiving;
     using Settings;
     using Transports;
+    using IRouteMessagesToSites = NServiceBus.Gateway.Routing.Sites.IRouteMessagesToSites;
 
     class GatewaySendBehavior : SatelliteBehavior
     {
         readonly IManageReceiveChannels channelManager;
         readonly IDispatchMessages dispatcher;
         readonly ReadOnlySettings settings;
-        readonly IForwardMessagesToSites forwarder;
+        readonly SingleCallChannelForwarder forwarder;
         readonly IEnumerable<IRouteMessagesToSites> routers;
         readonly MessageNotifier messageNotifier;
         readonly string inputAddress;
 
-        public GatewaySendBehavior(string inputAddress, IManageReceiveChannels channelManager, MessageNotifier notifier, IDispatchMessages dispatchMessages, ReadOnlySettings settings, IForwardMessagesToSites forwarder, IEnumerable<IRouteMessagesToSites> routers)
+        public GatewaySendBehavior(string inputAddress, IManageReceiveChannels channelManager, MessageNotifier notifier, IDispatchMessages dispatchMessages, ReadOnlySettings settings, SingleCallChannelForwarder forwarder, IEnumerable<IRouteMessagesToSites> routers)
         {
             this.routers = routers;
             messageNotifier = notifier;

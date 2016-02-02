@@ -3,7 +3,7 @@
     /// <summary>
     /// Indicates a message needs to be routed through the gateway
     /// </summary>
-    public class RouteThroughGateway
+    class RouteThroughGateway
     {
     }
 }

@@ -46,6 +46,10 @@
       <HintPath>..\packages\NServiceBus.6.0.0-unstable1406\lib\net452\NServiceBus.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Obsolete, Version=4.0.3.0, Culture=neutral, PublicKeyToken=1ca091877d12ca03, processorArchitecture=MSIL">
+      <HintPath>..\packages\Obsolete.Fody.4.0.3\Lib\portable-net4+sl5+wp8+win8+wpa81+MonoAndroid16+MonoTouch40\Obsolete.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
@@ -57,14 +61,14 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="BusExtensions.cs" />
     <Compile Include="Channels\Channel.cs" />
-    <Compile Include="Channels\ChannelFactory.cs" />
+    <Compile Include="Channels\ChannelSenderFactory.cs" />
+    <Compile Include="Channels\ChannelReceiverFactory.cs" />
     <Compile Include="Channels\ChannelTypeAttribute.cs" />
     <Compile Include="Channels\DataReceivedOnChannelArgs.cs" />
     <Compile Include="Channels\Http\HttpChannelReceiver.cs" />
     <Compile Include="Channels\Http\HttpChannelSender.cs" />
     <Compile Include="Channels\Http\HttpHeaders.cs" />
     <Compile Include="Channels\Http\TaskExtensions.cs" />
-    <Compile Include="Channels\IChannelFactory.cs" />
     <Compile Include="Channels\IChannelReceiver.cs" />
     <Compile Include="Channels\IChannelSender.cs" />
     <Compile Include="Channels\ReceiveChannel.cs" />
@@ -83,26 +87,24 @@
     <Compile Include="HeaderManagement\GatewayOutgoingBehavior.cs" />
     <Compile Include="Notifications\MessageNotifier.cs" />
     <Compile Include="Notifications\MessageReceivedOnChannelArgs.cs" />
+    <Compile Include="obsoletes.cs" />
     <Compile Include="Receiving\ChannelException.cs" />
     <Compile Include="Receiving\ChannelReceiverHeaderReader.cs" />
     <Compile Include="Receiving\ConfigurationBasedChannelManager.cs" />
     <Compile Include="Receiving\ConventionBasedChannelManager.cs" />
     <Compile Include="Receiving\IManageReceiveChannels.cs" />
-    <Compile Include="Receiving\IReceiveMessagesFromSites.cs" />
     <Compile Include="Receiving\SingleCallChannelReceiver.cs" />
     <Compile Include="Routing\RouteThroughGateway.cs" />
     <Compile Include="Routing\RouteToGatewayBehaviour.cs" />
-    <Compile Include="Routing\Endpoints\DefaultEndpointRouter.cs" />
-    <Compile Include="Routing\IRouteMessagesToEndpoints.cs" />
-    <Compile Include="Routing\IRouteMessagesToSites.cs" />
+    <Compile Include="Routing\Endpoints\EndpointRouter.cs" />
     <Compile Include="Routing\Site.cs" />
     <Compile Include="Routing\Sites\ConfigurationBasedSiteRouter.cs" />
+    <Compile Include="Routing\Sites\IRouteMessagesToSites.cs" />
     <Compile Include="Routing\Sites\KeyPrefixConventionSiteRouter.cs" />
     <Compile Include="Routing\Sites\OriginatingSiteHeaderRouter.cs" />
     <Compile Include="Sending\CallInfo.cs" />
     <Compile Include="CallType.cs" />
     <Compile Include="Sending\GatewaySendBehavior.cs" />
-    <Compile Include="Sending\IForwardMessagesToSites.cs" />
     <Compile Include="Sending\SingleCallChannelForwarder.cs" />
     <Compile Include="SendOptionsExtensions.cs" />
     <Compile Include="Settings\GatewayExtensions.cs" />
@@ -118,6 +120,9 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="FodyWeavers.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -125,7 +130,9 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets'))" />
     <Error Condition="!Exists('..\packages\NuGetPackager.0.5.5\build\NuGetPackager.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NuGetPackager.0.5.5\build\NuGetPackager.targets'))" />
+    <Error Condition="!Exists('..\packages\Fody.1.29.2\build\portable-net+sl+win+wpa+wp\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Fody.1.29.2\build\portable-net+sl+win+wpa+wp\Fody.targets'))" />
   </Target>
   <Import Project="..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.2.0.1\Build\GitVersionTask.targets')" />
   <Import Project="..\packages\NuGetPackager.0.5.5\build\NuGetPackager.targets" Condition="Exists('..\packages\NuGetPackager.0.5.5\build\NuGetPackager.targets')" />
+  <Import Project="..\packages\Fody.1.29.2\build\portable-net+sl+win+wpa+wp\Fody.targets" Condition="Exists('..\packages\Fody.1.29.2\build\portable-net+sl+win+wpa+wp\Fody.targets')" />
 </Project>

@@ -14,9 +14,9 @@
     using Sending;
     using Utils;
 
-    class SingleCallChannelReceiver : IReceiveMessagesFromSites
+    class SingleCallChannelReceiver
     {
-        public SingleCallChannelReceiver(IChannelFactory channelFactory, IDeduplicateMessages deduplicator, IDataBus databus)
+        public SingleCallChannelReceiver(Func<string, IChannelReceiver> channelFactory, IDeduplicateMessages deduplicator, IDataBus databus)
         {
             this.channelFactory = channelFactory;
             this.deduplicator = deduplicator;
@@ -27,7 +27,7 @@
         public void Start(Channel channel, int numberOfWorkerThreads, Func<MessageReceivedOnChannelArgs, Task> receivedHandler)
         {
             messageReceivedHandler = receivedHandler;
-            channelReceiver = channelFactory.GetReceiver(channel.Type);
+            channelReceiver = channelFactory(channel.Type);
             channelReceiver.Start(channel.Address, numberOfWorkerThreads, DataReceivedOnChannel);
         }
 
@@ -227,7 +227,7 @@
 
         static ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
 
-        IChannelFactory channelFactory;
+        Func<string, IChannelReceiver> channelFactory;
         IDeduplicateMessages deduplicator;
         readonly IDataBus databus;
         DataBusHeaderManager headerManager;

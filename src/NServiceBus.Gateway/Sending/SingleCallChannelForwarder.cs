@@ -13,11 +13,11 @@
     using Routing;
     using Utils;
 
-    class SingleCallChannelForwarder : IForwardMessagesToSites
+    class SingleCallChannelForwarder 
     {
-        public SingleCallChannelForwarder(IChannelFactory channelFactory, IDataBus databus)
+        public SingleCallChannelForwarder(Func<string, IChannelSender> senderFactory, IDataBus databus)
         {
-            this.channelFactory = channelFactory;
+            this.senderFactory = senderFactory;
             this.databus = databus;
         }
 
@@ -27,7 +27,7 @@
         {
             var toHeaders = MapToHeaders(headers);
 
-            var channelSender = channelFactory.GetSender(targetSite.Channel.Type);
+            var channelSender = senderFactory(targetSite.Channel.Type);
 
             //databus properties have to be available at the receiver site
             //before the body of the message is forwarded on the bus
@@ -160,7 +160,8 @@
         const string IdForCorrelation = "IdForCorrelation";
 
         static ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
-        IChannelFactory channelFactory;
+        Func<string, IChannelSender> senderFactory;
         readonly IDataBus databus;
+        
     }
 }

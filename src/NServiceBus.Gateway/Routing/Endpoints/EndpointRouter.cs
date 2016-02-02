@@ -2,7 +2,7 @@ namespace NServiceBus.Gateway.Routing.Endpoints
 {
     using System.Collections.Generic;
 
-    class DefaultEndpointRouter : IRouteMessagesToEndpoints
+    class EndpointRouter
     {
         public string MainInputAddress { get; set; }
 
