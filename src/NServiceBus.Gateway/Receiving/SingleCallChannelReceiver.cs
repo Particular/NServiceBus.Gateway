@@ -222,7 +222,7 @@
 
             if (corrId.EndsWith("\\0"))
             {
-                return corrId.Replace("\\0", String.Empty);
+                return corrId.Replace("\\0", string.Empty);
             }
 
             return corrId;

@@ -5,7 +5,7 @@
     /// <summary>
     /// Defines the channel types a <see cref="IChannelReceiver"/> or <see cref="IChannelSender"/> supports.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public sealed class ChannelTypeAttribute : Attribute
     {
         /// <summary>

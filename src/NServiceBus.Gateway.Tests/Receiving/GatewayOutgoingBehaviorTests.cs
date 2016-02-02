@@ -16,7 +16,7 @@
         [Test]
         public async Task Should_set_correct_headers_for_response_messages()
         {
-            var returnState = new GatewayIncomingBehavior.ReturnState()
+            var returnState = new GatewayIncomingBehavior.ReturnState
             {
                 ReplyToAddress = addressOfOriginatingEndpoint,
                 OriginatingSite = originatingSite,
@@ -37,7 +37,7 @@
         [Test]
         public async Task Should_set_correct_httpTo_for_legacy_response_message()
         {
-            var returnState = new GatewayIncomingBehavior.ReturnState()
+            var returnState = new GatewayIncomingBehavior.ReturnState
             {
                 HttpFrom = originatingSite,
             };
@@ -55,7 +55,7 @@
         public async Task Should_not_override_existing_routeto_for_response_messages()
         {
             const string existingRouteTo = "existing";
-            var returnState = new GatewayIncomingBehavior.ReturnState()
+            var returnState = new GatewayIncomingBehavior.ReturnState
             {
                 ReplyToAddress = addressOfOriginatingEndpoint,
                 OriginatingSite = originatingSite,

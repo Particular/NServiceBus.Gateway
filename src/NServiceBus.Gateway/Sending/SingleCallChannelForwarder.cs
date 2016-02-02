@@ -88,7 +88,7 @@
         async Task Transmit(IChannelSender channelSender, Site targetSite, CallType callType,
             IDictionary<string, string> headers, Stream data)
         {
-            headers[GatewayHeaders.IsGatewayMessage] = Boolean.TrueString;
+            headers[GatewayHeaders.IsGatewayMessage] = bool.TrueString;
             headers["NServiceBus.CallType"] = Enum.GetName(typeof(CallType), callType);
             headers[HttpHeaders.ContentMD5] = await Hasher.Hash(data).ConfigureAwait(false);
 

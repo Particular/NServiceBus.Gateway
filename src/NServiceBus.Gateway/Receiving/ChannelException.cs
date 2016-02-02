@@ -16,7 +16,7 @@ namespace NServiceBus.Gateway.Receiving
             StatusCode = info.GetInt32("StatusCode");
         }
 
-        public int StatusCode { get; private set; }
+        public int StatusCode { get; }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {

@@ -10,14 +10,14 @@
     <projectUrl>$projectUrl$</projectUrl>
     <iconUrl>$iconUrl$</iconUrl>
     <requireLicenseAcceptance>$requireLicenseAcceptance$</requireLicenseAcceptance>
-    <description>Successor to NServicebus Gateway</description>
+    <description>Successor to NServiceBus Gateway</description>
     <copyright>$copyright$</copyright>
     <tags>nservicebus servicebus msmq cqrs publish subscribe</tags>
     <dependencies>
-      <dependency id="NServiceBus" version="[5.0.0, 6.0.0)" />
+      <dependency id="NServiceBus" version="[6.0.0-unstable, 7.0.0)" />
     </dependencies>
   </metadata>
   <files>
-    <file src="..\..\src\NServiceBus.Gateway\bin\Release\NServiceBus.Gateway.???" target="lib\net45" />
+    <file src="..\..\src\NServiceBus.Gateway\bin\Release\NServiceBus.Gateway.???" target="lib\net452" />
   </files>
 </package>

@@ -36,7 +36,7 @@ namespace NServiceBus.Gateway.Channels.Http
             }
 
             var token = tokenSource.Token;
-            receiverTask = Task.Factory.StartNew(state => HandleRequestAsync(state), token, token, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
+            receiverTask = Task.Factory.StartNew(HandleRequestAsync, token, token, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
         }
 
         public void Dispose()
