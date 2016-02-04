@@ -13,22 +13,21 @@
     using Routing;
     using Utils;
 
-    class SingleCallChannelForwarder : IForwardMessagesToSites
+    class SingleCallChannelForwarder 
     {
-        public SingleCallChannelForwarder(IChannelFactory channelFactory)
+        public SingleCallChannelForwarder(Func<string, IChannelSender> senderFactory, IDataBus databus)
         {
-            this.channelFactory = channelFactory;
+            this.senderFactory = senderFactory;
+            this.databus = databus;
         }
 
         public bool IsMsmqTransport { get; set; }
-
-        public IDataBus DataBus { get; set; }
 
         public async Task Forward(byte[] body, Dictionary<string, string> headers, Site targetSite)
         {
             var toHeaders = MapToHeaders(headers);
 
-            var channelSender = channelFactory.GetSender(targetSite.Channel.Type);
+            var channelSender = senderFactory(targetSite.Channel.Type);
 
             //databus properties have to be available at the receiver site
             //before the body of the message is forwarded on the bus
@@ -105,7 +104,7 @@
             foreach (
                 var headerKey in headers.Keys.Where(headerKey => headerKey.Contains("NServiceBus.DataBus.")))
             {
-                if (DataBus == null)
+                if (databus == null)
                 {
                     throw new InvalidOperationException(
                         "Can't send a message with a databus property without a databus configured");
@@ -115,7 +114,7 @@
 
                 var databusKeyForThisProperty = headers[headerKey];
 
-                using (var stream = await DataBus.Get(databusKeyForThisProperty).ConfigureAwait(false))
+                using (var stream = await databus.Get(databusKeyForThisProperty).ConfigureAwait(false))
                 {
                     await Transmit(channelSender, targetSite, CallType.SingleCallDatabusProperty, headersToSend, stream).ConfigureAwait(false);
                 }
@@ -161,6 +160,8 @@
         const string IdForCorrelation = "IdForCorrelation";
 
         static ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
-        IChannelFactory channelFactory;
+        Func<string, IChannelSender> senderFactory;
+        readonly IDataBus databus;
+        
     }
 }

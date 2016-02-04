@@ -4,11 +4,11 @@ namespace NServiceBus.Gateway.Channels
     using System.Collections.Generic;
     using System.Linq;
 
-    class ChannelFactory : IChannelFactory
+    class ChannelSenderFactory
     {
-        public IChannelReceiver GetReceiver(string channelType)
+        public ChannelSenderFactory(Type senderType)
         {
-            return Activator.CreateInstance(receivers[channelType.ToLower()]) as IChannelReceiver;
+            RegisterSender(senderType);
         }
 
         public IChannelSender GetSender(string channelType)
@@ -16,21 +16,7 @@ namespace NServiceBus.Gateway.Channels
             return Activator.CreateInstance(senders[channelType.ToLower()]) as IChannelSender;
         }
 
-        public void RegisterReceiver(Type receiver)
-        {
-            var channelTypes =
-                receiver.GetCustomAttributes(true).OfType<ChannelTypeAttribute>().ToList();
-            if (channelTypes.Any())
-            {
-                channelTypes.ForEach(type => RegisterReceiver(receiver, type.Type));
-            }
-            else
-            {
-                RegisterReceiver(receiver, receiver.Name.Substring(0, receiver.Name.IndexOf("Channel")));
-            }
-        }
-
-        public void RegisterSender(Type sender)
+        void RegisterSender(Type sender)
         {
             var channelTypes =
                 sender.GetCustomAttributes(true).OfType<ChannelTypeAttribute>().ToList();
@@ -44,17 +30,11 @@ namespace NServiceBus.Gateway.Channels
             }
         }
 
-        void RegisterReceiver(Type receiver, string type)
-        {
-            receivers.Add(type.ToLower(), receiver);
-        }
-
         void RegisterSender(Type sender, string type)
         {
             senders.Add(type.ToLower(), sender);
         }
 
-        Dictionary<string, Type> receivers = new Dictionary<string, Type>();
         Dictionary<string, Type> senders = new Dictionary<string, Type>();
     }
 }

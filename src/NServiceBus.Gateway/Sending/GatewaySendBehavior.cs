@@ -6,34 +6,32 @@ namespace NServiceBus.Gateway.Sending
     using System.Threading.Tasks;
     using Extensibility;
     using Notifications;
-    using ObjectBuilder;
-    using Pipeline;
-    using Receiving;
     using Routing;
+    using Receiving;
     using Settings;
     using Transports;
+    using IRouteMessagesToSites = NServiceBus.Gateway.Routing.Sites.IRouteMessagesToSites;
 
     class GatewaySendBehavior : SatelliteBehavior
     {
-        readonly IBuilder builder;
         readonly IManageReceiveChannels channelManager;
         readonly IDispatchMessages dispatcher;
-        // ReSharper disable once NotAccessedField.Local
-        readonly GatewayTransaction gatewayTransaction;
         readonly ReadOnlySettings settings;
-        readonly IMessageNotifier messageNotifier;
+        readonly SingleCallChannelForwarder forwarder;
+        readonly IEnumerable<IRouteMessagesToSites> routers;
+        readonly MessageNotifier messageNotifier;
+        readonly string inputAddress;
 
-        public GatewaySendBehavior(IBuilder builder, IManageReceiveChannels channelManager, IMessageNotifier notifier, IDispatchMessages dispatchMessages, ReadOnlySettings settings, GatewayTransaction transaction)
+        public GatewaySendBehavior(string inputAddress, IManageReceiveChannels channelManager, MessageNotifier notifier, IDispatchMessages dispatchMessages, ReadOnlySettings settings, SingleCallChannelForwarder forwarder, IEnumerable<IRouteMessagesToSites> routers)
         {
+            this.routers = routers;
             messageNotifier = notifier;
             this.settings = settings;
-            gatewayTransaction = transaction;
+            this.forwarder = forwarder;
             dispatcher = dispatchMessages;
             this.channelManager = channelManager;
-            this.builder = builder;
+            this.inputAddress = inputAddress;
         }
-
-        public string InputAddress { get; set; }
 
         protected override async Task Terminate(IIncomingPhysicalMessageContext context)
         {
@@ -67,8 +65,7 @@ namespace NServiceBus.Gateway.Sending
 
         IList<Site> GetDestinationSitesFor(Dictionary<string, string> headers)
         {
-            return builder.BuildAll<IRouteMessagesToSites>()
-                .SelectMany(r => r.GetDestinationSitesFor(headers)).ToList();
+            return routers.SelectMany(r => r.GetDestinationSitesFor(headers)).ToList();
         }
 
         Task CloneAndSendLocal(byte[] body, Dictionary<string, string> headers, Site destinationSite)
@@ -76,7 +73,7 @@ namespace NServiceBus.Gateway.Sending
             headers[Headers.DestinationSites] = destinationSite.Key;
 
             var message = new OutgoingMessage(headers[Headers.MessageId], headers, body);
-            var operation = new UnicastTransportOperation(message, InputAddress);
+            var operation = new UnicastTransportOperation(message, inputAddress);
 
             return dispatcher.Dispatch(WrapInOperations(operation), new ContextBag());
         }
@@ -92,9 +89,7 @@ namespace NServiceBus.Gateway.Sending
         async Task SendToSite(byte[] body, Dictionary<string, string> headers, Site targetSite)
         {
             headers[Headers.OriginatingSite] = GetDefaultAddressForThisSite();
-
-            var forwarder = builder.Build<IForwardMessagesToSites>();
-
+            
             await forwarder.Forward(body, headers, targetSite).ConfigureAwait(false);
 
             messageNotifier.RaiseMessageForwarded(settings.LocalAddress(), targetSite.Channel.Type, body, headers);
@@ -104,14 +99,6 @@ namespace NServiceBus.Gateway.Sending
         {
             var defaultChannel = channelManager.GetDefaultChannel();
             return $"{defaultChannel.Type},{defaultChannel.Address}";
-        }
-
-        public class Registration : RegisterStep
-        {
-            public Registration()
-                : base("GatewaySendProcessor", typeof(GatewaySendBehavior), "Processes messages to be sent to the gateway")
-            {
-            }
         }
     }
 }

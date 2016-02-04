@@ -10,13 +10,20 @@ namespace NServiceBus.Installation
 
     class GatewayHttpListenerInstaller : INeedToInstallSomething
     {
-        static ILog logger = LogManager.GetLogger<GatewayHttpListenerInstaller>();
-        public IManageReceiveChannels ChannelManager { get; set; }
-        public bool Enabled { get; set; }
+        readonly IManageReceiveChannels channelManager;
+        readonly bool enabled;
 
+        public GatewayHttpListenerInstaller(IManageReceiveChannels channelManager, bool enabled)
+        {
+            this.channelManager = channelManager;
+            this.enabled = enabled;
+        }
+
+        static ILog logger = LogManager.GetLogger<GatewayHttpListenerInstaller>();
+        
         public Task Install(string identity)
         {
-            if (!Enabled)
+            if (!enabled)
             {
                 return Task.FromResult(0);
             }
@@ -38,7 +45,7 @@ netsh http add urlacl url={{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}}
                 return Task.FromResult(0);
             }
 
-            foreach (var receiveChannel in ChannelManager.GetReceiveChannels())
+            foreach (var receiveChannel in channelManager.GetReceiveChannels())
             {
                 if (receiveChannel.Type.ToLower() != "http") continue;
 
@@ -63,7 +70,7 @@ netsh http add urlacl url={1} user=""{0}""", uri, identity);
             return Task.FromResult(0);
         }
 
-        static internal void StartNetshProcess(string identity, Uri uri)
+        static void StartNetshProcess(string identity, Uri uri)
         {
             var startInfo = new ProcessStartInfo
             {

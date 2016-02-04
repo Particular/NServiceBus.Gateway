@@ -76,21 +76,29 @@ namespace NServiceBus.Gateway.Channels.Http
                 {
                     var context = await listener.GetContextAsync().ConfigureAwait(false);
 
-                    var worker = Task.Run(() => Handle(context, cancellationToken), cancellationToken);
+                    var worker = Task.Run(() => Handle(context, cancellationToken), CancellationToken.None);
+                    runningTasks.TryAdd(worker, worker);
 
                     worker.ContinueWith(t =>
                     {
                         Task task;
                         runningTasks.TryRemove(worker, out task);
-                    }, cancellationToken, TaskContinuationOptions.AttachedToParent, TaskScheduler.Default)
+                    }, TaskContinuationOptions.ExecuteSynchronously)
                     .Forget();
-
-                    runningTasks.AddOrUpdate(worker, worker, (k, v) => worker).Forget();
                 }
                 catch (HttpListenerException ex)
                 {
                     // a HttpListenerException can occur on listener.GetContext when we shutdown. this can be ignored
                     if (!cancellationToken.IsCancellationRequested)
+                    {
+                        Logger.Error("Gateway failed to receive incoming request.", ex);
+                    }
+                    break;
+                }
+                catch (ObjectDisposedException ex)
+                {
+                    // a ObjectDisposedException can occur on listener.GetContext when we shutdown. this can be ignored
+                    if (!cancellationToken.IsCancellationRequested && ex.ObjectName == typeof(HttpListener).FullName)
                     {
                         Logger.Error("Gateway failed to receive incoming request.", ex);
                     }

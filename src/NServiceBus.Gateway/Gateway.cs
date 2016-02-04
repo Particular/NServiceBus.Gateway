@@ -10,8 +10,11 @@
     using Extensibility;
     using Installation;
     using Logging;
+    using NServiceBus.DataBus;
     using NServiceBus.Gateway;
     using NServiceBus.Gateway.Channels;
+    using NServiceBus.Gateway.Channels.Http;
+    using NServiceBus.Gateway.Deduplication;
     using NServiceBus.Gateway.HeaderManagement;
     using NServiceBus.Gateway.Notifications;
     using NServiceBus.Gateway.Receiving;
@@ -20,8 +23,8 @@
     using NServiceBus.Gateway.Routing.Sites;
     using NServiceBus.Gateway.Sending;
     using Performance.TimeToBeReceived;
-    using Pipeline;
     using Transports;
+    using IRouteMessagesToSites = NServiceBus.Gateway.Routing.Sites.IRouteMessagesToSites;
 
     /// <summary>
     /// Used to configure the gateway.
@@ -38,14 +41,7 @@
         /// </summary>
         protected override void Setup(FeatureConfigurationContext context)
         {
-            var txConfig = context.Container.ConfigureComponent<GatewayTransaction>(DependencyLifecycle.InstancePerCall);
-
-            var configSection = context.Settings.GetConfigSection<GatewayConfig>();
-
-            if (configSection != null)
-            {
-                txConfig.ConfigureProperty(c => c.ConfiguredTimeout, configSection.TransactionTimeout);
-            }
+            ConfigureTransaction(context);
 
             string gatewayInputAddress;
 
@@ -53,71 +49,74 @@
 
             var gatewayPipeline = context.AddSatellitePipeline("Gateway", "gateway", requiredTransactionSupport, PushRuntimeSettings.Default, out gatewayInputAddress);
 
-            ConfigureChannels(context);
+            var channelManager = CreateChannelManager(context);
 
-            ConfigureReceiver(context);
-            context.Pipeline.Register("GatewayIncomingBehavior", typeof(GatewayIncomingBehavior), "Extracts gateway related information from the incoming message");
-            context.Pipeline.Register("GatewayOutgoingBehavior", typeof(GatewayOutgoingBehavior), "Puts gateway related information on the headers of outgoing messages");
+            Func<string, IChannelSender> channelSenderFactory;
+            Func<string, IChannelReceiver> channelReceiverFactory;
+            RegisterChannels(context, channelManager, out channelSenderFactory, out channelReceiverFactory);
 
-            ConfigureSender(context, gatewayPipeline, gatewayInputAddress);
+            gatewayPipeline.Register("GatewaySendProcessor", b => new GatewaySendBehavior(gatewayInputAddress, channelManager, new MessageNotifier(), b.Build<IDispatchMessages>(), context.Settings, CreateForwarder(channelSenderFactory, b.BuildAll<IDataBus>()?.FirstOrDefault()), CreateSiteRouters(context)), "Processes messages to be sent to the gateway");
             context.Pipeline.Register("RouteToGateway", b => new RouteToGatewayBehaviour(gatewayInputAddress), "Reroutes gateway messages to the gateway");
             
-            context.RegisterStartupTask(b => new GatewayReceiverStartupTask(b.Build<IManageReceiveChannels>(), b.Build<IRouteMessagesToEndpoints>(), b.Build<IDispatchMessages>(), b.Build<Func<IReceiveMessagesFromSites>>(), gatewayInputAddress));
+            context.Pipeline.Register("GatewayIncomingBehavior", typeof(GatewayIncomingBehavior), "Extracts gateway related information from the incoming message");
+            context.Pipeline.Register("GatewayOutgoingBehavior", typeof(GatewayOutgoingBehavior), "Puts gateway related information on the headers of outgoing messages");
+            context.RegisterStartupTask(b => new GatewayReceiverStartupTask(channelManager, channelReceiverFactory, GetEndpointRouter(context), b.Build<IDispatchMessages>(), b.Build<IDeduplicateMessages>(), b.BuildAll<IDataBus>()?.FirstOrDefault(), gatewayInputAddress));
         }
 
-        static void ConfigureChannels(FeatureConfigurationContext context)
+        static void RegisterChannels(FeatureConfigurationContext context, IManageReceiveChannels channelManager, out Func<string, IChannelSender> channelSenderFactory, out Func<string, IChannelReceiver> channelReceiverFactory)
         {
-            var channelFactory = new ChannelFactory();
+            var usingCustomChannelProviders = context.Settings.HasSetting("GatewayChannelReceiverFactory") || context.Settings.HasSetting("GatewayChannelSenderFactory");
 
-            foreach (
-                var type in
-                    context.Settings.GetAvailableTypes().Where(t => typeof(IChannelReceiver).IsAssignableFrom(t) && !t.IsInterface))
+            if (usingCustomChannelProviders)
             {
-                channelFactory.RegisterReceiver(type);
+                channelReceiverFactory = context.Settings.Get<Func<string, IChannelReceiver>>("GatewayChannelReceiverFactory");
+                channelSenderFactory = context.Settings.Get<Func<string, IChannelSender>>("GatewayChannelSenderFactory");
             }
-
-            foreach (
-                var type in
-                    context.Settings.GetAvailableTypes().Where(t => typeof(IChannelSender).IsAssignableFrom(t) && !t.IsInterface))
+            else
             {
-                channelFactory.RegisterSender(type);
+                channelReceiverFactory  = s => (new ChannelReceiverFactory(typeof(HttpChannelReceiver))).GetReceiver(s);
+                channelSenderFactory =  s => (new ChannelSenderFactory(typeof(HttpChannelSender))).GetSender(s);
+                RegisterHttpListenerInstaller(context, channelManager);
             }
-
-            context.Container.RegisterSingleton<IChannelFactory>(channelFactory);
         }
 
-        static void ConfigureSender(FeatureConfigurationContext context, PipelineSettings gateWayPipeline, string gatewayInputAddress)
+        static SingleCallChannelForwarder CreateForwarder(Func<string, IChannelSender> channelSenderFactory, IDataBus databus)
         {
-            if (!context.Container.HasComponent<IForwardMessagesToSites>())
+            return new SingleCallChannelForwarder(channelSenderFactory, databus);
+        }
+        
+        static EndpointRouter GetEndpointRouter(FeatureConfigurationContext context)
+        {
+            return new EndpointRouter {MainInputAddress = context.Settings.EndpointName().ToString()};
+        }
+
+        static void ConfigureTransaction(FeatureConfigurationContext context)
+        {
+            var configSection = context.Settings.GetConfigSection<GatewayConfig>();
+
+            if (configSection != null)
             {
-                context.Container.ConfigureComponent<SingleCallChannelForwarder>(DependencyLifecycle.InstancePerCall);
+                GatewayTransaction.ConfiguredTimeout = configSection.TransactionTimeout;
             }
+        }
 
-            context.Container.ConfigureComponent<MessageNotifier>(DependencyLifecycle.SingleInstance);
-            context.Container.ConfigureComponent<GatewaySendBehavior>(DependencyLifecycle.InstancePerCall)
-                .ConfigureProperty(b => b.InputAddress, gatewayInputAddress);
-            gateWayPipeline.Register<GatewaySendBehavior.Registration>();
-
+        static IManageReceiveChannels CreateChannelManager(FeatureConfigurationContext context)
+        {
             var configSection = context.Settings.GetConfigSection<GatewayConfig>();
 
             if (configSection != null && configSection.GetChannels().Any())
             {
-                context.Container.ConfigureComponent<ConfigurationBasedChannelManager>(DependencyLifecycle.SingleInstance)
-                    .ConfigureProperty(c => c.ReceiveChannels, configSection.GetChannels());
+                return new ConfigurationBasedChannelManager { ReceiveChannels = configSection.GetChannels().ToList() };
             }
-            else
-            {
-                context.Container.ConfigureComponent<ConventionBasedChannelManager>(DependencyLifecycle.SingleInstance)
-                    .ConfigureProperty(t => t.EndpointName, context.Settings.EndpointName());
-            }
+            
+            return new ConventionBasedChannelManager { EndpointName = context.Settings.EndpointName().ToString() };
 
-            ConfigureSiteRouters(context);
         }
 
-        static void ConfigureSiteRouters(FeatureConfigurationContext context)
+        
+        static IEnumerable<IRouteMessagesToSites> CreateSiteRouters(FeatureConfigurationContext context)
         {
-            context.Container.ConfigureComponent<OriginatingSiteHeaderRouter>(DependencyLifecycle.SingleInstance);
-            context.Container.ConfigureComponent<KeyPrefixConventionSiteRouter>(DependencyLifecycle.SingleInstance);
+            var messageToSitesRouters = new List<IRouteMessagesToSites>();
 
             var sites = new Dictionary<string, Site>();
 
@@ -127,41 +126,30 @@
                 sites = section.SitesAsDictionary();
             }
 
-            context.Container.ConfigureComponent<ConfigurationBasedSiteRouter>(DependencyLifecycle.SingleInstance)
-                .ConfigureProperty(p => p.Sites, sites);
+            var configurationBasedRouter = new ConfigurationBasedSiteRouter { Sites = sites};
+            messageToSitesRouters.Add(configurationBasedRouter);
+
+            messageToSitesRouters.Add(new OriginatingSiteHeaderRouter());
+            messageToSitesRouters.Add(new KeyPrefixConventionSiteRouter());
+
+            return messageToSitesRouters;
         }
 
-        static void ConfigureReceiver(FeatureConfigurationContext context)
+        static void RegisterHttpListenerInstaller(FeatureConfigurationContext context, IManageReceiveChannels channelManager)
         {
-            if (!context.Container.HasComponent<IReceiveMessagesFromSites>())
-            {
-                context.Container.ConfigureComponent<SingleCallChannelReceiver>(DependencyLifecycle.InstancePerCall);
-                context.Container.ConfigureComponent<Func<IReceiveMessagesFromSites>>(builder => () => builder.Build<SingleCallChannelReceiver>(), DependencyLifecycle.InstancePerCall);
-            }
-            else
-            {
-                context.Container.ConfigureComponent<Func<IReceiveMessagesFromSites>>(builder => () => builder.Build<IReceiveMessagesFromSites>(), DependencyLifecycle.InstancePerCall);
-            }
-            
-            context.Container.ConfigureComponent<DataBusHeaderManager>(DependencyLifecycle.InstancePerCall);
-
-            var endpointName = context.Settings.EndpointName().ToString();
-
-            context.Container.ConfigureComponent<GatewayHttpListenerInstaller>(DependencyLifecycle.InstancePerCall)
-                .ConfigureProperty(t => t.Enabled, true);
-
-            context.Container.ConfigureComponent<DefaultEndpointRouter>(DependencyLifecycle.SingleInstance)
-                .ConfigureProperty(x => x.MainInputAddress, endpointName);
+            context.Container.ConfigureComponent(() => new GatewayHttpListenerInstaller(channelManager, true), DependencyLifecycle.SingleInstance);
         }
 
         class GatewayReceiverStartupTask : FeatureStartupTask
         {
-            public GatewayReceiverStartupTask(IManageReceiveChannels channelManager, IRouteMessagesToEndpoints endpointRouter, IDispatchMessages dispatcher, Func<IReceiveMessagesFromSites> receiveMessagesFromSitesFactory, string replyToAddress)
+            public GatewayReceiverStartupTask(IManageReceiveChannels channelManager, Func<string, IChannelReceiver> channelReceiverFactory, EndpointRouter endpointRouter, IDispatchMessages dispatcher, IDeduplicateMessages deduplicator, IDataBus databus, string replyToAddress)
             {
                 dispatchMessages = dispatcher;
-                routeMessagesToEndpoints = endpointRouter;
-                this.receiveMessagesFromSitesFactory = receiveMessagesFromSitesFactory;
+                this.deduplicator = deduplicator;
+                this.databus = databus;
+                this.endpointRouter = endpointRouter;
                 manageReceiveChannels = channelManager;
+                this.channelReceiverFactory = channelReceiverFactory;
                 this.replyToAddress = replyToAddress;
             }
             
@@ -169,7 +157,7 @@
             {
                 foreach (var receiveChannel in manageReceiveChannels.GetReceiveChannels())
                 {
-                    var receiver = receiveMessagesFromSitesFactory();
+                    var receiver = new SingleCallChannelReceiver(channelReceiverFactory, deduplicator, databus);
 
                     receiver.Start(receiveChannel, receiveChannel.NumberOfWorkerThreads, MessageReceivedOnChannel);
                     activeReceivers.Add(receiver);
@@ -179,6 +167,7 @@
 
                 return Task.FromResult(0);
             }
+
 
             protected override Task OnStop(IBusSession context)
             {
@@ -205,7 +194,7 @@
                 var recoverable = e.Recoverable;
                 var timeToBeReceived = e.TimeToBeReceived;
 
-                var destination = routeMessagesToEndpoints.GetDestinationFor(headers);
+                var destination = endpointRouter.GetDestinationFor(headers);
 
                 Logger.Info("Sending message to " + destination);
 
@@ -235,11 +224,13 @@
             }
 
             static ILog Logger = LogManager.GetLogger<GatewayReceiverStartupTask>();
-            readonly ICollection<IReceiveMessagesFromSites> activeReceivers = new List<IReceiveMessagesFromSites>();
+            readonly ICollection<SingleCallChannelReceiver> activeReceivers = new List<SingleCallChannelReceiver>();
             readonly IManageReceiveChannels manageReceiveChannels;
-            readonly Func<IReceiveMessagesFromSites> receiveMessagesFromSitesFactory;
-            readonly IRouteMessagesToEndpoints routeMessagesToEndpoints;
+            readonly Func<string, IChannelReceiver> channelReceiverFactory;
+            readonly EndpointRouter endpointRouter;
             readonly IDispatchMessages dispatchMessages;
+            readonly IDeduplicateMessages deduplicator;
+            readonly IDataBus databus;
             readonly string replyToAddress;
         }
     }

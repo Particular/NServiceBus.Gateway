@@ -14,24 +14,20 @@
     using Sending;
     using Utils;
 
-    class SingleCallChannelReceiver : IReceiveMessagesFromSites
+    class SingleCallChannelReceiver
     {
-        public SingleCallChannelReceiver(IChannelFactory channelFactory, IDeduplicateMessages deduplicator,
-            DataBusHeaderManager headerManager, GatewayTransaction transaction)
+        public SingleCallChannelReceiver(Func<string, IChannelReceiver> channelFactory, IDeduplicateMessages deduplicator, IDataBus databus)
         {
             this.channelFactory = channelFactory;
             this.deduplicator = deduplicator;
-            this.headerManager = headerManager;
-            this.transaction = transaction;
+            this.databus = databus;
+            headerManager = new DataBusHeaderManager();
         }
 
-        public IDataBus DataBus { get; set; }
-
-
-        public void Start(Channel channel, int numberOfWorkerThreads, Func<MessageReceivedOnChannelArgs, Task> messageReceivedHandler)
+        public void Start(Channel channel, int numberOfWorkerThreads, Func<MessageReceivedOnChannelArgs, Task> receivedHandler)
         {
-            this.messageReceivedHandler = messageReceivedHandler;
-            channelReceiver = channelFactory.GetReceiver(channel.Type);
+            messageReceivedHandler = receivedHandler;
+            channelReceiver = channelFactory(channel.Type);
             channelReceiver.Start(channel.Address, numberOfWorkerThreads, DataReceivedOnChannel);
         }
 
@@ -54,7 +50,7 @@
 
                 Logger.DebugFormat("Received message of type {0} for client id: {1}", callInfo.Type, callInfo.ClientId);
 
-                using (var scope = transaction.Scope())
+                using (var scope = GatewayTransaction.Scope())
                 {
                     switch (callInfo.Type)
                     {
@@ -195,15 +191,15 @@
 
         async Task HandleDatabusProperty(CallInfo callInfo)
         {
-            if (DataBus == null)
+            if (databus == null)
             {
                 throw new InvalidOperationException("Databus transmission received without a configured databus");
             }
 
-            var newDatabusKey = await DataBus.Put(callInfo.Data, callInfo.TimeToBeReceived).ConfigureAwait(false);
+            var newDatabusKey = await databus.Put(callInfo.Data, callInfo.TimeToBeReceived).ConfigureAwait(false);
             if (callInfo.Md5 != null)
             {
-                using (var databusStream = await DataBus.Get(newDatabusKey).ConfigureAwait(false))
+                using (var databusStream = await databus.Get(newDatabusKey).ConfigureAwait(false))
                 {
                    await Hasher.Verify(databusStream, callInfo.Md5).ConfigureAwait(false);
                 }
@@ -231,11 +227,10 @@
 
         static ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
 
-        IChannelFactory channelFactory;
+        Func<string, IChannelReceiver> channelFactory;
         IDeduplicateMessages deduplicator;
+        readonly IDataBus databus;
         DataBusHeaderManager headerManager;
-
-        readonly GatewayTransaction transaction;
 
         IChannelReceiver channelReceiver;
 
