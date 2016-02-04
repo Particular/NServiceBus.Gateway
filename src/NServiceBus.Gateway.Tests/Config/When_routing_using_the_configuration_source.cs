@@ -39,15 +39,15 @@ namespace NServiceBus.Gateway.Tests.Routing
         }
 
         [Test]
-        public void Should_default_the_number_of_worker_threads_to_1()
+        public void Should_default_the_max_concurrency_to_1()
         {
-            Assert.AreEqual(activeChannels.First().NumberOfWorkerThreads, 1);
+            Assert.AreEqual(activeChannels.First().MaxConcurrency, 1);
         }
 
         [Test]
-        public void Should_allow_number_of_worker_threads_to_be_specified()
+        public void Should_allow_max_concurrency_to_be_specified()
         {
-            Assert.AreEqual(activeChannels.Last().NumberOfWorkerThreads, 3);
+            Assert.AreEqual(activeChannels.Last().MaxConcurrency, 3);
         }
 
         [Test]

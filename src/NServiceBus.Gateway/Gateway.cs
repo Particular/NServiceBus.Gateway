@@ -159,7 +159,7 @@
                 {
                     var receiver = new SingleCallChannelReceiver(channelReceiverFactory, deduplicator, databus);
 
-                    receiver.Start(receiveChannel, receiveChannel.NumberOfWorkerThreads, MessageReceivedOnChannel);
+                    receiver.Start(receiveChannel, receiveChannel.MaxConcurrency, MessageReceivedOnChannel);
                     activeReceivers.Add(receiver);
 
                     Logger.InfoFormat("Receive channel started: {0}", receiveChannel);

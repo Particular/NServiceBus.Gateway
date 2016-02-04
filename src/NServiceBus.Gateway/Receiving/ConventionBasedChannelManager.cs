@@ -12,7 +12,7 @@ namespace NServiceBus.Gateway.Receiving
             {
                 Address = string.Format("http://localhost/{0}/", EndpointName),
                 Type = "Http",
-                NumberOfWorkerThreads = 1
+                MaxConcurrency = 1
             };
         }
 

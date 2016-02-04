@@ -1,5 +1,6 @@
 namespace NServiceBus.Config
 {
+    using System;
     using System.Configuration;
     using Gateway.Channels;
 
@@ -43,19 +44,38 @@ namespace NServiceBus.Config
         /// <summary>
         /// The number of worker threads that will be used for this channel
         /// </summary>
+        [ObsoleteEx(
+            TreatAsErrorFromVersion = "6",
+            RemoveInVersion = "7",
+            Message = "NumberOfWorkerThreads has been removed. Please use the MaxConcurrency setting instead.")]
         [ConfigurationProperty("NumberOfWorkerThreads", IsRequired = false, DefaultValue = 1, IsKey = false)]
         public int NumberOfWorkerThreads
         {
             get
             {
-                return (int) this["NumberOfWorkerThreads"];
+                throw new NotImplementedException();
             }
             set
             {
-                this["NumberOfWorkerThreads"] = value;
+                throw new NotImplementedException();
             }
         }
 
+        /// <summary>
+        /// The maximum number of messages that should be processed at any given time.
+        /// </summary>
+        [ConfigurationProperty("MaxConcurrency", IsRequired = false, DefaultValue = 1, IsKey = false)]
+        public int MaxConcurrency
+        {
+            get
+            {
+                return (int)this["MaxConcurrency"];
+            }
+            set
+            {
+                this["MaxConcurrency"] = value;
+            }
+        }
 
         /// <summary>
         /// The ChannelType
