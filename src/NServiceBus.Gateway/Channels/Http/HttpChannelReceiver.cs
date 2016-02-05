@@ -15,11 +15,11 @@ namespace NServiceBus.Gateway.Channels.Http
 
     class HttpChannelReceiver : IChannelReceiver
     {
-        public void Start(string address, int numberOfWorkerThreads, Func<DataReceivedOnChannelArgs, Task> dataReceivedOnChannel)
+        public void Start(string address, int maxConcurrency, Func<DataReceivedOnChannelArgs, Task> dataReceivedOnChannel)
         {
             dataReceivedHandler = dataReceivedOnChannel;
 
-            concurencyLimiter = new SemaphoreSlim(numberOfWorkerThreads, numberOfWorkerThreads);
+            concurencyLimiter = new SemaphoreSlim(maxConcurrency, maxConcurrency);
             tokenSource = new CancellationTokenSource();
             listener = new HttpListener();
 

@@ -79,7 +79,7 @@ namespace NServiceBus.Config
                 {
                     Address = channel.Address,
                     Type = channel.ChannelType,
-                    NumberOfWorkerThreads = channel.NumberOfWorkerThreads,
+                    MaxConcurrency = channel.MaxConcurrency,
                     Default = channel.Default
                 }).ToList();
         }

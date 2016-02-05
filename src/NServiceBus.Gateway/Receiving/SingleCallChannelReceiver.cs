@@ -24,11 +24,11 @@
             headerManager = new DataBusHeaderManager();
         }
 
-        public void Start(Channel channel, int numberOfWorkerThreads, Func<MessageReceivedOnChannelArgs, Task> receivedHandler)
+        public void Start(Channel channel, int maxConcurrency, Func<MessageReceivedOnChannelArgs, Task> receivedHandler)
         {
             messageReceivedHandler = receivedHandler;
             channelReceiver = channelFactory(channel.Type);
-            channelReceiver.Start(channel.Address, numberOfWorkerThreads, DataReceivedOnChannel);
+            channelReceiver.Start(channel.Address, maxConcurrency, DataReceivedOnChannel);
         }
 
         public void Dispose()
