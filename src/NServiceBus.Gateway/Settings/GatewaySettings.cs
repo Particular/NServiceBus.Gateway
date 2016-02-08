@@ -2,6 +2,7 @@
 {
     using System;
     using Configuration.AdvanceExtensibility;
+    using global::NServiceBus.Gateway;
     using Gateway.Channels;
 
     /// <summary>
