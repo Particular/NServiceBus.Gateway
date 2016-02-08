@@ -19,8 +19,11 @@ namespace NServiceBus.Gateway.Channels.Http
         {
             dataReceivedHandler = dataReceivedOnChannel;
 
-            concurencyLimiter = new SemaphoreSlim(maxConcurrency, maxConcurrency);
-            tokenSource = new CancellationTokenSource();
+            concurrencyLimiter = new SemaphoreSlim(maxConcurrency, maxConcurrency);
+
+            cancellationTokenSource = new CancellationTokenSource();
+            cancellationToken = cancellationTokenSource.Token;
+
             listener = new HttpListener();
 
             listener.Prefixes.Add(address);
@@ -35,54 +38,57 @@ namespace NServiceBus.Gateway.Channels.Http
                 throw new Exception(message, ex);
             }
 
-            var token = tokenSource.Token;
-            receiverTask = Task.Factory.StartNew(HandleRequestAsync, token, token, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
+            messagePumpTask = Task.Run(() => ProcessMessages(), CancellationToken.None);
         }
 
-        public void Dispose()
+        public async Task Stop()
         {
-            tokenSource?.Cancel();
+            Logger.InfoFormat("Stopping channel - {0}", typeof(HttpChannelReceiver));
+
+            cancellationTokenSource?.Cancel();
             listener?.Close();
 
-            try
+            // ReSharper disable once MethodSupportsCancellation
+            var timeoutTask = Task.Delay(TimeSpan.FromSeconds(30));
+            var allTasks = runningReceiveTasks.Values.Concat(new[]
             {
-                receiverTask.Wait(TimeSpan.FromSeconds(10));
-            }
-            catch (AggregateException ex)
+                messagePumpTask
+            });
+
+            var finishedTask = await Task.WhenAny(Task.WhenAll(allTasks), timeoutTask).ConfigureAwait(false);
+
+            if (finishedTask.Equals(timeoutTask))
             {
-                ex.Handle(e => e is TaskCanceledException);
+                Logger.Error("The http message pump failed to stop with in the time allowed(30s)");
             }
 
-            try
-            {
-                Task.WaitAll(runningTasks.Values.ToArray());
-            }
-            catch (AggregateException ex)
-            {
-                ex.Handle(e => e is TaskCanceledException);
-            }
-
-            // Do not dispose the task, see http://blogs.msdn.com/b/pfxteam/archive/2012/03/25/10287435.aspx
-            concurencyLimiter?.Dispose();
+            concurrencyLimiter.Dispose();
+            runningReceiveTasks.Clear();
         }
 
-        private async Task HandleRequestAsync(object o)
+        async Task ProcessMessages()
         {
-            var cancellationToken = (CancellationToken)o;
-
-            while (!cancellationToken.IsCancellationRequested)
+            while (!cancellationTokenSource.IsCancellationRequested)
             {
                 try
                 {
                     var context = await listener.GetContextAsync().ConfigureAwait(false);
 
-                    var worker = Task.Run(() => Handle(context, cancellationToken), CancellationToken.None);
-                    runningTasks.TryAdd(worker, worker);
-
-                    worker.ContinueWith(t =>
+                    if (cancellationTokenSource.IsCancellationRequested)
                     {
-                        Task task;
-                        runningTasks.TryRemove(worker, out task);
+                        return;
+                    }
+
+                    await concurrencyLimiter.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+                    var receiveTask = HandleMessage(context, cancellationToken);
+
+                    runningReceiveTasks.TryAdd(receiveTask, receiveTask);
+
+                    receiveTask.ContinueWith(t =>
+                    {
+                        Task toBeRemoved;
+                        runningReceiveTasks.TryRemove(receiveTask, out toBeRemoved);
                     }, TaskContinuationOptions.ExecuteSynchronously)
                     .Forget();
                 }
@@ -112,16 +118,17 @@ namespace NServiceBus.Gateway.Channels.Http
             }
         }
 
-        async Task Handle(HttpListenerContext context, CancellationToken token)
+        async Task HandleMessage(HttpListenerContext context, CancellationToken token)
         {
             try
             {
-                await concurencyLimiter.WaitAsync(token).ConfigureAwait(false);
+                var headers = GetHeaders(context);
+                var dataStream = await GetMessageStream(context, token).ConfigureAwait(false);
 
                 await dataReceivedHandler(new DataReceivedOnChannelArgs
                 {
-                    Headers = GetHeaders(context),
-                    Data = await GetMessageStream(context, token).ConfigureAwait(false)
+                    Headers = headers,
+                    Data = dataStream
                 }).ConfigureAwait(false);
 
                 ReportSuccess(context);
@@ -143,7 +150,7 @@ namespace NServiceBus.Gateway.Channels.Http
             }
             finally
             {
-                concurencyLimiter.Release();
+                concurrencyLimiter.Release();
             }
         }
 
@@ -227,11 +234,12 @@ namespace NServiceBus.Gateway.Channels.Http
         const int MaximumBytesToRead = 100000;
 
         static ILog Logger = LogManager.GetLogger<HttpChannelReceiver>();
-        Task receiverTask;
-        ConcurrentDictionary<Task, Task> runningTasks = new ConcurrentDictionary<Task, Task>();
-        SemaphoreSlim concurencyLimiter;
+        SemaphoreSlim concurrencyLimiter;
         HttpListener listener;
-        CancellationTokenSource tokenSource;
+        CancellationTokenSource cancellationTokenSource;
+        CancellationToken cancellationToken;
+        Task messagePumpTask;
+        ConcurrentDictionary<Task, Task> runningReceiveTasks = new ConcurrentDictionary<Task, Task>();
         private Func<DataReceivedOnChannelArgs, Task> dataReceivedHandler;
     }
 }

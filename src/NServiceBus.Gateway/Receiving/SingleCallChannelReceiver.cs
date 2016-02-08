@@ -31,15 +31,9 @@
             channelReceiver.Start(channel.Address, maxConcurrency, DataReceivedOnChannel);
         }
 
-        public void Dispose()
-        {
-            //Injected at compile time
-            DisposeManaged();
-        }
-
-        void DisposeManaged()
-        {
-            channelReceiver?.Dispose();
+        public Task Stop()
+        { 
+            return channelReceiver?.Stop();
         }
 
         async Task DataReceivedOnChannel(DataReceivedOnChannelArgs e)
