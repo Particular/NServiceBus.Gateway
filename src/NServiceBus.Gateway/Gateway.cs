@@ -169,21 +169,17 @@
             }
 
 
-            protected override Task OnStop(IBusSession context)
+            protected override async Task OnStop(IBusSession context)
             {
                 Logger.InfoFormat("Receiver is shutting down");
 
-                foreach (var channelReceiver in activeReceivers)
-                {
-                    Logger.InfoFormat("Stopping channel - {0}", channelReceiver.GetType());
+                var stopTasks = activeReceivers.Select(channelReceiver => channelReceiver.Stop());
 
-                    channelReceiver.Dispose();
-                }
+                await Task.WhenAll(stopTasks).ConfigureAwait(false);
 
                 activeReceivers.Clear();
 
                 Logger.InfoFormat("Receiver shutdown complete");
-                return Task.FromResult(0);
             }
 
             async Task MessageReceivedOnChannel(MessageReceivedOnChannelArgs e)
