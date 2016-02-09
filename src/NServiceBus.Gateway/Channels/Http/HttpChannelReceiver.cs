@@ -240,6 +240,6 @@ namespace NServiceBus.Gateway.Channels.Http
         CancellationToken cancellationToken;
         Task messagePumpTask;
         ConcurrentDictionary<Task, Task> runningReceiveTasks = new ConcurrentDictionary<Task, Task>();
-        private Func<DataReceivedOnChannelArgs, Task> dataReceivedHandler;
+        Func<DataReceivedOnChannelArgs, Task> dataReceivedHandler;
     }
 }

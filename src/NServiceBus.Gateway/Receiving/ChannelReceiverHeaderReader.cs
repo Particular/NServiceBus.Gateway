@@ -3,7 +3,6 @@ namespace NServiceBus.Gateway.Receiving
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Channels;
     using Channels.Http;
     using HeaderManagement;
     using Sending;
