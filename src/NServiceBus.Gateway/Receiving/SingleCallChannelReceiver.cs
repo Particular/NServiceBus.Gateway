@@ -235,6 +235,6 @@
         const string Recoverable = "Recoverable";
         const string TimeToBeReceived = "TimeToBeReceived";
         static readonly TimeSpan MinimumTimeToBeReceived = TimeSpan.FromSeconds(1);
-        private Func<MessageReceivedOnChannelArgs, Task> messageReceivedHandler;
+        Func<MessageReceivedOnChannelArgs, Task> messageReceivedHandler;
     }
 }
