@@ -20,7 +20,7 @@ namespace NServiceBus.Gateway.Receiving
 
             if (defaultChannel == null)
             {
-                defaultChannel = ReceiveChannels.First();
+                return ReceiveChannels.First();
             }
             return defaultChannel;
         }

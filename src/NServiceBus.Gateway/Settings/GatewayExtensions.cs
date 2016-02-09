@@ -9,7 +9,7 @@
     public static class GatewayExtensions
     {
         /// <summary>
-        /// Allows the user to control how the gatway behaves.
+        /// Allows the user to control how the gateway behaves.
         /// </summary>
         /// <param name="config">The <see cref="BusConfiguration"/> instance to apply the settings to.</param>
         public static GatewaySettings Gateway(this BusConfiguration config)
