@@ -6,13 +6,15 @@ namespace NServiceBus.Gateway.Sending
     using System.Threading.Tasks;
     using Extensibility;
     using Notifications;
+    using NServiceBus.Pipeline;
+    using NServiceBus.Routing;
     using Routing;
     using Receiving;
     using Settings;
     using Transports;
     using IRouteMessagesToSites = NServiceBus.Gateway.Routing.Sites.IRouteMessagesToSites;
 
-    class GatewaySendBehavior : SatelliteBehavior
+    class GatewaySendBehavior : PipelineTerminator<IIncomingPhysicalMessageContext>
     {
         readonly IManageReceiveChannels channelManager;
         readonly IDispatchMessages dispatcher;
@@ -73,17 +75,9 @@ namespace NServiceBus.Gateway.Sending
             headers[Headers.DestinationSites] = destinationSite.Key;
 
             var message = new OutgoingMessage(headers[Headers.MessageId], headers, body);
-            var operation = new UnicastTransportOperation(message, inputAddress);
+            var operation = new TransportOperation(message, new UnicastAddressTag(inputAddress));
 
-            return dispatcher.Dispatch(WrapInOperations(operation), new ContextBag());
-        }
-
-        static TransportOperations WrapInOperations(UnicastTransportOperation operation)
-        {
-            return new TransportOperations(Enumerable.Empty<MulticastTransportOperation>(), new[]
-            {
-                operation
-            });
+            return dispatcher.Dispatch(new TransportOperations(operation), new ContextBag());
         }
 
         async Task SendToSite(byte[] body, Dictionary<string, string> headers, Site targetSite)

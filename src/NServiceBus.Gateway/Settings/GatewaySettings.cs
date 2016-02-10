@@ -9,9 +9,9 @@
     /// </summary>
     public class GatewaySettings
     {
-        BusConfiguration config;
+        EndpointConfiguration config;
 
-        internal GatewaySettings(BusConfiguration config)
+        internal GatewaySettings(EndpointConfiguration config)
         {
             this.config = config;
         }

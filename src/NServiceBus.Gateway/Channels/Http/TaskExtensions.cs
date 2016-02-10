@@ -1,5 +1,4 @@
-﻿
-namespace NServiceBus.Gateway.Channels.Http
+﻿namespace NServiceBus.Gateway.Channels.Http
 {
     using System.Threading.Tasks;
 

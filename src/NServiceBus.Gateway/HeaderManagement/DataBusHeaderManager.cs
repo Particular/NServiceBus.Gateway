@@ -34,7 +34,7 @@
                 Dictionary<string, string> collection;
                 if (!headers.TryGetValue(clientId, out collection))
                 {
-                    var message = string.Format("Expected {0} databus properties. None were received. Please resubmit.",expectedDatabusProperties.Count);
+                    var message = $"Expected {expectedDatabusProperties.Count} databus properties. None were received. Please resubmit.";
                     throw new ChannelException(412,message);
                 }
 
@@ -43,7 +43,7 @@
                     string propertyValue;
                     if (!collection.TryGetValue(propertyHeader.Key, out propertyValue))
                     {
-                        var message = string.Format("Databus property {0} was never received. Please resubmit.",propertyHeader.Key);
+                        var message = $"Databus property {propertyHeader.Key} was never received. Please resubmit.";
                         throw new ChannelException(412,message);
                     }
                     input[propertyHeader.Key] = propertyValue;

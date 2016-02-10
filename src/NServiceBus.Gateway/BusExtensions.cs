@@ -12,11 +12,7 @@
         /// <summary>
         /// Sends the message to all sites with matching site keys registered with the gateway.
         /// </summary>
-        /// <remarks>If you want to use callbacks with SendToSites then use <see cref="SendOptions"/> with <see cref="SendOptionsExtensions.RouteToSites"/></remarks>
-        /// <param name="context"></param>
-        /// <param name="siteKeys"></param>
-        /// <param name="message"></param>
-        /// <returns></returns>
+        /// <remarks>To use callbacks with SendToSites then use <see cref="SendOptions"/> with <see cref="SendOptionsExtensions.RouteToSites"/></remarks>
         public static Task SendToSites(this IMessageHandlerContext context, IEnumerable<string> siteKeys, object message)
         {
             var options = new SendOptions();
@@ -27,12 +23,8 @@
         /// <summary>
         /// Sends the message to all sites with matching site keys registered with the gateway.
         /// </summary>
-        /// <remarks>If you want to use callbacks with SendToSites then use <see cref="SendOptions"/> with <see cref="SendOptionsExtensions.RouteToSites"/></remarks>
-        /// <param name="context"></param>
-        /// <param name="siteKeys"></param>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public static Task SendToSites(this IBusSession context, IEnumerable<string> siteKeys, object message)
+        /// <remarks>To use callbacks with SendToSites then use <see cref="SendOptions"/> with <see cref="SendOptionsExtensions.RouteToSites"/></remarks>
+        public static Task SendToSites(this IMessageSession context, IEnumerable<string> siteKeys, object message)
         {
             var options = new SendOptions();
             options.RouteToSites(siteKeys.ToArray());

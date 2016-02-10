@@ -38,7 +38,7 @@ namespace NServiceBus.Gateway.Channels.Http
                 throw new Exception(message, ex);
             }
 
-            messagePumpTask = Task.Run(() => ProcessMessages(), CancellationToken.None);
+            messagePumpTask = Task.Run(ProcessMessages, CancellationToken.None);
         }
 
         public async Task Stop()

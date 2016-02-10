@@ -57,7 +57,7 @@ namespace NServiceBus.Gateway.Channels
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
-            return string.Format("{0},{1}", Type, Address);
+            return $"{Type},{Address}";
         }
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace NServiceBus.Gateway.Channels
         {
             unchecked
             {
-                return ((Type != null ? Type.GetHashCode() : 0)*397) ^ (Address != null ? Address.GetHashCode() : 0);
+                return ((Type?.GetHashCode() ?? 0)*397) ^ (Address?.GetHashCode() ?? 0);
             }
         }
 

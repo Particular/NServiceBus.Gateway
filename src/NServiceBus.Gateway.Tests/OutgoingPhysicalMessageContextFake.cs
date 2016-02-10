@@ -5,9 +5,9 @@ namespace NServiceBus.Gateway.Tests
     using System.Threading.Tasks;
     using Extensibility;
     using HeaderManagement;
+    using NServiceBus.Pipeline;
     using NServiceBus.Routing;
     using ObjectBuilder;
-    using OutgoingPipeline;
 
     class OutgoingPhysicalMessageContextFake : IOutgoingPhysicalMessageContext
     {

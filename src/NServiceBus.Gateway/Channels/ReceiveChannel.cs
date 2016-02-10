@@ -7,7 +7,7 @@ namespace NServiceBus.Gateway.Channels
 
         public override string ToString()
         {
-            return base.ToString() + "MaxConcurrency=" + MaxConcurrency + "Default=" + Default;
+            return $"{base.ToString()}MaxConcurrency={MaxConcurrency}Default={Default}";
         }
     }
 }

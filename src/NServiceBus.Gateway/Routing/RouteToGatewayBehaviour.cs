@@ -5,7 +5,6 @@
     using Gateway.Routing;
     using Pipeline;
     using Routing;
-    using TransportDispatch;
 
     class RouteToGatewayBehaviour : Behavior<IRoutingContext>
     {
