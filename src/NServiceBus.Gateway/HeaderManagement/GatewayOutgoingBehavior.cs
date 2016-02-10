@@ -2,7 +2,6 @@ namespace NServiceBus.Gateway.HeaderManagement
 {
     using System;
     using System.Threading.Tasks;
-    using OutgoingPipeline;
     using Pipeline;
 
     class GatewayOutgoingBehavior : Behavior<IOutgoingPhysicalMessageContext>

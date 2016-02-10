@@ -22,6 +22,7 @@
     using NServiceBus.Gateway.Routing.Endpoints;
     using NServiceBus.Gateway.Routing.Sites;
     using NServiceBus.Gateway.Sending;
+    using NServiceBus.Routing;
     using Performance.TimeToBeReceived;
     using Transports;
     using IRouteMessagesToSites = NServiceBus.Gateway.Routing.Sites.IRouteMessagesToSites;
@@ -74,8 +75,8 @@
             }
             else
             {
-                channelReceiverFactory  = s => (new ChannelReceiverFactory(typeof(HttpChannelReceiver))).GetReceiver(s);
-                channelSenderFactory =  s => (new ChannelSenderFactory(typeof(HttpChannelSender))).GetSender(s);
+                channelReceiverFactory = s => (new ChannelReceiverFactory(typeof(HttpChannelReceiver))).GetReceiver(s);
+                channelSenderFactory = s => (new ChannelSenderFactory(typeof(HttpChannelSender))).GetSender(s);
                 RegisterHttpListenerInstaller(context, channelManager);
             }
         }
@@ -153,7 +154,7 @@
                 this.replyToAddress = replyToAddress;
             }
             
-            protected override Task OnStart(IBusSession context)
+            protected override Task OnStart(IMessageSession context)
             {
                 foreach (var receiveChannel in manageReceiveChannels.GetReceiveChannels())
                 {
@@ -169,7 +170,7 @@
             }
 
 
-            protected override async Task OnStop(IBusSession context)
+            protected override async Task OnStop(IMessageSession context)
             {
                 Logger.InfoFormat("Receiver is shutting down");
 
@@ -207,16 +208,8 @@
                     deliveryConstraints.Add(new NonDurableDelivery());
                 }
 
-                var operation = new UnicastTransportOperation(outgoingMessage, destination, deliveryConstraints);
-                await dispatchMessages.Dispatch(WrapInOperations(operation), new ContextBag()).ConfigureAwait(false);
-            }
-
-            static TransportOperations WrapInOperations(UnicastTransportOperation operation)
-            {
-                return new TransportOperations(Enumerable.Empty<MulticastTransportOperation>(), new[]
-                {
-                operation
-            });
+                var transportOperations = new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag(destination), DispatchConsistency.Default, deliveryConstraints));
+                await dispatchMessages.Dispatch(transportOperations, new ContextBag()).ConfigureAwait(false);
             }
 
             static ILog Logger = LogManager.GetLogger<GatewayReceiverStartupTask>();

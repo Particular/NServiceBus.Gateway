@@ -24,7 +24,7 @@
         /// Sends the message to all sites with matching site keys registered with the gateway.
         /// </summary>
         /// <remarks>To use callbacks with SendToSites then use <see cref="SendOptions"/> with <see cref="SendOptionsExtensions.RouteToSites"/></remarks>
-        public static Task SendToSites(this IBusSession context, IEnumerable<string> siteKeys, object message)
+        public static Task SendToSites(this IMessageSession context, IEnumerable<string> siteKeys, object message)
         {
             var options = new SendOptions();
             options.RouteToSites(siteKeys.ToArray());

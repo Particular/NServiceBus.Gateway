@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Reflection;
     using System.Threading.Tasks;
-    using Configuration.AdvanceExtensibility;
+    using NServiceBus.Configuration.AdvanceExtensibility;
     using ScenarioDescriptors;
 
     public static class ConfigureExtensions
@@ -19,7 +19,7 @@
             return dictionary[key];
         }
 
-        public static async Task DefineTransport(this BusConfiguration config, IDictionary<string, string> settings, Type endpointBuilderType)
+        public static async Task DefineTransport(this EndpointConfiguration config, IDictionary<string, string> settings, Type endpointBuilderType)
         {
             if (!settings.ContainsKey("Transport"))
             {
@@ -49,7 +49,7 @@
             config.UseTransport(transportType).ConnectionString(settings["Transport.ConnectionString"]);
         }
 
-        public static async Task DefinePersistence(this BusConfiguration config, IDictionary<string, string> settings)
+        public static async Task DefinePersistence(this EndpointConfiguration config, IDictionary<string, string> settings)
         {
             if (!settings.ContainsKey("Persistence"))
             { 
@@ -87,7 +87,7 @@
             }
         }
 
-        public static void DefineBuilder(this BusConfiguration config, IDictionary<string, string> settings)
+        public static void DefineBuilder(this EndpointConfiguration config, IDictionary<string, string> settings)
         {
             if (!settings.ContainsKey("Builder"))
             {

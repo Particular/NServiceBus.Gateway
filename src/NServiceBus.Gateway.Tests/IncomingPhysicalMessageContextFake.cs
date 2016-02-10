@@ -6,6 +6,7 @@ namespace NServiceBus.Gateway.Tests
     using System.Threading.Tasks;
     using Extensibility;
     using HeaderManagement;
+    using NServiceBus.Pipeline;
     using ObjectBuilder;
     using Transports;
 

@@ -11,8 +11,8 @@
         /// <summary>
         /// Allows the user to control how the gateway behaves.
         /// </summary>
-        /// <param name="config">The <see cref="BusConfiguration"/> instance to apply the settings to.</param>
-        public static GatewaySettings Gateway(this BusConfiguration config)
+        /// <param name="config">The <see cref="EndpointConfiguration"/> instance to apply the settings to.</param>
+        public static GatewaySettings Gateway(this EndpointConfiguration config)
         {
             if (config == null)
             {

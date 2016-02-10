@@ -11,6 +11,7 @@
     using Configuration.AdvanceExtensibility;
     using Features;
     using Hosting.Helpers;
+    using NServiceBus.Serialization;
     using ObjectBuilder;
 
     public class DefaultServer : IEndpointSetupTemplate
@@ -27,7 +28,7 @@
             this.typesToInclude = typesToInclude;
         }
 
-        public async Task<BusConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointConfiguration endpointConfiguration, IConfigurationSource configSource, Action<BusConfiguration> configurationBuilderCustomization)
+        public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, IConfigurationSource configSource, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
             var settings = runDescriptor.Settings;            
 
@@ -35,7 +36,7 @@
 
             typesToInclude.AddRange(types);
 
-            var builder = new BusConfiguration();
+            var builder = new EndpointConfiguration();
 
             builder.EndpointName(endpointConfiguration.EndpointName);
             builder.TypesToIncludeInScan(typesToInclude);
@@ -53,7 +54,7 @@
 
             if (serializer != null)
             {
-                builder.UseSerialization(Type.GetType(serializer));
+                builder.UseSerialization((SerializationDefinition)Activator.CreateInstance(Type.GetType(serializer, true)));
             }
             await builder.DefinePersistence(settings);
 
@@ -74,7 +75,7 @@
             }
         }
 
-        static IEnumerable<Type> GetTypesScopedByTestClass(EndpointConfiguration endpointConfiguration)
+        static IEnumerable<Type> GetTypesScopedByTestClass(EndpointCustomizationConfiguration endpointConfiguration)
         {
             var assemblies = new AssemblyScanner().GetScannableAssemblies();
 
