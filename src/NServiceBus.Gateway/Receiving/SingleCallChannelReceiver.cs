@@ -16,11 +16,12 @@
 
     class SingleCallChannelReceiver
     {
-        public SingleCallChannelReceiver(Func<string, IChannelReceiver> channelFactory, IDeduplicateMessages deduplicator, IDataBus databus)
+        public SingleCallChannelReceiver(Func<string, IChannelReceiver> channelFactory, IDeduplicateMessages deduplicator, IDataBus databus, bool isMsmqTransport)
         {
             this.channelFactory = channelFactory;
             this.deduplicator = deduplicator;
             this.databus = databus;
+            this.isMsmqTransport = isMsmqTransport;
             headerManager = new DataBusHeaderManager();
         }
 
@@ -89,11 +90,12 @@
                     args.Headers = MapCustomMessageHeaders(headers);
                 }
                 
-                if (IsMsmqTransport)
+                string correlationId;
+                if (isMsmqTransport && args.Headers.TryGetValue(Headers.CorrelationId, out correlationId))
                 {
-                    args.Headers[Headers.CorrelationId] = StripSlashZeroFromCorrelationId(args.Headers[Headers.CorrelationId]);
+                    args.Headers[Headers.CorrelationId] = StripSlashZeroFromCorrelationId(correlationId);
                 }
-          
+
                 var body = new byte[stream.Length];
                 await stream.ReadAsync(body, 0, body.Length).ConfigureAwait(false);
                 args.Body = body;
@@ -181,8 +183,6 @@
             return result;
         }
 
-        public bool IsMsmqTransport{ get; set; }
-
         async Task HandleDatabusProperty(CallInfo callInfo)
         {
             if (databus == null)
@@ -224,6 +224,7 @@
         Func<string, IChannelReceiver> channelFactory;
         IDeduplicateMessages deduplicator;
         readonly IDataBus databus;
+        readonly bool isMsmqTransport;
         DataBusHeaderManager headerManager;
 
         IChannelReceiver channelReceiver;
