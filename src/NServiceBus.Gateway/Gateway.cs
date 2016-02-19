@@ -56,12 +56,15 @@
             Func<string, IChannelReceiver> channelReceiverFactory;
             RegisterChannels(context, channelManager, out channelSenderFactory, out channelReceiverFactory);
 
-            gatewayPipeline.Register("GatewaySendProcessor", b => new GatewaySendBehavior(gatewayInputAddress, channelManager, new MessageNotifier(), b.Build<IDispatchMessages>(), context.Settings, CreateForwarder(channelSenderFactory, b.BuildAll<IDataBus>()?.FirstOrDefault()), CreateSiteRouters(context)), "Processes messages to be sent to the gateway");
+            TransportDefinition transportDefintion;
+            var isMsmqTransport = context.Settings.TryGet(out transportDefintion) && transportDefintion.GetType() == typeof(MsmqTransport);
+
+            gatewayPipeline.Register("GatewaySendProcessor", b => new GatewaySendBehavior(gatewayInputAddress, channelManager, new MessageNotifier(), b.Build<IDispatchMessages>(), context.Settings, CreateForwarder(channelSenderFactory, b.BuildAll<IDataBus>()?.FirstOrDefault(), isMsmqTransport), CreateSiteRouters(context)), "Processes messages to be sent to the gateway");
             context.Pipeline.Register("RouteToGateway", b => new RouteToGatewayBehaviour(gatewayInputAddress), "Reroutes gateway messages to the gateway");
             
             context.Pipeline.Register("GatewayIncomingBehavior", typeof(GatewayIncomingBehavior), "Extracts gateway related information from the incoming message");
             context.Pipeline.Register("GatewayOutgoingBehavior", typeof(GatewayOutgoingBehavior), "Puts gateway related information on the headers of outgoing messages");
-            context.RegisterStartupTask(b => new GatewayReceiverStartupTask(channelManager, channelReceiverFactory, GetEndpointRouter(context), b.Build<IDispatchMessages>(), b.Build<IDeduplicateMessages>(), b.BuildAll<IDataBus>()?.FirstOrDefault(), gatewayInputAddress));
+            context.RegisterStartupTask(b => new GatewayReceiverStartupTask(channelManager, channelReceiverFactory, GetEndpointRouter(context), b.Build<IDispatchMessages>(), b.Build<IDeduplicateMessages>(), b.BuildAll<IDataBus>()?.FirstOrDefault(), gatewayInputAddress, isMsmqTransport));
         }
 
         static void RegisterChannels(FeatureConfigurationContext context, IManageReceiveChannels channelManager, out Func<string, IChannelSender> channelSenderFactory, out Func<string, IChannelReceiver> channelReceiverFactory)
@@ -81,9 +84,9 @@
             }
         }
 
-        static SingleCallChannelForwarder CreateForwarder(Func<string, IChannelSender> channelSenderFactory, IDataBus databus)
+        static SingleCallChannelForwarder CreateForwarder(Func<string, IChannelSender> channelSenderFactory, IDataBus databus, bool isMsmqTransport)
         {
-            return new SingleCallChannelForwarder(channelSenderFactory, databus);
+            return new SingleCallChannelForwarder(channelSenderFactory, databus, isMsmqTransport);
         }
         
         static EndpointRouter GetEndpointRouter(FeatureConfigurationContext context)
@@ -143,7 +146,7 @@
 
         class GatewayReceiverStartupTask : FeatureStartupTask
         {
-            public GatewayReceiverStartupTask(IManageReceiveChannels channelManager, Func<string, IChannelReceiver> channelReceiverFactory, EndpointRouter endpointRouter, IDispatchMessages dispatcher, IDeduplicateMessages deduplicator, IDataBus databus, string replyToAddress)
+            public GatewayReceiverStartupTask(IManageReceiveChannels channelManager, Func<string, IChannelReceiver> channelReceiverFactory, EndpointRouter endpointRouter, IDispatchMessages dispatcher, IDeduplicateMessages deduplicator, IDataBus databus, string replyToAddress, bool isMsmqTransport)
             {
                 dispatchMessages = dispatcher;
                 this.deduplicator = deduplicator;
@@ -152,13 +155,14 @@
                 manageReceiveChannels = channelManager;
                 this.channelReceiverFactory = channelReceiverFactory;
                 this.replyToAddress = replyToAddress;
+                this.isMsmqTransport = isMsmqTransport;
             }
             
             protected override Task OnStart(IMessageSession context)
             {
                 foreach (var receiveChannel in manageReceiveChannels.GetReceiveChannels())
                 {
-                    var receiver = new SingleCallChannelReceiver(channelReceiverFactory, deduplicator, databus);
+                    var receiver = new SingleCallChannelReceiver(channelReceiverFactory, deduplicator, databus, isMsmqTransport);
 
                     receiver.Start(receiveChannel, receiveChannel.MaxConcurrency, MessageReceivedOnChannel);
                     activeReceivers.Add(receiver);
@@ -221,6 +225,7 @@
             readonly IDeduplicateMessages deduplicator;
             readonly IDataBus databus;
             readonly string replyToAddress;
+            readonly bool isMsmqTransport;
         }
     }
 }

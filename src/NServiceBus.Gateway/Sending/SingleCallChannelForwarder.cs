@@ -14,13 +14,12 @@
 
     class SingleCallChannelForwarder 
     {
-        public SingleCallChannelForwarder(Func<string, IChannelSender> senderFactory, IDataBus databus)
+        public SingleCallChannelForwarder(Func<string, IChannelSender> senderFactory, IDataBus databus, bool isMsmqTransport)
         {
             this.senderFactory = senderFactory;
             this.databus = databus;
+            this.isMsmqTransport = isMsmqTransport;
         }
-
-        public bool IsMsmqTransport { get; set; }
 
         public async Task Forward(byte[] body, Dictionary<string, string> headers, Site targetSite)
         {
@@ -122,7 +121,7 @@
 
         void SetBackwardsCompatibilityHeaders(IDictionary<string, string> to)
         {
-            if (IsMsmqTransport)
+            if (isMsmqTransport)
             {
                 to[NServiceBus + IdForCorrelation] = to[NServiceBus + CorrelationId];
             }
@@ -132,7 +131,7 @@
         {
             var correlationIdToStore = headers[Headers.CorrelationId];
 
-            if (IsMsmqTransport)
+            if (isMsmqTransport)
             {
                 Guid correlationId;
 
@@ -161,6 +160,6 @@
         static ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
         Func<string, IChannelSender> senderFactory;
         readonly IDataBus databus;
-        
+        readonly bool isMsmqTransport;
     }
 }
