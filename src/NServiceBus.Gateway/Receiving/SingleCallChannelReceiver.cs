@@ -88,11 +88,6 @@
                 {
                     args.Headers = MapCustomMessageHeaders(headers);
                 }
-                
-                if (IsMsmqTransport)
-                {
-                    args.Headers[Headers.CorrelationId] = StripSlashZeroFromCorrelationId(args.Headers[Headers.CorrelationId]);
-                }
           
                 var body = new byte[stream.Length];
                 await stream.ReadAsync(body, 0, body.Length).ConfigureAwait(false);
@@ -181,8 +176,6 @@
             return result;
         }
 
-        public bool IsMsmqTransport{ get; set; }
-
         async Task HandleDatabusProperty(CallInfo callInfo)
         {
             if (databus == null)
@@ -202,39 +195,22 @@
             var specificDataBusHeaderToUpdate = callInfo.ReadDataBus();
             headerManager.InsertHeader(callInfo.ClientId, specificDataBusHeaderToUpdate, newDatabusKey);
         }
-
-        static string StripSlashZeroFromCorrelationId(string corrId)
-        {
-            if (corrId == null)
-            {
-                return null;
-            }
-
-            if (corrId.EndsWith("\\0"))
-            {
-                return corrId.Replace("\\0", string.Empty);
-            }
-
-            return corrId;
-        }
-
-
+        
         static ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
 
         Func<string, IChannelReceiver> channelFactory;
         IDeduplicateMessages deduplicator;
         readonly IDataBus databus;
         DataBusHeaderManager headerManager;
-
         IChannelReceiver channelReceiver;
 
         const string NServiceBus = "NServiceBus.";
         const string Id = "Id";
-        
         const string CorrelationId = "CorrelationId";
         const string Recoverable = "Recoverable";
         const string TimeToBeReceived = "TimeToBeReceived";
         static readonly TimeSpan MinimumTimeToBeReceived = TimeSpan.FromSeconds(1);
+
         Func<MessageReceivedOnChannelArgs, Task> messageReceivedHandler;
     }
 }
