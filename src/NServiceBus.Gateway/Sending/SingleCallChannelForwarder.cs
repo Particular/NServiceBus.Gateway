@@ -20,8 +20,6 @@
             this.databus = databus;
         }
 
-        public bool IsMsmqTransport { get; set; }
-
         public async Task Forward(byte[] body, Dictionary<string, string> headers, Site targetSite)
         {
             var toHeaders = MapToHeaders(headers);
@@ -43,7 +41,7 @@
             var to = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
             {
                 [NServiceBus + Id] = fromHeaders[Headers.MessageId],
-                [NServiceBus + CorrelationId] = GetCorrelationForBackwardsCompatibility(fromHeaders),
+                [NServiceBus + CorrelationId] = fromHeaders[Headers.CorrelationId]
             };
 
             if (fromHeaders.ContainsKey(Headers.NonDurableMessage))
@@ -68,8 +66,6 @@
             {
                 to[NServiceBus + ReplyToAddress] = reply;
             }
-
-            SetBackwardsCompatibilityHeaders(to);
 
             string replyToAddress;
             if (fromHeaders.TryGetValue(ReplyToAddress, out replyToAddress))
@@ -120,35 +116,6 @@
             }
         }
 
-        void SetBackwardsCompatibilityHeaders(IDictionary<string, string> to)
-        {
-            if (IsMsmqTransport)
-            {
-                to[NServiceBus + IdForCorrelation] = to[NServiceBus + CorrelationId];
-            }
-        }
-
-        string GetCorrelationForBackwardsCompatibility(Dictionary<string, string> headers)
-        {
-            var correlationIdToStore = headers[Headers.CorrelationId];
-
-            if (IsMsmqTransport)
-            {
-                Guid correlationId;
-
-                if (Guid.TryParse(headers[Headers.CorrelationId], out correlationId))
-                {
-                    correlationIdToStore = headers[Headers.CorrelationId] + "\\0";
-                    //msmq required the id's to be in the {guid}\{incrementing number} format so we need to fake a \0 at the end to make it compatible                
-                }
-            }
-
-            return correlationIdToStore;
-        }
-
-      
-
-
         const string NServiceBus = "NServiceBus.";
         const string Id = "Id";
         
@@ -156,7 +123,6 @@
         const string Recoverable = "Recoverable";
         const string ReplyToAddress = "ReplyToAddress";
         const string TimeToBeReceived = "TimeToBeReceived";
-        const string IdForCorrelation = "IdForCorrelation";
 
         static ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
         Func<string, IChannelSender> senderFactory;
