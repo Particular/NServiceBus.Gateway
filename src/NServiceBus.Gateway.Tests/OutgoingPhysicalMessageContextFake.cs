@@ -63,6 +63,11 @@ namespace NServiceBus.Gateway.Tests
 
         public string MessageId { get; }
         public Dictionary<string, string> Headers { get; }
+        public void UpdateMessage(byte[] body)
+        {
+            throw new NotImplementedException();
+        }
+
         public byte[] Body { get; set; }
         public IReadOnlyCollection<RoutingStrategy> RoutingStrategies { get; }
     }

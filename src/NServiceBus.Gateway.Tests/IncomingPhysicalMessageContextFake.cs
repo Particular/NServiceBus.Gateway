@@ -74,6 +74,11 @@ namespace NServiceBus.Gateway.Tests
         public string MessageId { get; }
         public string ReplyToAddress { get; }
         public IReadOnlyDictionary<string, string> MessageHeaders { get; }
+        public void UpdateMessage(byte[] body)
+        {
+            throw new NotImplementedException();
+        }
+
         public IncomingMessage Message { get; }
     }
 }

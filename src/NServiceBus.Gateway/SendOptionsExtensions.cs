@@ -17,7 +17,7 @@ namespace NServiceBus
         {
             options.SetHeader(Headers.DestinationSites, string.Join(",", siteKeys));
             options.GetExtensions().Set(new RouteThroughGateway());
-            options.RouteToLocalEndpointInstance();
+            options.RouteToThisEndpoint();
         }
     }
 }

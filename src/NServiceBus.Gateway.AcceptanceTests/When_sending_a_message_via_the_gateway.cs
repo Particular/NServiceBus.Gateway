@@ -95,6 +95,7 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
+                    c.ScaleOut().InstanceDiscriminator("1");
                     c.EnableFeature<Features.Gateway>();
                     c.UseSerialization<XmlSerializer>();
                 })

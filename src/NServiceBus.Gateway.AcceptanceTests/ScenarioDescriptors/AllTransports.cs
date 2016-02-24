@@ -35,22 +35,7 @@
         static ICollection<RunDescriptor> activeTransports;
     }
 
-    public class AllDtcTransports : AllTransports
-    {
-        public AllDtcTransports()
-        {
-            AllTransportsFilter.Run(t => t.GetSupportedTransactionMode() != TransportTransactionMode.TransactionScope, Remove);
-        }
-    }
 
-    public class AllNativeMultiQueueTransactionTransports : AllTransports
-    {
-        public AllNativeMultiQueueTransactionTransports()
-        {
-            AllTransportsFilter.Run(t => t.GetSupportedTransactionMode() < TransportTransactionMode.SendsAtomicWithReceive, Remove);
-        }
-    }
-    
     public class MsmqOnly : ScenarioDescriptor
     {
         public MsmqOnly()
