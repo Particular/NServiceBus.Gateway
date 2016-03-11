@@ -33,7 +33,11 @@
         {
             public Headquarters()
             {
-                EndpointSetup<DefaultServer>(c => c.EnableFeature<Gateway>())
+                EndpointSetup<DefaultServer>(c =>
+                {
+                    c.ScaleOut().InstanceDiscriminator("1");
+                    c.EnableFeature<Gateway>();
+                })
                     .WithConfig<GatewayConfig>(c =>
                         {
                             c.Sites = new SiteCollection
@@ -75,7 +79,11 @@
         {
             public SiteA()
             {
-                EndpointSetup<DefaultServer>(c => c.EnableFeature<Gateway>())
+                EndpointSetup<DefaultServer>(c =>
+                {
+                    c.ScaleOut().InstanceDiscriminator("1");
+                    c.EnableFeature<Gateway>();
+                })
                         .WithConfig<GatewayConfig>(c =>
                         {
                             c.Channels = new ChannelCollection

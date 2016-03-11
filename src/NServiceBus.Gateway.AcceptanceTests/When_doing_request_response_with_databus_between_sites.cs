@@ -56,8 +56,9 @@
             public SiteA()
             {
                 EndpointSetup<DefaultServer>(c =>
-                    {
-                        c.EnableFeature<Features.Gateway>();
+                {
+                    c.ScaleOut().InstanceDiscriminator("1");
+                    c.EnableFeature<Features.Gateway>();
                         c.UseDataBus<FileShareDataBus>().BasePath(@".\databus\siteA");
                     }).WithConfig<GatewayConfig>(c =>
                      {
@@ -106,6 +107,7 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
+                    c.ScaleOut().InstanceDiscriminator("1");
                     c.EnableFeature<Features.Gateway>();
                     c.UseDataBus<FileShareDataBus>().BasePath(@".\databus\siteB");
                 })
