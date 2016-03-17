@@ -48,7 +48,7 @@
 
             var requiredTransactionSupport = context.Settings.GetRequiredTransactionModeForReceives();
 
-            var gatewayPipeline = context.AddSatellitePipeline("Gateway", "gateway", requiredTransactionSupport, PushRuntimeSettings.Default, out gatewayInputAddress);
+            var gatewayPipeline = context.AddSatellitePipeline("Gateway", requiredTransactionSupport, PushRuntimeSettings.Default, "gateway", out gatewayInputAddress);
 
             var channelManager = CreateChannelManager(context);
 
