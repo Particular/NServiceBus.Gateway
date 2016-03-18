@@ -14,7 +14,7 @@ namespace NServiceBus.Gateway.Sending
     using Transports;
     using IRouteMessagesToSites = NServiceBus.Gateway.Routing.Sites.IRouteMessagesToSites;
 
-    class GatewaySendBehavior : PipelineTerminator<IIncomingPhysicalMessageContext>
+    class GatewaySendBehavior : PipelineTerminator<ISatelliteProcessingContext>
     {
         readonly IManageReceiveChannels channelManager;
         readonly IDispatchMessages dispatcher;
@@ -35,7 +35,7 @@ namespace NServiceBus.Gateway.Sending
             this.inputAddress = inputAddress;
         }
 
-        protected override async Task Terminate(IIncomingPhysicalMessageContext context)
+        protected override async Task Terminate(ISatelliteProcessingContext context)
         {
             var message = context.Message;
             var headers = message.Headers;

@@ -1,95 +1,72 @@
 ﻿namespace NServiceBus.AcceptanceTests.EndpointTemplates
 {
     using System;
-    using System.Collections.Generic;
-    using System.Reflection;
     using System.Threading.Tasks;
-    using NServiceBus.Configuration.AdvanceExtensibility;
-    using ScenarioDescriptors;
+    using NServiceBus.AcceptanceTesting.Support;
+    using NServiceBus.AcceptanceTests.ScenarioDescriptors;
 
     public static class ConfigureExtensions
     {
-        public static string GetOrNull(this IDictionary<string, string> dictionary, string key)
+        public static Task DefineTransport(this EndpointConfiguration config, RunSettings settings, string endpointName)
         {
-            if (!dictionary.ContainsKey(key))
+            Type transportType;
+            if (!settings.TryGet("Transport", out transportType))
             {
-                return null;
+                settings.Merge(Transports.Default.Settings);
             }
 
-            return dictionary[key];
+            return ConfigureTestExecution(TestDependencyType.Transport, config, settings, endpointName);
         }
 
-        public static async Task DefineTransport(this EndpointConfiguration config, IDictionary<string, string> settings, Type endpointBuilderType)
+        public static Task DefinePersistence(this EndpointConfiguration config, RunSettings settings, string endpointName)
         {
-            if (!settings.ContainsKey("Transport"))
+            Type persistenceType;
+            if (!settings.TryGet("Persistence", out persistenceType))
             {
-                settings = Transports.Default.Settings;
+                settings.Merge(Persistence.Default.Settings);
             }
 
-            const string typeName = "ConfigureTransport";
-
-            var transportType = Type.GetType(settings["Transport"]);
-            var transportTypeName = "Configure" + transportType.Name;
-
-            var configurerType = endpointBuilderType.GetNestedType(typeName) ??
-                                 Type.GetType(transportTypeName, false);
-
-            if (configurerType != null)
-            {
-                var configurer = Activator.CreateInstance(configurerType);
-
-                dynamic dc = configurer;
-
-                await dc.Configure(config);
-                var cleanupMethod = configurer.GetType().GetMethod("Cleanup", BindingFlags.Public | BindingFlags.Instance);
-                config.GetSettings().Set("CleanupTransport", cleanupMethod != null ? configurer : new Cleaner());
-                return;
-            }
-
-            config.UseTransport(transportType).ConnectionString(settings["Transport.ConnectionString"]);
+            return ConfigureTestExecution(TestDependencyType.Persistence, config, settings, endpointName);
         }
 
-        public static async Task DefinePersistence(this EndpointConfiguration config, IDictionary<string, string> settings)
+        static async Task ConfigureTestExecution(TestDependencyType type, EndpointConfiguration config, RunSettings settings, string endpointName)
         {
-            if (!settings.ContainsKey("Persistence"))
-            { 
-                settings = Persistence.Default.Settings;
-            }
+            var dependencyTypeString = type.ToString();
 
-            var persistenceType = Type.GetType(settings["Persistence"]);
+            var dependencyType = settings.Get<Type>(dependencyTypeString);
 
-
-            var typeName = "Configure" + persistenceType.Name;
+            var typeName = "ConfigureEndpoint" + dependencyType.Name;
 
             var configurerType = Type.GetType(typeName, false);
 
-            if (configurerType != null)
+            if (configurerType == null)
             {
-                var configurer = Activator.CreateInstance(configurerType);
-
-                dynamic dc = configurer;
-
-                await dc.Configure(config);
-
-                var cleanupMethod = configurer.GetType().GetMethod("Cleanup", BindingFlags.Public | BindingFlags.Instance);
-                config.GetSettings().Set("CleanupPersistence", cleanupMethod != null ? configurer : new Cleaner());
-                return;
+                throw new InvalidOperationException($"Acceptance Test project must include a non-namespaced class named '{typeName}' implementing {typeof(IConfigureEndpointTestExecution).Name}. See {typeof(ConfigureEndpointMsmqTransport).FullName} for an example.");
             }
 
-            config.UsePersistence(persistenceType);
-        }
+            var configurer = Activator.CreateInstance(configurerType) as IConfigureEndpointTestExecution;
 
-        class Cleaner
-        {
-            public Task Cleanup()
+            if (configurer == null)
             {
-                return Task.FromResult(0);
+                throw new InvalidOperationException($"{typeName} does not implement {typeof(IConfigureEndpointTestExecution).Name}.");
             }
+
+            await configurer.Configure(endpointName, config, settings).ConfigureAwait(false);
+
+            ActiveTestExecutionConfigurer cleaners;
+            var cleanerKey = "ConfigureTestExecution." + endpointName;
+            if (!settings.TryGet(cleanerKey, out cleaners))
+            {
+                cleaners = new ActiveTestExecutionConfigurer();
+                settings.Set(cleanerKey, cleaners);
+            }
+            cleaners.Add(configurer);
         }
 
-        public static void DefineBuilder(this EndpointConfiguration config, IDictionary<string, string> settings)
+        public static void DefineBuilder(this EndpointConfiguration config, RunSettings settings)
         {
-            if (!settings.ContainsKey("Builder"))
+            Type builderType;
+            if (!settings.TryGet("Builder", out builderType))
             {
                 var builderDescriptor = Builders.Default;
 
@@ -98,11 +75,10 @@
                     return; //go with the default builder
                 }
 
-                settings = builderDescriptor.Settings;
+                settings.Merge(builderDescriptor.Settings);
             }
 
-            var builderType = Type.GetType(settings["Builder"]);
-
+            builderType = settings.Get<Type>("Builder");
 
             var typeName = "Configure" + builderType.Name;
 
@@ -118,6 +94,12 @@
             }
 
             config.UseContainer(builderType);
+        }
+
+        enum TestDependencyType
+        {
+            Transport,
+            Persistence
         }
     }
 }
