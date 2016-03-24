@@ -22,6 +22,7 @@
     using NServiceBus.Gateway.Routing.Endpoints;
     using NServiceBus.Gateway.Routing.Sites;
     using NServiceBus.Gateway.Sending;
+    using NServiceBus.Persistence;
     using NServiceBus.Routing;
     using Performance.TimeToBeReceived;
     using Transports;
@@ -34,7 +35,7 @@
     {
         internal Gateway()
         {
-            
+
         }
 
         /// <summary>
@@ -42,6 +43,11 @@
         /// </summary>
         protected override void Setup(FeatureConfigurationContext context)
         {
+            if (!context.Settings.Get<List<Type>>("ResultingSupportedStorages").Contains(typeof(StorageType.GatewayDeduplication)))
+            {
+                throw new Exception("The selected persistence doesn't have support for gateway deduplication storage. Select another persistence or disable the gateway feature using endpointConfiguration.DisableFeature<Gateway>()");
+            }
+
             ConfigureTransaction(context);
 
             string gatewayInputAddress;
@@ -58,7 +64,7 @@
 
             gatewayPipeline.Register("GatewaySendProcessor", b => new GatewaySendBehavior(gatewayInputAddress, channelManager, new MessageNotifier(), b.Build<IDispatchMessages>(), context.Settings, CreateForwarder(channelSenderFactory, b.BuildAll<IDataBus>()?.FirstOrDefault()), CreateSiteRouters(context)), "Processes messages to be sent to the gateway");
             context.Pipeline.Register("RouteToGateway", b => new RouteToGatewayBehaviour(gatewayInputAddress), "Reroutes gateway messages to the gateway");
-            
+
             context.Pipeline.Register("GatewayIncomingBehavior", typeof(GatewayIncomingBehavior), "Extracts gateway related information from the incoming message");
             context.Pipeline.Register("GatewayOutgoingBehavior", typeof(GatewayOutgoingBehavior), "Puts gateway related information on the headers of outgoing messages");
             context.RegisterStartupTask(b => new GatewayReceiverStartupTask(channelManager, channelReceiverFactory, GetEndpointRouter(context), b.Build<IDispatchMessages>(), b.Build<IDeduplicateMessages>(), b.BuildAll<IDataBus>()?.FirstOrDefault(), gatewayInputAddress));
@@ -85,10 +91,10 @@
         {
             return new SingleCallChannelForwarder(channelSenderFactory, databus);
         }
-        
+
         static EndpointRouter GetEndpointRouter(FeatureConfigurationContext context)
         {
-            return new EndpointRouter {MainInputAddress = context.Settings.EndpointName().ToString()};
+            return new EndpointRouter { MainInputAddress = context.Settings.EndpointName().ToString() };
         }
 
         static void ConfigureTransaction(FeatureConfigurationContext context)
@@ -109,12 +115,12 @@
             {
                 return new ConfigurationBasedChannelManager { ReceiveChannels = configSection.GetChannels().ToList() };
             }
-            
+
             return new ConventionBasedChannelManager { EndpointName = context.Settings.EndpointName().ToString() };
 
         }
 
-        
+
         static IEnumerable<IRouteMessagesToSites> CreateSiteRouters(FeatureConfigurationContext context)
         {
             var messageToSitesRouters = new List<IRouteMessagesToSites>();
@@ -127,7 +133,7 @@
                 sites = section.SitesAsDictionary();
             }
 
-            var configurationBasedRouter = new ConfigurationBasedSiteRouter { Sites = sites};
+            var configurationBasedRouter = new ConfigurationBasedSiteRouter { Sites = sites };
             messageToSitesRouters.Add(configurationBasedRouter);
 
             messageToSitesRouters.Add(new OriginatingSiteHeaderRouter());
@@ -153,7 +159,7 @@
                 this.channelReceiverFactory = channelReceiverFactory;
                 this.replyToAddress = replyToAddress;
             }
-            
+
             protected override Task OnStart(IMessageSession context)
             {
                 foreach (var receiveChannel in manageReceiveChannels.GetReceiveChannels())
@@ -203,7 +209,7 @@
                     new DiscardIfNotReceivedBefore(timeToBeReceived)
                 };
 
-                if(!recoverable)
+                if (!recoverable)
                 {
                     deliveryConstraints.Add(new NonDurableDelivery());
                 }
