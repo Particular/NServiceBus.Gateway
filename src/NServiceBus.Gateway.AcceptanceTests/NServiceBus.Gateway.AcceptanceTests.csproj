@@ -70,6 +70,8 @@
     <Compile Include="EndpointTemplates\ConfigureExtensions.cs" />
     <Compile Include="EndpointTemplates\DefaultPublisher.cs" />
     <Compile Include="EndpointTemplates\DefaultServer.cs" />
+    <Compile Include="EndpointTemplates\EndpointCustomizationConfigurationExtensions.cs" />
+    <Compile Include="EndpointTemplates\ServerWithNoDefaultPersistenceDefinitions.cs" />
     <Compile Include="NServiceBusAcceptanceTest.cs" />
     <Compile Include="ScenarioDescriptors\AllOutboxCapableStorages.cs" />
     <Compile Include="ScenarioDescriptors\AllTransports.cs" />
@@ -78,6 +80,7 @@
     <Compile Include="ScenarioDescriptors\Persistence.cs" />
     <Compile Include="ScenarioDescriptors\Serializers.cs" />
     <Compile Include="ScenarioDescriptors\Transports.cs" />
+    <Compile Include="When_a_persistence_does_not_support_gateway_dedup.cs" />
     <Compile Include="When_doing_request_response_between_sites.cs" />
     <Compile Include="When_doing_request_response_with_databus_between_sites.cs" />
     <Compile Include="When_doing_request_reply.cs" />

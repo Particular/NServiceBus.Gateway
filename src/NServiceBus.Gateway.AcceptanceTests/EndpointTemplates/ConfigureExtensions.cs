@@ -4,6 +4,7 @@
     using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.AcceptanceTests.ScenarioDescriptors;
+    using ObjectBuilder;
 
     public static class ConfigureExtensions
     {
@@ -27,6 +28,14 @@
             }
 
             return ConfigureTestExecution(TestDependencyType.Persistence, config, settings, endpointName);
+        }
+
+        public static void RegisterComponentsAndInheritanceHierarchy(this EndpointConfiguration builder, RunDescriptor runDescriptor)
+        {
+            builder.RegisterComponents(r =>
+            {
+                RegisterInheritanceHierarchyOfContextOnContainer(runDescriptor, r);
+            });
         }
 
         static async Task ConfigureTestExecution(TestDependencyType type, EndpointConfiguration config, RunSettings settings, string endpointName)
@@ -94,6 +103,16 @@
             }
 
             config.UseContainer(builderType);
+        }
+
+        static void RegisterInheritanceHierarchyOfContextOnContainer(RunDescriptor runDescriptor, IConfigureComponents r)
+        {
+            var type = runDescriptor.ScenarioContext.GetType();
+            while (type != typeof(object))
+            {
+                r.RegisterSingleton(type, runDescriptor.ScenarioContext);
+                type = type.BaseType;
+            }
         }
 
         enum TestDependencyType
