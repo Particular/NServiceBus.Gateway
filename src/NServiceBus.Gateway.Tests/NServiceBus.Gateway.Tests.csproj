@@ -59,6 +59,7 @@
     <Compile Include="Receiving\HasherTests.cs" />
     <Compile Include="Routing\When_routing_a_reply_message.cs" />
     <Compile Include="Routing\When_routing_using_the_configuration_source.cs" />
+    <Compile Include="SendOptionsExtensionsTests.cs" />
     <Compile Include="StringStreamExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
