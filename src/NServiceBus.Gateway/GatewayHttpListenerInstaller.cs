@@ -3,7 +3,6 @@ namespace NServiceBus.Installation
     using System;
     using System.Diagnostics;
     using System.IO;
-    using System.Security.Principal;
     using System.Threading.Tasks;
     using Gateway.Receiving;
     using Logging;
@@ -20,7 +19,7 @@ namespace NServiceBus.Installation
         }
 
         static ILog logger = LogManager.GetLogger<GatewayHttpListenerInstaller>();
-        
+
         public Task Install(string identity)
         {
             if (!enabled)
@@ -100,22 +99,6 @@ netsh http add urlacl url={2} user=""{0}""
 The error message from running the above command is: 
 {1}", identity, error, uri);
                 logger.Warn(message);
-            }
-        }
-    }
-
-    static class ElevateChecker
-    {
-        public static bool IsCurrentUserElevated()
-        {
-            using (var windowsIdentity = WindowsIdentity.GetCurrent())
-            {
-                if (windowsIdentity == null)
-                {
-                    return false;
-                }
-                var windowsPrincipal = new WindowsPrincipal(windowsIdentity);
-                return windowsPrincipal.IsInRole(WindowsBuiltInRole.Administrator);
             }
         }
     }
