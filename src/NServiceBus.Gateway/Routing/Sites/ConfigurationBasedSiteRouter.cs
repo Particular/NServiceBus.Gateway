@@ -4,6 +4,11 @@ namespace NServiceBus.Gateway.Routing.Sites
 
     class ConfigurationBasedSiteRouter : IRouteMessagesToSites
     {
+        public ConfigurationBasedSiteRouter(IDictionary<string, Site> sites)
+        {
+            this.sites = sites;
+        }
+
         public IEnumerable<Site> GetDestinationSitesFor(Dictionary<string, string> headers)
         {
             string destinationSites;
@@ -14,7 +19,7 @@ namespace NServiceBus.Gateway.Routing.Sites
                 foreach (var siteKey in siteKeys)
                 {
                     Site site;
-                    if (Sites.TryGetValue(siteKey, out site))
+                    if (sites.TryGetValue(siteKey, out site))
                     {
                         yield return site;
                     }
@@ -22,6 +27,6 @@ namespace NServiceBus.Gateway.Routing.Sites
             }
         }
 
-        public IDictionary<string, Site> Sites { get; set; }
+        IDictionary<string, Site> sites;
     }
 }

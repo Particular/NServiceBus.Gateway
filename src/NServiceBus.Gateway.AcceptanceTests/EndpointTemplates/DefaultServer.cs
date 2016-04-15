@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTesting.Support;
@@ -22,11 +23,19 @@
             this.typesToInclude = typesToInclude;
         }
 
+        protected virtual List<string> AssembliesToExclude { get; } = new List<string>
+                {
+                    "NServiceBus.Callbacks"
+                };
+
+
         public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, IConfigurationSource configSource, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
             var settings = runDescriptor.Settings;
 
             var types = endpointConfiguration.GetTypesScopedByTestClass();
+
+            types = types.Where(t => !AssembliesToExclude.Contains(t.Assembly.GetName().Name));
 
             typesToInclude.AddRange(types);
 

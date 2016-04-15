@@ -3,9 +3,9 @@ namespace NServiceBus.Gateway.Routing.Sites
     using System.Collections.Generic;
     using Channels;
 
-    class KeyPrefixConventionSiteRouter : IRouteMessagesToSites
+    class KeyPrefixConventionSiteRouter 
     {
-        public IEnumerable<Site> GetDestinationSitesFor(Dictionary<string, string> headers)
+        public static IEnumerable<Site> GetDestinationSitesFor(Dictionary<string, string> headers)
         {
             string sites;
             if (headers.TryGetValue(Headers.DestinationSites, out sites))

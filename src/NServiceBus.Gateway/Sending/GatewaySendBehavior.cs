@@ -4,29 +4,21 @@ namespace NServiceBus.Gateway.Sending
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Extensibility;
-    using Notifications;
+    using NServiceBus.Extensibility;
+    using NServiceBus.Gateway.Notifications;
+    using NServiceBus.Gateway.Receiving;
+    using NServiceBus.Gateway.Routing;
+    using NServiceBus.Gateway.Routing.Sites;
     using NServiceBus.Pipeline;
     using NServiceBus.Routing;
-    using Routing;
-    using Receiving;
-    using Settings;
-    using Transports;
-    using IRouteMessagesToSites = NServiceBus.Gateway.Routing.Sites.IRouteMessagesToSites;
+    using NServiceBus.Settings;
+    using NServiceBus.Transports;
 
     class GatewaySendBehavior : PipelineTerminator<ISatelliteProcessingContext>
     {
-        readonly IManageReceiveChannels channelManager;
-        readonly IDispatchMessages dispatcher;
-        readonly ReadOnlySettings settings;
-        readonly SingleCallChannelForwarder forwarder;
-        readonly IEnumerable<IRouteMessagesToSites> routers;
-        readonly MessageNotifier messageNotifier;
-        readonly string inputAddress;
-
-        public GatewaySendBehavior(string inputAddress, IManageReceiveChannels channelManager, MessageNotifier notifier, IDispatchMessages dispatchMessages, ReadOnlySettings settings, SingleCallChannelForwarder forwarder, IEnumerable<IRouteMessagesToSites> routers)
+        public GatewaySendBehavior(string inputAddress, IManageReceiveChannels channelManager, MessageNotifier notifier, IDispatchMessages dispatchMessages, ReadOnlySettings settings, SingleCallChannelForwarder forwarder, ConfigurationBasedSiteRouter configRouter)
         {
-            this.routers = routers;
+            this.configRouter = configRouter;
             messageNotifier = notifier;
             this.settings = settings;
             this.forwarder = forwarder;
@@ -40,8 +32,10 @@ namespace NServiceBus.Gateway.Sending
             var message = context.Message;
             var headers = message.Headers;
             var body = message.Body;
-            
-            var destinationSites = GetDestinationSitesFor(headers);
+
+            var intent = GetMessageIntent(message);
+
+            var destinationSites = GetDestinationSitesFor(headers, intent);
 
             //if there is more than 1 destination we break it up into multiple dispatches
             if (destinationSites.Count > 1)
@@ -64,10 +58,30 @@ namespace NServiceBus.Gateway.Sending
             await SendToSite(body, headers, destination).ConfigureAwait(false);
         }
 
-
-        IList<Site> GetDestinationSitesFor(Dictionary<string, string> headers)
+        static MessageIntentEnum GetMessageIntent(IncomingMessage message)
         {
-            return routers.SelectMany(r => r.GetDestinationSitesFor(headers)).ToList();
+            string messageIntentString;
+            MessageIntentEnum messageIntent;
+
+            if (message.Headers.TryGetValue(Headers.MessageIntent, out messageIntentString) && Enum.TryParse(messageIntentString, true, out messageIntent))
+            {
+                return messageIntent;
+            }
+            return MessageIntentEnum.Send;
+        }
+
+
+        IList<Site> GetDestinationSitesFor(Dictionary<string, string> headers, MessageIntentEnum intent)
+        {
+            if (intent == MessageIntentEnum.Reply)
+            {
+                return OriginatingSiteHeaderRouter.GetDestinationSitesFor(headers).ToList();
+            }
+
+            var conventionRoutes = KeyPrefixConventionSiteRouter.GetDestinationSitesFor(headers);
+            var configuredRoutes = configRouter.GetDestinationSitesFor(headers);
+
+            return conventionRoutes.Concat(configuredRoutes).ToList();
         }
 
         Task CloneAndSendLocal(byte[] body, Dictionary<string, string> headers, Site destinationSite)
@@ -83,7 +97,7 @@ namespace NServiceBus.Gateway.Sending
         async Task SendToSite(byte[] body, Dictionary<string, string> headers, Site targetSite)
         {
             headers[Headers.OriginatingSite] = GetDefaultAddressForThisSite();
-            
+
             await forwarder.Forward(body, headers, targetSite).ConfigureAwait(false);
 
             messageNotifier.RaiseMessageForwarded(settings.LocalAddress(), targetSite.Channel.Type, body, headers);
@@ -94,5 +108,13 @@ namespace NServiceBus.Gateway.Sending
             var defaultChannel = channelManager.GetDefaultChannel();
             return $"{defaultChannel.Type},{defaultChannel.Address}";
         }
+
+        readonly IManageReceiveChannels channelManager;
+        readonly IDispatchMessages dispatcher;
+        readonly ReadOnlySettings settings;
+        readonly SingleCallChannelForwarder forwarder;
+        readonly ConfigurationBasedSiteRouter configRouter;
+        readonly MessageNotifier messageNotifier;
+        readonly string inputAddress;
     }
 }

@@ -55,7 +55,7 @@
         {
             public SiteA()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithCallbacks>(c =>
                 {
                     c.ScaleOut().InstanceDiscriminator("1");
                     c.EnableFeature<Features.Gateway>();
@@ -87,13 +87,13 @@
             public class MyResponseHandler : IHandleMessages<MyResponse>
             {
                 public Context Context { get; set; }
-                
+
                 public Task Handle(MyResponse response, IMessageHandlerContext context)
                 {
                     Context.GotResponseBack = true;
                     Context.SiteAReceivedPayloadInResponse = response.OriginalPayload.Value;
 
-                    // Inspect the headers to find the originating site address 
+                    // Inspect the headers to find the originating site address
                     Context.OriginatingSiteForResponse = context.MessageHeaders[Headers.OriginatingSite];
 
                     return Task.FromResult(0);
@@ -105,7 +105,7 @@
         {
             public SiteB()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithCallbacks>(c =>
                 {
                     c.ScaleOut().InstanceDiscriminator("1");
                     c.EnableFeature<Features.Gateway>();
