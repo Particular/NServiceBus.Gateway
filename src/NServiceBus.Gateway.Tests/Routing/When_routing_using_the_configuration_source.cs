@@ -16,11 +16,8 @@ namespace NServiceBus.Gateway.Tests.Routing
         public void Should_read_sites_and_their_keys_from_the_configSource()
         {
             var section = ConfigurationManager.GetSection(typeof(GatewayConfig).Name) as GatewayConfig;
-          
-            var router = new ConfigurationBasedSiteRouter
-            {
-                Sites = section.SitesAsDictionary()
-            };
+
+            var router = new ConfigurationBasedSiteRouter(section.SitesAsDictionary());
             
             var headers = new Dictionary<string, string>{{Headers.DestinationSites, "SiteA"}};
 

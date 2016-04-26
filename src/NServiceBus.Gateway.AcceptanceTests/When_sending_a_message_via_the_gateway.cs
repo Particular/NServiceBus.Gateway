@@ -11,7 +11,7 @@
     using AcceptanceTesting;
     using NUnit.Framework;
     using ScenarioDescriptors;
-    
+
     public class When_sending_a_message_via_the_gateway : NServiceBusAcceptanceTest
     {
         [Test]
@@ -32,7 +32,7 @@
                     webRequest.Headers.Add("NServiceBus.Id", Guid.NewGuid().ToString("N"));
 
                     const string message = "<?xml version=\"1.0\" ?><Messages xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"http://tempuri.net/NServiceBus.AcceptanceTests.Gateway\"><MyRequest></MyRequest></Messages>";
-                    
+
                     using (var messagePayload = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(message)))
                     {
                         webRequest.Headers.Add(HttpRequestHeader.ContentMd5, HttpUtility.UrlEncode(Hash(messagePayload)));
@@ -95,7 +95,6 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    c.ScaleOut().InstanceDiscriminator("1");
                     c.EnableFeature<Features.Gateway>();
                     c.UseSerialization<XmlSerializer>();
                 })

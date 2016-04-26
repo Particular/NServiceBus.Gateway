@@ -26,7 +26,7 @@
     using NServiceBus.Routing;
     using Performance.TimeToBeReceived;
     using Transports;
-    using IRouteMessagesToSites = NServiceBus.Gateway.Routing.Sites.IRouteMessagesToSites;
+
 
     /// <summary>
     /// Used to configure the gateway.
@@ -35,7 +35,7 @@
     {
         internal Gateway()
         {
-
+            DependsOn("DelayedDelivery");
         }
 
         /// <summary>
@@ -62,7 +62,12 @@
             Func<string, IChannelReceiver> channelReceiverFactory;
             RegisterChannels(context, channelManager, out channelSenderFactory, out channelReceiverFactory);
 
-            gatewayPipeline.Register("GatewaySendProcessor", b => new GatewaySendBehavior(gatewayInputAddress, channelManager, new MessageNotifier(), b.Build<IDispatchMessages>(), context.Settings, CreateForwarder(channelSenderFactory, b.BuildAll<IDataBus>()?.FirstOrDefault()), CreateSiteRouters(context)), "Processes messages to be sent to the gateway");
+            gatewayPipeline.Register(ForwardFailedGatewayMessagesToErrorQueueBehavior.StepId, b => new ForwardFailedGatewayMessagesToErrorQueueBehavior(gatewayInputAddress, b.Build<CriticalError>()), "Handles failures when sending messages through the gateway");
+
+            var retryPolicy = context.Settings.HasSetting("Gateway.Retries.RetryPolicy") ? context.Settings.Get<Func<IncomingMessage, Exception, int ,TimeSpan>>("Gateway.Retries.RetryPolicy") : DefaultRetryPolicy.BuildWithDefaults();
+
+            gatewayPipeline.Register(new RetryFailedGatewayMessagesBehavior.Registration(gatewayInputAddress, retryPolicy));
+            gatewayPipeline.Register("GatewaySendProcessor", b => new GatewaySendBehavior(gatewayInputAddress, channelManager, new MessageNotifier(), b.Build<IDispatchMessages>(), context.Settings, CreateForwarder(channelSenderFactory, b.BuildAll<IDataBus>()?.FirstOrDefault()), GetConfigurationBasedSiteRouter(context)), "Processes messages to be sent to the gateway");
             context.Pipeline.Register("RouteToGateway", b => new RouteToGatewayBehaviour(gatewayInputAddress), "Reroutes gateway messages to the gateway");
 
             context.Pipeline.Register("GatewayIncomingBehavior", typeof(GatewayIncomingBehavior), "Extracts gateway related information from the incoming message");
@@ -121,11 +126,9 @@
         }
 
 
-        static IEnumerable<IRouteMessagesToSites> CreateSiteRouters(FeatureConfigurationContext context)
+        static ConfigurationBasedSiteRouter GetConfigurationBasedSiteRouter(FeatureConfigurationContext context)
         {
-            var messageToSitesRouters = new List<IRouteMessagesToSites>();
-
-            var sites = new Dictionary<string, Site>();
+           var sites = new Dictionary<string, Site>();
 
             var section = context.Settings.GetConfigSection<GatewayConfig>();
             if (section != null)
@@ -133,13 +136,7 @@
                 sites = section.SitesAsDictionary();
             }
 
-            var configurationBasedRouter = new ConfigurationBasedSiteRouter { Sites = sites };
-            messageToSitesRouters.Add(configurationBasedRouter);
-
-            messageToSitesRouters.Add(new OriginatingSiteHeaderRouter());
-            messageToSitesRouters.Add(new KeyPrefixConventionSiteRouter());
-
-            return messageToSitesRouters;
+            return new ConfigurationBasedSiteRouter(sites);
         }
 
         static void RegisterHttpListenerInstaller(FeatureConfigurationContext context, IManageReceiveChannels channelManager)

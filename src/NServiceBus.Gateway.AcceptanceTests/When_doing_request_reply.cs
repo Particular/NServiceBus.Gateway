@@ -39,7 +39,7 @@
         {
             public SiteA()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithCallbacks>(c =>
                 {
                     c.ScaleOut().InstanceDiscriminator("1");
                     c.EnableFeature<Features.Gateway>();
@@ -73,7 +73,7 @@
         {
             public SiteB()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithCallbacks>(c =>
                 {
                     c.ScaleOut().InstanceDiscriminator("1");
                     c.EnableFeature<Features.Gateway>();

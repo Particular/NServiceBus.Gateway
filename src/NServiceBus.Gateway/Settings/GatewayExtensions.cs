@@ -1,7 +1,6 @@
 ﻿namespace NServiceBus
 {
     using System;
-    using Settings;
 
     /// <summary>
     /// Provides a fluent api to allow the configuration of <see cref="GatewaySettings"/>.
