@@ -22,7 +22,7 @@
         /// </summary>
         /// <param name="senderFactory">The sender factory to use. The factory takes a string with the channel type as parameter.</param>
         /// <param name="receiverFactory">The receiver factory to use. The factory takes a string with the channel type as parameter.</param>
-        public void ChannelFactories(Func<string, IChannelSender> senderFactory, Func<string, IChannelSender> receiverFactory)
+        public void ChannelFactories(Func<string, IChannelSender> senderFactory, Func<string, IChannelReceiver> receiverFactory)
         {
             if (senderFactory == null)
             {

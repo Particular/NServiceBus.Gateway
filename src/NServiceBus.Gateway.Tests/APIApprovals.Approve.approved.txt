@@ -15,7 +15,7 @@ namespace NServiceBus
     }
     public class GatewaySettings
     {
-        public void ChannelFactories(System.Func<string, NServiceBus.Gateway.IChannelSender> senderFactory, System.Func<string, NServiceBus.Gateway.IChannelSender> receiverFactory) { }
+        public void ChannelFactories(System.Func<string, NServiceBus.Gateway.IChannelSender> senderFactory, System.Func<string, NServiceBus.Gateway.IChannelReceiver> receiverFactory) { }
         public void CustomRetryPolicy(System.Func<NServiceBus.Transports.IncomingMessage, System.Exception, int, System.TimeSpan> customRetryPolicy) { }
         public void DisableRetries() { }
         public void Retries(int numberOfRetries, System.TimeSpan timeIncrease) { }
