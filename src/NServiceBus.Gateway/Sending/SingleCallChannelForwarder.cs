@@ -12,7 +12,7 @@
     using Routing;
     using Utils;
 
-    class SingleCallChannelForwarder 
+    class SingleCallChannelForwarder
     {
         public SingleCallChannelForwarder(Func<string, IChannelSender> senderFactory, IDataBus databus)
         {
@@ -118,7 +118,7 @@
 
         const string NServiceBus = "NServiceBus.";
         const string Id = "Id";
-        
+
         const string CorrelationId = "CorrelationId";
         const string Recoverable = "Recoverable";
         const string ReplyToAddress = "ReplyToAddress";
@@ -126,7 +126,6 @@
 
         static ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
         Func<string, IChannelSender> senderFactory;
-        readonly IDataBus databus;
-        
+        IDataBus databus;
     }
 }

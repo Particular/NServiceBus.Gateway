@@ -200,7 +200,7 @@
 
         Func<string, IChannelReceiver> channelFactory;
         IDeduplicateMessages deduplicator;
-        readonly IDataBus databus;
+        IDataBus databus;
         DataBusHeaderManager headerManager;
         IChannelReceiver channelReceiver;
 
@@ -209,7 +209,7 @@
         const string CorrelationId = "CorrelationId";
         const string Recoverable = "Recoverable";
         const string TimeToBeReceived = "TimeToBeReceived";
-        static readonly TimeSpan MinimumTimeToBeReceived = TimeSpan.FromSeconds(1);
+        static TimeSpan MinimumTimeToBeReceived = TimeSpan.FromSeconds(1);
 
         Func<MessageReceivedOnChannelArgs, Task> messageReceivedHandler;
     }
