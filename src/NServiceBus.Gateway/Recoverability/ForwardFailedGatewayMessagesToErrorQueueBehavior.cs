@@ -46,7 +46,7 @@
             }
         }
 
-        readonly CriticalError criticalError;
+        CriticalError criticalError;
 
         string localAddress;
 

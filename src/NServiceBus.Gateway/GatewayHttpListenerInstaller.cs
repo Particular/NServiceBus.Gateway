@@ -9,8 +9,8 @@ namespace NServiceBus.Installation
 
     class GatewayHttpListenerInstaller : INeedToInstallSomething
     {
-        readonly IManageReceiveChannels channelManager;
-        readonly bool enabled;
+        IManageReceiveChannels channelManager;
+        bool enabled;
 
         public GatewayHttpListenerInstaller(IManageReceiveChannels channelManager, bool enabled)
         {
