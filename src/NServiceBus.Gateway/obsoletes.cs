@@ -1,6 +1,16 @@
 ﻿#pragma warning disable 1591
 // ReSharper disable UnusedParameter.Global
 
+namespace NServiceBus
+{
+    [ObsoleteEx(
+        ReplacementTypeOrMember = "MessageHandlerContextExtensions",
+        RemoveInVersion = "3.0",
+        TreatAsErrorFromVersion = "2.0")]
+    public static class BusExtensions
+    {
+    }
+}
 
 namespace NServiceBus.Gateway.Routing
 {
