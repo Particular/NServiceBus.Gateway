@@ -51,11 +51,13 @@
 
             ConfigureTransaction(context);
 
-            var gatewayInputAddress = "gateway";
+            var instanceName = context.Settings.EndpointInstanceName();
+            var satelliteLogicalAddress = new LogicalAddress(instanceName, "TimeoutsDispatcher");
+            var satelliteAddress = satelliteLogicalAddress.ToString(); //todo:context.Settings.Get<TransportAddresses>().GetTransportAddress(satelliteLogicalAddress);
 
             var requiredTransactionSupport = context.Settings.GetRequiredTransactionModeForReceives();
 
-            context.AddSatelliteReceiver("Gateway", gatewayInputAddress, requiredTransactionSupport, PushRuntimeSettings.Default, ProcessGatewayTransmissionRequestMessage);
+            context.AddSatelliteReceiver("Gateway", satelliteAddress, requiredTransactionSupport, PushRuntimeSettings.Default, ProcessGatewayTransmissionRequestMessage);
 
             var channelManager = CreateChannelManager(context);
 
@@ -63,21 +65,21 @@
             Func<string, IChannelReceiver> channelReceiverFactory;
             RegisterChannels(context, channelManager, out channelSenderFactory, out channelReceiverFactory);
 
-            //gatewayPipeline.Register(ForwardFailedGatewayMessagesToErrorQueueBehavior.StepId, b => new ForwardFailedGatewayMessagesToErrorQueueBehavior(gatewayInputAddress, b.Build<CriticalError>()), "Handles failures when sending messages through the gateway");
-
             var retryPolicy = context.Settings.HasSetting("Gateway.Retries.RetryPolicy") ? context.Settings.Get<Func<IncomingMessage, Exception, int, TimeSpan>>("Gateway.Retries.RetryPolicy") : DefaultRetryPolicy.BuildWithDefaults();
 
-            //gatewayPipeline.Register(new RetryFailedGatewayMessagesBehavior.Registration(gatewayInputAddress, retryPolicy));
-            //gatewayPipeline.Register("GatewaySendProcessor", b => new GatewaySendBehavior(gatewayInputAddress, channelManager, new MessageNotifier(), b.Build<IDispatchMessages>(), context.Settings, CreateForwarder(channelSenderFactory, b.BuildAll<IDataBus>()?.FirstOrDefault()), GetConfigurationBasedSiteRouter(context)), "Processes messages to be sent to the gateway");
-            context.Pipeline.Register("RouteToGateway", b => new RouteToGatewayBehavior(gatewayInputAddress), "Reroutes gateway messages to the gateway");
+            context.Pipeline.Register("RouteToGateway", b => new RouteToGatewayBehavior(satelliteAddress), "Reroutes gateway messages to the gateway");
 
             context.Pipeline.Register("GatewayIncomingBehavior", typeof(GatewayIncomingBehavior), "Extracts gateway related information from the incoming message");
             context.Pipeline.Register("GatewayOutgoingBehavior", typeof(GatewayOutgoingBehavior), "Puts gateway related information on the headers of outgoing messages");
-            context.RegisterStartupTask(b => new GatewayReceiverStartupTask(channelManager, channelReceiverFactory, GetEndpointRouter(context), b.Build<IDispatchMessages>(), b.Build<IDeduplicateMessages>(), b.BuildAll<IDataBus>()?.FirstOrDefault(), gatewayInputAddress));
+            context.RegisterStartupTask(b => new GatewayReceiverStartupTask(channelManager, channelReceiverFactory, GetEndpointRouter(context), b.Build<IDispatchMessages>(), b.Build<IDeduplicateMessages>(), b.BuildAll<IDataBus>()?.FirstOrDefault(), satelliteAddress));
         }
 
         Task ProcessGatewayTransmissionRequestMessage(IBuilder builder, PushContext messageContext)
         {
+            //gatewayPipeline.Register(ForwardFailedGatewayMessagesToErrorQueueBehavior.StepId, b => new ForwardFailedGatewayMessagesToErrorQueueBehavior(gatewayInputAddress, b.Build<CriticalError>()), "Handles failures when sending messages through the gateway");
+            //gatewayPipeline.Register(new RetryFailedGatewayMessagesBehavior.Registration(gatewayInputAddress, retryPolicy));
+            //gatewayPipeline.Register("GatewaySendProcessor", b => new GatewaySendBehavior(gatewayInputAddress, channelManager, new MessageNotifier(), b.Build<IDispatchMessages>(), context.Settings, CreateForwarder(channelSenderFactory, b.BuildAll<IDataBus>()?.FirstOrDefault()), GetConfigurationBasedSiteRouter(context)), "Processes messages to be sent to the gateway");
+
             return Task.FromResult(true);
         }
 
