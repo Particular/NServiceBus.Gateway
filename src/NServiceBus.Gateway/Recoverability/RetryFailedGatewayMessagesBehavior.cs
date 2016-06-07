@@ -17,7 +17,7 @@
             this.retryPolicy = retryPolicy;
         }
 
-        public override async Task Invoke(ITransportReceiveContext context, Func<Task> next, Func<IRoutingContext, Task> fork)
+        public override async Task Invoke(PushContext context, Func<Task> next, Func<IRoutingContext, Task> fork)
         {
             try
             {
@@ -33,11 +33,11 @@
             }
         }
 
-        async Task<bool> SendForRetry(ITransportReceiveContext context, Exception exception, Func<IRoutingContext, Task> fork)
+        async Task<bool> SendForRetry(PushContext context, Exception exception, Func<IRoutingContext, Task> fork)
         {
-            var message = context.Message;
+            var message = new IncomingMessage(context.MessageId, context.Headers, context.BodyStream);
 
-            var retryCount = GetRetryCount(message);
+            var retryCount = GetRetryCount(message.Headers);
 
             var currentRetry = retryCount + 1;
 
@@ -67,10 +67,10 @@
             return true;
         }
 
-        static int GetRetryCount(IncomingMessage message)
+        static int GetRetryCount(Dictionary<string,string> headers)
         {
             string value;
-            if (message.Headers.TryGetValue(Headers.Retries, out value))
+            if (headers.TryGetValue(Headers.Retries, out value))
             {
                 int i;
                 if (int.TryParse(value, out i))
