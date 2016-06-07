@@ -53,7 +53,7 @@
 
             var instanceName = context.Settings.EndpointInstanceName();
             var satelliteLogicalAddress = new LogicalAddress(instanceName, "TimeoutsDispatcher");
-            var satelliteAddress = satelliteLogicalAddress.ToString(); //todo:context.Settings.Get<TransportAddresses>().GetTransportAddress(satelliteLogicalAddress);
+            var satelliteAddress = context.Settings.GetTransportAddress(satelliteLogicalAddress);
 
             var requiredTransactionSupport = context.Settings.GetRequiredTransactionModeForReceives();
 

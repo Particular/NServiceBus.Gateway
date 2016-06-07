@@ -4,9 +4,10 @@
     using System.Threading.Tasks;
     using NServiceBus.Logging;
     using NServiceBus.Pipeline;
+    using NServiceBus.Routing;
     using NServiceBus.Transports;
 
-    class ForwardFailedGatewayMessagesToErrorQueueBehavior : ForkConnector<ITransportReceiveContext, IFaultContext>
+    class ForwardFailedGatewayMessagesToErrorQueueBehavior
     {
         public ForwardFailedGatewayMessagesToErrorQueueBehavior(string localAddress, CriticalError criticalError)
         {
@@ -14,7 +15,7 @@
             this.localAddress = localAddress;
         }
 
-        public override async Task Invoke(ITransportReceiveContext context, Func<Task> next, Func<IFaultContext, Task> fork)
+        public async Task Invoke(ITransportReceiveContext context, Func<Task> next, Func<IFaultContext, Task> fork)
         {
             try
             {
@@ -35,9 +36,11 @@
 
                 var outgoingMessage = new OutgoingMessage(message.MessageId, message.Headers, message.Body);
 
-                var faultContext = this.CreateFaultContext(context, outgoingMessage, localAddress, exception);
+                var addressTag = new UnicastAddressTag(errorQueueAddress);
 
-                await fork(faultContext).ConfigureAwait(false);
+                var transportOperations = new TransportOperations(new TransportOperation(outgoingMessage, addressTag));
+
+                await dispatcher.Dispatch(transportOperations, context.Context).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
