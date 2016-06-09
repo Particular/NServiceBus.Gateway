@@ -9,12 +9,11 @@ namespace NServiceBus.Gateway.Sending
     using NServiceBus.Gateway.Receiving;
     using NServiceBus.Gateway.Routing;
     using NServiceBus.Gateway.Routing.Sites;
-    using NServiceBus.Pipeline;
     using NServiceBus.Routing;
     using NServiceBus.Settings;
     using NServiceBus.Transports;
 
-    class GatewaySendBehavior : PipelineTerminator<ISatelliteProcessingContext>
+    class GatewaySendBehavior
     {
         public GatewaySendBehavior(string inputAddress, IManageReceiveChannels channelManager, MessageNotifier notifier, IDispatchMessages dispatchMessages, ReadOnlySettings settings, SingleCallChannelForwarder forwarder, ConfigurationBasedSiteRouter configRouter)
         {
@@ -27,9 +26,9 @@ namespace NServiceBus.Gateway.Sending
             this.inputAddress = inputAddress;
         }
 
-        protected override async Task Terminate(ISatelliteProcessingContext context)
+        protected async Task Terminate(PushContext context)
         {
-            var message = context.Message;
+            var message = new IncomingMessage(context.MessageId, context.Headers, context.BodyStream);
             var headers = message.Headers;
             var body = message.Body;
 

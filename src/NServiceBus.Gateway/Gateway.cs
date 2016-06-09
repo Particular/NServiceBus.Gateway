@@ -22,7 +22,6 @@
     using NServiceBus.Gateway.Routing.Endpoints;
     using NServiceBus.Gateway.Routing.Sites;
     using NServiceBus.Gateway.Sending;
-    using NServiceBus.ObjectBuilder;
     using NServiceBus.Persistence;
     using NServiceBus.Routing;
     using Performance.TimeToBeReceived;
@@ -57,7 +56,7 @@
 
             var requiredTransactionSupport = context.Settings.GetRequiredTransactionModeForReceives();
             var retryPolicy = context.Settings.HasSetting("Gateway.Retries.RetryPolicy") ? context.Settings.Get<Func<IncomingMessage, Exception, int, TimeSpan>>("Gateway.Retries.RetryPolicy") : DefaultRetryPolicy.BuildWithDefaults();
-            var errorQueueAddress = "error";//todo: ErrorQueueSettings.GetConfiguredErrorQueue(context.Settings);
+            var errorQueueAddress = context.Settings.ErrorQueueAddress();
 
             context.AddSatelliteReceiver("Gateway", satelliteAddress, requiredTransactionSupport, PushRuntimeSettings.Default,
                 (builder, pushContext) =>
@@ -67,12 +66,11 @@
                         builder.Build<IDispatchMessages>(),
                         errorQueueAddress
                         );
-                    var retryBehavior = new RetryFailedGatewayMessagesBehavior(satelliteAddress,retryPolicy);
-                    //gatewayPipeline.Register(new RetryFailedGatewayMessagesBehavior.Registration(gatewayInputAddress, retryPolicy));
+                    var retryBehavior = new RetryFailedGatewayMessagesBehavior(retryPolicy);
                     //gatewayPipeline.Register("GatewaySendProcessor", b => new GatewaySendBehavior(gatewayInputAddress, channelManager, new MessageNotifier(), b.Build<IDispatchMessages>(), context.Settings, CreateForwarder(channelSenderFactory, b.BuildAll<IDataBus>()?.FirstOrDefault()), GetConfigurationBasedSiteRouter(context)), "Processes messages to be sent to the gateway");
 
                     return errorQueueBehavior.Invoke(pushContext,
-                        retryBehavior.Invoke(retryBehavior,));
+                        () => retryBehavior.Invoke(pushContext, () => Task.FromResult(true)));
                 });
 
             var channelManager = CreateChannelManager(context);
