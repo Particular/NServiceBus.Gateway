@@ -3,21 +3,17 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using NServiceBus.DelayedDelivery;
-    using NServiceBus.DeliveryConstraints;
     using NServiceBus.Logging;
-    using NServiceBus.Pipeline;
     using NServiceBus.Transports;
 
-    class RetryFailedGatewayMessagesBehavior : ForkConnector<ITransportReceiveContext, IRoutingContext>
+    class RetryFailedGatewayMessagesBehavior
     {
-        public RetryFailedGatewayMessagesBehavior(string localAddress, Func<IncomingMessage, Exception, int, TimeSpan> retryPolicy)
+        public RetryFailedGatewayMessagesBehavior(Func<IncomingMessage, Exception, int, TimeSpan> retryPolicy)
         {
-            this.localAddress = localAddress;
             this.retryPolicy = retryPolicy;
         }
 
-        public override async Task Invoke(ITransportReceiveContext context, Func<Task> next, Func<IRoutingContext, Task> fork)
+        public async Task Invoke(PushContext context, Func<Task> next)
         {
             try
             {
@@ -25,7 +21,7 @@
             }
             catch (Exception exception)
             {
-                var sentForRetry = await SendForRetry(context, exception, fork).ConfigureAwait(false);
+                var sentForRetry = await SendForRetry(context, exception).ConfigureAwait(false);
                 if (!sentForRetry)
                 {
                     throw;
@@ -33,11 +29,11 @@
             }
         }
 
-        async Task<bool> SendForRetry(ITransportReceiveContext context, Exception exception, Func<IRoutingContext, Task> fork)
+        Task<bool> SendForRetry(PushContext context, Exception exception)
         {
-            var message = context.Message;
+            var message = new IncomingMessage(context.MessageId, context.Headers, context.BodyStream);
 
-            var retryCount = GetRetryCount(message);
+            var retryCount = GetRetryCount(message.Headers);
 
             var currentRetry = retryCount + 1;
 
@@ -45,7 +41,7 @@
 
             if (timeIncrease <= TimeSpan.MinValue)
             {
-                return false;
+                return Task.FromResult(false);
             }
 
             Logger.Warn($"Gateway message '{message.MessageId}' failed. Will reschedule message after {timeIncrease}:", exception);
@@ -55,22 +51,23 @@
             messageToRetry.Headers[Headers.Retries] = currentRetry.ToString();
             messageToRetry.Headers[Headers.RetriesTimestamp] = DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow);
 
-            var dispatchContext = this.CreateRoutingContext(messageToRetry, localAddress, context);
+            //var dispatchContext = this.CreateRoutingContext(messageToRetry, localAddress, context);
 
-            dispatchContext.Extensions.Set(new List<DeliveryConstraint>
-            {
-                new DelayDeliveryWith(timeIncrease)
-            });
+            //dispatchContext.Extensions.Set(new List<DeliveryConstraint>
+            //{
+            //    new DelayDeliveryWith(timeIncrease)
+            //});
 
-            await fork(dispatchContext).ConfigureAwait(false);
+            //await fork(dispatchContext).ConfigureAwait(false);
 
-            return true;
+            //todo
+            return Task.FromResult(true);
         }
 
-        static int GetRetryCount(IncomingMessage message)
+        static int GetRetryCount(Dictionary<string,string> headers)
         {
             string value;
-            if (message.Headers.TryGetValue(Headers.Retries, out value))
+            if (headers.TryGetValue(Headers.Retries, out value))
             {
                 int i;
                 if (int.TryParse(value, out i))
@@ -81,19 +78,8 @@
             return 0;
         }
 
-        string localAddress;
         Func<IncomingMessage, Exception, int, TimeSpan> retryPolicy;
 
         static ILog Logger = LogManager.GetLogger<RetryFailedGatewayMessagesBehavior>();
-
-        public class Registration : RegisterStep
-        {
-            public Registration(string localAddress, Func<IncomingMessage, Exception, int, TimeSpan> retryPolicy)
-                : base("RetryFailedGatewayMessages", typeof(RetryFailedGatewayMessagesBehavior), "Retries failed gateway messages by forwarding them to the timeout manager",
-                    builder => new RetryFailedGatewayMessagesBehavior(localAddress, retryPolicy))
-            {
-                InsertAfter(ForwardFailedGatewayMessagesToErrorQueueBehavior.StepId);
-            }
-        }
     }
 }

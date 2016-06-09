@@ -50,11 +50,28 @@
 
             ConfigureTransaction(context);
 
-            string gatewayInputAddress;
+            var instanceName = context.Settings.EndpointInstanceName();
+            var satelliteLogicalAddress = new LogicalAddress(instanceName, "TimeoutsDispatcher");
+            var satelliteAddress = context.Settings.GetTransportAddress(satelliteLogicalAddress);
 
             var requiredTransactionSupport = context.Settings.GetRequiredTransactionModeForReceives();
+            var retryPolicy = context.Settings.HasSetting("Gateway.Retries.RetryPolicy") ? context.Settings.Get<Func<IncomingMessage, Exception, int, TimeSpan>>("Gateway.Retries.RetryPolicy") : DefaultRetryPolicy.BuildWithDefaults();
+            var errorQueueAddress = context.Settings.ErrorQueueAddress();
 
-            var gatewayPipeline = context.AddSatellitePipeline("Gateway", requiredTransactionSupport, PushRuntimeSettings.Default, "gateway", out gatewayInputAddress);
+            context.AddSatelliteReceiver("Gateway", satelliteAddress, requiredTransactionSupport, PushRuntimeSettings.Default,
+                (builder, pushContext) =>
+                {
+                    var errorQueueBehavior = new ForwardFailedGatewayMessagesToErrorQueueBehavior(context.Settings.EndpointName().ToString(),
+                        builder.Build<CriticalError>(),
+                        builder.Build<IDispatchMessages>(),
+                        errorQueueAddress
+                        );
+                    var retryBehavior = new RetryFailedGatewayMessagesBehavior(retryPolicy);
+                    //gatewayPipeline.Register("GatewaySendProcessor", b => new GatewaySendBehavior(gatewayInputAddress, channelManager, new MessageNotifier(), b.Build<IDispatchMessages>(), context.Settings, CreateForwarder(channelSenderFactory, b.BuildAll<IDataBus>()?.FirstOrDefault()), GetConfigurationBasedSiteRouter(context)), "Processes messages to be sent to the gateway");
+
+                    return errorQueueBehavior.Invoke(pushContext,
+                        () => retryBehavior.Invoke(pushContext, () => Task.FromResult(true)));
+                });
 
             var channelManager = CreateChannelManager(context);
 
@@ -62,17 +79,11 @@
             Func<string, IChannelReceiver> channelReceiverFactory;
             RegisterChannels(context, channelManager, out channelSenderFactory, out channelReceiverFactory);
 
-            gatewayPipeline.Register(ForwardFailedGatewayMessagesToErrorQueueBehavior.StepId, b => new ForwardFailedGatewayMessagesToErrorQueueBehavior(gatewayInputAddress, b.Build<CriticalError>()), "Handles failures when sending messages through the gateway");
-
-            var retryPolicy = context.Settings.HasSetting("Gateway.Retries.RetryPolicy") ? context.Settings.Get<Func<IncomingMessage, Exception, int ,TimeSpan>>("Gateway.Retries.RetryPolicy") : DefaultRetryPolicy.BuildWithDefaults();
-
-            gatewayPipeline.Register(new RetryFailedGatewayMessagesBehavior.Registration(gatewayInputAddress, retryPolicy));
-            gatewayPipeline.Register("GatewaySendProcessor", b => new GatewaySendBehavior(gatewayInputAddress, channelManager, new MessageNotifier(), b.Build<IDispatchMessages>(), context.Settings, CreateForwarder(channelSenderFactory, b.BuildAll<IDataBus>()?.FirstOrDefault()), GetConfigurationBasedSiteRouter(context)), "Processes messages to be sent to the gateway");
-            context.Pipeline.Register("RouteToGateway", b => new RouteToGatewayBehavior(gatewayInputAddress), "Reroutes gateway messages to the gateway");
+            context.Pipeline.Register("RouteToGateway", b => new RouteToGatewayBehavior(satelliteAddress), "Reroutes gateway messages to the gateway");
 
             context.Pipeline.Register("GatewayIncomingBehavior", typeof(GatewayIncomingBehavior), "Extracts gateway related information from the incoming message");
             context.Pipeline.Register("GatewayOutgoingBehavior", typeof(GatewayOutgoingBehavior), "Puts gateway related information on the headers of outgoing messages");
-            context.RegisterStartupTask(b => new GatewayReceiverStartupTask(channelManager, channelReceiverFactory, GetEndpointRouter(context), b.Build<IDispatchMessages>(), b.Build<IDeduplicateMessages>(), b.BuildAll<IDataBus>()?.FirstOrDefault(), gatewayInputAddress));
+            context.RegisterStartupTask(b => new GatewayReceiverStartupTask(channelManager, channelReceiverFactory, GetEndpointRouter(context), b.Build<IDispatchMessages>(), b.Build<IDeduplicateMessages>(), b.BuildAll<IDataBus>()?.FirstOrDefault(), satelliteAddress));
         }
 
         static void RegisterChannels(FeatureConfigurationContext context, IManageReceiveChannels channelManager, out Func<string, IChannelSender> channelSenderFactory, out Func<string, IChannelReceiver> channelReceiverFactory)
@@ -99,7 +110,7 @@
 
         static EndpointRouter GetEndpointRouter(FeatureConfigurationContext context)
         {
-            return new EndpointRouter { MainInputAddress = context.Settings.EndpointName().ToString() };
+            return new EndpointRouter { MainInputAddress = context.Settings.EndpointName() };
         }
 
         static void ConfigureTransaction(FeatureConfigurationContext context)
@@ -121,14 +132,14 @@
                 return new ConfigurationBasedChannelManager { ReceiveChannels = configSection.GetChannels().ToList() };
             }
 
-            return new ConventionBasedChannelManager { EndpointName = context.Settings.EndpointName().ToString() };
+            return new ConventionBasedChannelManager { EndpointName = context.Settings.EndpointName() };
 
         }
 
 
         static ConfigurationBasedSiteRouter GetConfigurationBasedSiteRouter(FeatureConfigurationContext context)
         {
-           var sites = new Dictionary<string, Site>();
+            var sites = new Dictionary<string, Site>();
 
             var section = context.Settings.GetConfigSection<GatewayConfig>();
             if (section != null)
