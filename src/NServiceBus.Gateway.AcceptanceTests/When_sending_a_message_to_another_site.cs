@@ -12,9 +12,9 @@
     public class When_sending_a_message_to_another_site : NServiceBusAcceptanceTest
     {
         [Test]
-        public async Task Should_be_able_to_reply_to_the_message()
+        public Task Should_be_able_to_reply_to_the_message()
         {
-            await Scenario.Define<Context>()
+            return Scenario.Define<Context>()
                     .WithEndpoint<Headquarters>(b => b.When(async (bus,c) => await bus.SendToSites(new[] { "SiteA" }, new MyRequest())))
                     .WithEndpoint<SiteA>()
                     .Done(c => c.GotResponseBack)
