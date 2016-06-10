@@ -35,7 +35,7 @@
     {
         internal Gateway()
         {
-            DependsOn("DelayedDelivery");
+            DependsOn("NServiceBus.Features.DelayedDeliveryFeature");
         }
 
         /// <summary>
@@ -175,7 +175,7 @@
 
             protected override async Task OnStop(IMessageSession context)
             {
-                Logger.InfoFormat("Receiver is shutting down");
+                Logger.Info("Receiver is shutting down");
 
                 var stopTasks = activeReceivers.Select(channelReceiver => channelReceiver.Stop());
 
@@ -183,7 +183,7 @@
 
                 activeReceivers.Clear();
 
-                Logger.InfoFormat("Receiver shutdown complete");
+                Logger.Info("Receiver shutdown complete");
             }
 
             Task MessageReceivedOnChannel(MessageReceivedOnChannelArgs e)
