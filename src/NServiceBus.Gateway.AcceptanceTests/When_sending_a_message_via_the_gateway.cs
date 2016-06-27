@@ -15,9 +15,9 @@
     public class When_sending_a_message_via_the_gateway : NServiceBusAcceptanceTest
     {
         [Test]
-        public async Task Should_process_message()
+        public Task Should_process_message()
         {
-            await Scenario.Define<Context>()
+            return Scenario.Define<Context>()
                 .WithEndpoint<Headquarters>(b => b.When(bus =>
                 {
                     var webRequest = (HttpWebRequest)WebRequest.Create("http://localhost:25898/Headquarters/");

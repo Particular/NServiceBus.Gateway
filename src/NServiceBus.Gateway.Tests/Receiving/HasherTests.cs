@@ -1,5 +1,6 @@
 namespace NServiceBus.Core.Tests
 {
+    using System.Threading.Tasks;
     using Gateway.Receiving;
     using Gateway.Utils;
     using NUnit.Framework;
@@ -9,9 +10,9 @@ namespace NServiceBus.Core.Tests
     {
 
         [Test]
-        public async void Valid_Md5_can_be_verified()
+        public Task Valid_Md5_can_be_verified()
         {
-            await Hasher.Verify("myData".ConvertToStream(), "4HJGsZlkhfKtZTbdlkaTgw==");
+            return Hasher.Verify("myData".ConvertToStream(), "4HJGsZlkhfKtZTbdlkaTgw==");
         }
 
         [Test]

@@ -109,12 +109,12 @@ namespace NServiceBus.Gateway.Sending
             return $"{defaultChannel.Type},{defaultChannel.Address}";
         }
 
-        readonly IManageReceiveChannels channelManager;
-        readonly IDispatchMessages dispatcher;
-        readonly ReadOnlySettings settings;
-        readonly SingleCallChannelForwarder forwarder;
-        readonly ConfigurationBasedSiteRouter configRouter;
-        readonly MessageNotifier messageNotifier;
-        readonly string inputAddress;
+        IManageReceiveChannels channelManager;
+        IDispatchMessages dispatcher;
+        ReadOnlySettings settings;
+        SingleCallChannelForwarder forwarder;
+        ConfigurationBasedSiteRouter configRouter;
+        MessageNotifier messageNotifier;
+        string inputAddress;
     }
 }

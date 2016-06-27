@@ -35,7 +35,7 @@
     {
         internal Gateway()
         {
-            DependsOn("DelayedDelivery");
+            DependsOn("NServiceBus.Features.DelayedDeliveryFeature");
         }
 
         /// <summary>
@@ -68,7 +68,7 @@
 
             gatewayPipeline.Register(new RetryFailedGatewayMessagesBehavior.Registration(gatewayInputAddress, retryPolicy));
             gatewayPipeline.Register("GatewaySendProcessor", b => new GatewaySendBehavior(gatewayInputAddress, channelManager, new MessageNotifier(), b.Build<IDispatchMessages>(), context.Settings, CreateForwarder(channelSenderFactory, b.BuildAll<IDataBus>()?.FirstOrDefault()), GetConfigurationBasedSiteRouter(context)), "Processes messages to be sent to the gateway");
-            context.Pipeline.Register("RouteToGateway", b => new RouteToGatewayBehaviour(gatewayInputAddress), "Reroutes gateway messages to the gateway");
+            context.Pipeline.Register("RouteToGateway", b => new RouteToGatewayBehavior(gatewayInputAddress), "Reroutes gateway messages to the gateway");
 
             context.Pipeline.Register("GatewayIncomingBehavior", typeof(GatewayIncomingBehavior), "Extracts gateway related information from the incoming message");
             context.Pipeline.Register("GatewayOutgoingBehavior", typeof(GatewayOutgoingBehavior), "Puts gateway related information on the headers of outgoing messages");
@@ -86,8 +86,8 @@
             }
             else
             {
-                channelReceiverFactory = s => (new ChannelReceiverFactory(typeof(HttpChannelReceiver))).GetReceiver(s);
-                channelSenderFactory = s => (new ChannelSenderFactory(typeof(HttpChannelSender))).GetSender(s);
+                channelReceiverFactory = s => new ChannelReceiverFactory(typeof(HttpChannelReceiver)).GetReceiver(s);
+                channelSenderFactory = s => new ChannelSenderFactory(typeof(HttpChannelSender)).GetSender(s);
                 RegisterHttpListenerInstaller(context, channelManager);
             }
         }
@@ -175,7 +175,7 @@
 
             protected override async Task OnStop(IMessageSession context)
             {
-                Logger.InfoFormat("Receiver is shutting down");
+                Logger.Info("Receiver is shutting down");
 
                 var stopTasks = activeReceivers.Select(channelReceiver => channelReceiver.Stop());
 
@@ -183,10 +183,10 @@
 
                 activeReceivers.Clear();
 
-                Logger.InfoFormat("Receiver shutdown complete");
+                Logger.Info("Receiver shutdown complete");
             }
 
-            async Task MessageReceivedOnChannel(MessageReceivedOnChannelArgs e)
+            Task MessageReceivedOnChannel(MessageReceivedOnChannelArgs e)
             {
                 var body = e.Body;
                 var headers = e.Headers;
@@ -212,18 +212,18 @@
                 }
 
                 var transportOperations = new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag(destination), DispatchConsistency.Default, deliveryConstraints));
-                await dispatchMessages.Dispatch(transportOperations, new ContextBag()).ConfigureAwait(false);
+                return dispatchMessages.Dispatch(transportOperations, new ContextBag());
             }
 
             static ILog Logger = LogManager.GetLogger<GatewayReceiverStartupTask>();
-            readonly ICollection<SingleCallChannelReceiver> activeReceivers = new List<SingleCallChannelReceiver>();
-            readonly IManageReceiveChannels manageReceiveChannels;
-            readonly Func<string, IChannelReceiver> channelReceiverFactory;
-            readonly EndpointRouter endpointRouter;
-            readonly IDispatchMessages dispatchMessages;
-            readonly IDeduplicateMessages deduplicator;
-            readonly IDataBus databus;
-            readonly string replyToAddress;
+            ICollection<SingleCallChannelReceiver> activeReceivers = new List<SingleCallChannelReceiver>();
+            IManageReceiveChannels manageReceiveChannels;
+            Func<string, IChannelReceiver> channelReceiverFactory;
+            EndpointRouter endpointRouter;
+            IDispatchMessages dispatchMessages;
+            IDeduplicateMessages deduplicator;
+            IDataBus databus;
+            string replyToAddress;
         }
     }
 }
