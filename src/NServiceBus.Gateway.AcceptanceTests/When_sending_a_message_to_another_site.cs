@@ -80,7 +80,7 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    c.ScaleOut().InstanceDiscriminator("1");
+                    c.MakeInstanceUniquelyAddressable("1");
                     c.EnableFeature<Gateway>();
                 })
                         .WithConfig<GatewayConfig>(c =>

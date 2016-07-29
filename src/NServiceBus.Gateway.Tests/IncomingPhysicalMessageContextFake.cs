@@ -8,7 +8,7 @@ namespace NServiceBus.Gateway.Tests
     using HeaderManagement;
     using NServiceBus.Pipeline;
     using ObjectBuilder;
-    using Transports;
+    using Transport;
 
     class IncomingPhysicalMessageContextFake : IIncomingPhysicalMessageContext
     {

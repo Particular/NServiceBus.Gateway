@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.Transports;
+    using NServiceBus.Transport;
 
     public static class Transports
     {

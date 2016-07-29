@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using NServiceBus.Configuration.AdvanceExtensibility;
-    using NServiceBus.Transports;
+    using NServiceBus.Transport;
     using NUnit.Framework;
 
     [TestFixture]

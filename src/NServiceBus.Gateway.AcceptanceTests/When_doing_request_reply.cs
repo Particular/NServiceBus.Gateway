@@ -41,7 +41,7 @@
             {
                 EndpointSetup<DefaultServerWithCallbacks>(c =>
                 {
-                    c.ScaleOut().InstanceDiscriminator("1");
+                    c.MakeInstanceUniquelyAddressable("1");
                     c.EnableFeature<Features.Gateway>();
                 })
                     .WithConfig<GatewayConfig>(c =>
@@ -75,7 +75,7 @@
             {
                 EndpointSetup<DefaultServerWithCallbacks>(c =>
                 {
-                    c.ScaleOut().InstanceDiscriminator("1");
+                    c.MakeInstanceUniquelyAddressable("1");
                     c.EnableFeature<Features.Gateway>();
                 })
                     .WithConfig<GatewayConfig>(c =>
