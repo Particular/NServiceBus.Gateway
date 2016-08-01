@@ -67,6 +67,9 @@
                         case CallType.SingleCallSubmit:
                             HandleSubmit(callInfo);
                             break;
+                        case CallType.Ack:
+                            // Legacy call from V3. Ignore.
+                            break;
                         default:
                             throw new Exception("Unknown call type: " + callInfo.Type);
                     }
