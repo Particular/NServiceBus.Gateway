@@ -41,12 +41,13 @@
 
         Dictionary<string,string> MapToHeaders(TransportMessage from)
         {
-            var to = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);
-
-            to[NServiceBus + Id] = from.Id;
-            to[NServiceBus + CorrelationId] = GetCorrelationForBackwardsCompatibility(from);
-            to[NServiceBus + Recoverable] = from.Recoverable.ToString();
-            to[NServiceBus + TimeToBeReceived] = from.TimeToBeReceived.ToString();
+            var to = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
+            {
+                [NServiceBus + Id] = from.Id,
+                [NServiceBus + CorrelationId] = GetCorrelationForBackwardsCompatibility(from),
+                [NServiceBus + Recoverable] = from.Recoverable.ToString(),
+                [NServiceBus + TimeToBeReceived] = from.TimeToBeReceived.ToString()
+            };
 
             if (from.ReplyToAddress != null) //Handles SendOnly endpoints, where ReplyToAddress is not set
             {

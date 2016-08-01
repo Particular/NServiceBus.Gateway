@@ -61,7 +61,7 @@ netsh http add urlacl url={1} user=""{0}""", uri, identity);
             }
         }
 
-        static internal void StartNetshProcess(string identity, Uri uri)
+        internal static void StartNetshProcess(string identity, Uri uri)
         {
             var startInfo = new ProcessStartInfo
             {

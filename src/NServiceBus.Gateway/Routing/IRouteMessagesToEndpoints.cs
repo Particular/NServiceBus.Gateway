@@ -10,8 +10,7 @@ namespace NServiceBus.Gateway.Routing
         /// </summary>
         /// <param name="messageToSend">The message to send.</param>
         /// <returns>The destination address.</returns>
-// ReSharper disable UnusedParameter.Global
+        // ReSharper disable once UnusedParameter.Global
         Address GetDestinationFor(TransportMessage messageToSend);
-// ReSharper restore UnusedParameter.Global
     }
 }
