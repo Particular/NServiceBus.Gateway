@@ -1,11 +1,14 @@
 ﻿namespace NServiceBus.AcceptanceTests.Gateway
 {
     using System;
+    using System.Collections.Generic;
+    using System.IO;
     using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NServiceBus.Config;
     using NServiceBus.Features;
+    using NServiceBus.Gateway;
     using NUnit.Framework;
     using static System.Int32;
 
@@ -17,7 +20,11 @@
             var context = await Scenario.Define<Context>(c => { c.Id = Guid.NewGuid(); })
                 .WithEndpoint<Headquarters>(b =>
                 {
-                    b.When((bus, c) => bus.SendToSites(new[]
+                    b.CustomConfig((c, ctx) =>
+                    {
+                        c.Gateway().ChannelFactories(s => new FaultyChannelSender(ctx), s => new FakeChannelReceiver());
+                    })
+                    .When((bus, c) => bus.SendToSites(new[]
                     {
                         "SiteA"
                     }, new AnyMessage
@@ -39,7 +46,11 @@
             var context = await Scenario.Define<Context>(c => { c.Id = Guid.NewGuid(); })
                 .WithEndpoint<Headquarters>(b =>
                 {
-                    b.CustomConfig(c => c.Gateway().Retries(2, TimeSpan.FromSeconds(1)))
+                    b.CustomConfig((c, ctx) =>
+                    {
+                        c.Gateway().Retries(2, TimeSpan.FromSeconds(1));
+                        c.Gateway().ChannelFactories(s => new FaultyChannelSender(ctx), s => new FakeChannelReceiver());
+                    })
                         .When((bus, c) => bus.SendToSites(new[]
                         {
                             "SiteA"
@@ -150,10 +161,6 @@
                 {
                     if (errorMessage.Id == testContext.Id)
                     {
-                        if (context.MessageHeaders.ContainsKey(Headers.Retries))
-                        {
-                            testContext.NumberOfRetries = Parse(context.MessageHeaders[Headers.Retries]);
-                        }
                         testContext.MessageMovedToErrorQueue = true;
                     }
 
@@ -161,6 +168,39 @@
                 }
 
                 Context testContext;
+            }
+        }
+
+        class FaultyChannelSender : IChannelSender
+        {
+            public FaultyChannelSender(Context testContext)
+            {
+                this.testContext = testContext;
+            }
+
+            public Task Send(string remoteAddress, IDictionary<string, string> headers, Stream data)
+            {
+                if (headers.ContainsKey(FullRetriesHeaderKey))
+                {
+                    testContext.NumberOfRetries = Parse(headers[FullRetriesHeaderKey]);
+                }
+                throw new SimulatedException($"Simulated error when sending to site at {remoteAddress}");
+            }
+
+            Context testContext;
+
+            static readonly string FullRetriesHeaderKey = $"NServiceBus.Header.{Headers.Retries}";
+        }
+
+        class FakeChannelReceiver : IChannelReceiver
+        {
+            public void Start(string address, int maxConcurrency, Func<DataReceivedOnChannelArgs, Task> dataReceivedOnChannel)
+            {
+            }
+
+            public Task Stop()
+            {
+                return Task.FromResult(0);
             }
         }
     }

@@ -1,11 +1,14 @@
 ﻿namespace NServiceBus.AcceptanceTests.Gateway
 {
     using System;
+    using System.Collections.Generic;
+    using System.IO;
     using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NServiceBus.Config;
     using NServiceBus.Features;
+    using NServiceBus.Gateway;
     using NUnit.Framework;
     using static System.Int32;
 
@@ -15,13 +18,20 @@
         public async Task Should_move_to_error_queue()
         {
             var context = await Scenario.Define<Context>(c => { c.Id = Guid.NewGuid(); })
-                .WithEndpoint<Headquarters>(b => b.When((bus, ctx) => bus.SendToSites(new[]
+                .WithEndpoint<Headquarters>(b =>
                 {
-                    "SiteA"
-                }, new AnyMessage
-                {
-                    Id = ctx.Id
-                })))
+                    b.CustomConfig((c, ctx) =>
+                    {
+                        c.Gateway().ChannelFactories(s => new FaultyChannelSender(ctx), s => new FakeChannelReceiver());
+                    })
+                    .When((bus, ctx) => bus.SendToSites(new[]
+                    {
+                        "SiteA"
+                    }, new AnyMessage
+                    {
+                        Id = ctx.Id
+                    }));
+                })
                 .WithEndpoint<ErrorSpy>()
                 .Done(c => c.MessageMovedToErrorQueue)
                 .Run();
@@ -99,15 +109,44 @@
                 {
                     if (errorMessage.Id == testContext.Id)
                     {
-                        if (context.MessageHeaders.ContainsKey(Headers.Retries))
-                        {
-                            testContext.NumberOfRetries = Parse(context.MessageHeaders[Headers.Retries]);
-                        }
                         testContext.MessageMovedToErrorQueue = true;
                     }
 
                     return Task.FromResult(0);
                 }
+            }
+        }
+
+        class FaultyChannelSender : IChannelSender
+        {
+            public FaultyChannelSender(Context testContext)
+            {
+                this.testContext = testContext;
+            }
+
+            public Task Send(string remoteAddress, IDictionary<string, string> headers, Stream data)
+            {
+                if (headers.ContainsKey(FullRetriesHeaderKey))
+                {
+                    testContext.NumberOfRetries = Parse(headers[FullRetriesHeaderKey]);
+                }
+                throw new SimulatedException($"Simulated error when sending to site at {remoteAddress}");
+            }
+
+            Context testContext;
+
+            static readonly string FullRetriesHeaderKey = $"NServiceBus.Header.{Headers.Retries}";
+        }
+
+        class FakeChannelReceiver : IChannelReceiver
+        {
+            public void Start(string address, int maxConcurrency, Func<DataReceivedOnChannelArgs, Task> dataReceivedOnChannel)
+            {
+            }
+
+            public Task Stop()
+            {
+                return Task.FromResult(0);
             }
         }
     }

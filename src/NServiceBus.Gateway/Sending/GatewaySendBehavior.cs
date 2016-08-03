@@ -32,16 +32,12 @@ namespace NServiceBus.Gateway.Sending
 
             var destinationSites = GetDestinationSitesFor(context.Headers, intent);
 
-            var body = new byte[context.BodyStream.Length];
-
-            await context.BodyStream.ReadAsync(body, 0, body.Length).ConfigureAwait(false);
-
             //if there is more than 1 destination we break it up into multiple dispatches
             if (destinationSites.Count > 1)
             {
                 foreach (var destinationSite in destinationSites)
                 {
-                    await CloneAndSendLocal(body, context.Headers, destinationSite).ConfigureAwait(false);
+                    await CloneAndSendLocal(context.Body, context.Headers, destinationSite, context.TransportTransaction).ConfigureAwait(false);
                 }
 
                 return;
@@ -54,7 +50,7 @@ namespace NServiceBus.Gateway.Sending
                 throw new InvalidOperationException("No destination found for message");
             }
 
-            await SendToSite(body, context.Headers, destination).ConfigureAwait(false);
+            await SendToSite(context.Body, context.Headers, destination).ConfigureAwait(false);
         }
 
         static MessageIntentEnum GetMessageIntent(Dictionary<string, string> headers)
@@ -83,14 +79,14 @@ namespace NServiceBus.Gateway.Sending
             return conventionRoutes.Concat(configuredRoutes).ToList();
         }
 
-        Task CloneAndSendLocal(byte[] body, Dictionary<string, string> headers, Site destinationSite)
+        Task CloneAndSendLocal(byte[] body, Dictionary<string, string> headers, Site destinationSite, TransportTransaction transportTransaction)
         {
             headers[Headers.DestinationSites] = destinationSite.Key;
 
             var message = new OutgoingMessage(headers[Headers.MessageId], headers, body);
             var operation = new TransportOperation(message, new UnicastAddressTag(inputAddress));
 
-            return dispatcher.Dispatch(new TransportOperations(operation), new ContextBag());
+            return dispatcher.Dispatch(new TransportOperations(operation), transportTransaction, new ContextBag());
         }
 
         async Task SendToSite(byte[] body, Dictionary<string, string> headers, Site targetSite)

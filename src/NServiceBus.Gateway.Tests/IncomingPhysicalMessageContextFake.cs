@@ -15,7 +15,7 @@ namespace NServiceBus.Gateway.Tests
         public IncomingPhysicalMessageContextFake(GatewayIncomingBehavior.ReturnState state = null, Dictionary < string, string> headers = null)
         {
             var messageHeaders  = headers ?? new Dictionary<string, string>();
-            Message = new IncomingMessage(Guid.NewGuid().ToString(), messageHeaders, new MemoryStream());
+            Message = new IncomingMessage(Guid.NewGuid().ToString(), messageHeaders, new byte[0]);
 
             Extensions = new ContextBag();
             if (state != null)

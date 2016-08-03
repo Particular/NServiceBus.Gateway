@@ -107,8 +107,10 @@
             {
                 channelReceiverFactory = s => new ChannelReceiverFactory(typeof(HttpChannelReceiver)).GetReceiver(s);
                 channelSenderFactory = s => new ChannelSenderFactory(typeof(HttpChannelSender)).GetSender(s);
-                RegisterHttpListenerInstaller(context, channelManager);
             }
+
+            var enableHttpListener = !usingCustomChannelProviders;
+            RegisterHttpListenerInstaller(context, channelManager, enableHttpListener);
         }
 
         static SingleCallChannelForwarder CreateForwarder(Func<string, IChannelSender> channelSenderFactory, IDataBus databus)
@@ -158,9 +160,9 @@
             return new ConfigurationBasedSiteRouter(sites);
         }
 
-        static void RegisterHttpListenerInstaller(FeatureConfigurationContext context, IManageReceiveChannels channelManager)
+        static void RegisterHttpListenerInstaller(FeatureConfigurationContext context, IManageReceiveChannels channelManager, bool enableHttpListener)
         {
-            context.Container.ConfigureComponent(() => new GatewayHttpListenerInstaller(channelManager, true), DependencyLifecycle.SingleInstance);
+            context.Container.ConfigureComponent(() => new GatewayHttpListenerInstaller(channelManager, enableHttpListener), DependencyLifecycle.SingleInstance);
         }
 
         class GatewayReceiverStartupTask : FeatureStartupTask
@@ -231,7 +233,7 @@
                 }
 
                 var transportOperations = new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag(destination), DispatchConsistency.Default, deliveryConstraints));
-                return dispatchMessages.Dispatch(transportOperations, new ContextBag());
+                return dispatchMessages.Dispatch(transportOperations, new TransportTransaction(), new ContextBag());
             }
 
             static ILog Logger = LogManager.GetLogger<GatewayReceiverStartupTask>();
