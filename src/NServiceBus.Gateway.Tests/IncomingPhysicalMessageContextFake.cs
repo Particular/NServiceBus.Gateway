@@ -2,7 +2,6 @@ namespace NServiceBus.Gateway.Tests
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Threading.Tasks;
     using Extensibility;
     using HeaderManagement;

@@ -142,7 +142,7 @@
                 return new ConfigurationBasedChannelManager { ReceiveChannels = configSection.GetChannels().ToList() };
             }
 
-            return new ConventionBasedChannelManager { EndpointName = context.Settings.EndpointName().ToString() };
+            return new ConventionBasedChannelManager { EndpointName = context.Settings.EndpointName() };
 
         }
 

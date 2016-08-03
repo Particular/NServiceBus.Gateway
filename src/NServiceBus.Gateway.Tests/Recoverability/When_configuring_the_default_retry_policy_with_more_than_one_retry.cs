@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Transport;
     using NUnit.Framework;
