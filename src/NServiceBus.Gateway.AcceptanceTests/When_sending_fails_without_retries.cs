@@ -1,16 +1,12 @@
 ﻿namespace NServiceBus.AcceptanceTests.Gateway
 {
     using System;
-    using System.Collections.Generic;
-    using System.IO;
     using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NServiceBus.Config;
     using NServiceBus.Features;
-    using NServiceBus.Gateway;
     using NUnit.Framework;
-    using static System.Int32;
 
     public class When_sending_fails_without_retries : NServiceBusAcceptanceTest
     {
@@ -20,17 +16,14 @@
             var context = await Scenario.Define<Context>(c => { c.Id = Guid.NewGuid(); })
                 .WithEndpoint<Headquarters>(b =>
                 {
-                    b.CustomConfig((c, ctx) =>
-                    {
-                        c.Gateway().ChannelFactories(s => new FaultyChannelSender(ctx), s => new FakeChannelReceiver());
-                    })
-                    .When((bus, ctx) => bus.SendToSites(new[]
-                    {
-                        "SiteA"
-                    }, new AnyMessage
-                    {
-                        Id = ctx.Id
-                    }));
+                    b.CustomConfig((c, ctx) => { c.Gateway().ChannelFactories(s => new FaultyChannelSender<Context>(ctx), s => new FakeChannelReceiver()); })
+                        .When((bus, ctx) => bus.SendToSites(new[]
+                        {
+                            "SiteA"
+                        }, new AnyMessage
+                        {
+                            Id = ctx.Id
+                        }));
                 })
                 .WithEndpoint<ErrorSpy>()
                 .Done(c => c.MessageMovedToErrorQueue)
@@ -42,7 +35,7 @@
 
         const string ErrorSpyQueueName = "gw_error_spy_queue";
 
-        class Context : ScenarioContext
+        class Context : ScenarioContext, ICountNumberOfRetries
         {
             public Guid Id { get; set; }
             public bool MessageMovedToErrorQueue { get; set; }
@@ -98,8 +91,6 @@
 
             class ErrorMessageHandler : IHandleMessages<AnyMessage>
             {
-                Context testContext;
-
                 public ErrorMessageHandler(Context context)
                 {
                     testContext = context;
@@ -114,39 +105,8 @@
 
                     return Task.FromResult(0);
                 }
-            }
-        }
 
-        class FaultyChannelSender : IChannelSender
-        {
-            public FaultyChannelSender(Context testContext)
-            {
-                this.testContext = testContext;
-            }
-
-            public Task Send(string remoteAddress, IDictionary<string, string> headers, Stream data)
-            {
-                if (headers.ContainsKey(FullRetriesHeaderKey))
-                {
-                    testContext.NumberOfRetries = Parse(headers[FullRetriesHeaderKey]);
-                }
-                throw new SimulatedException($"Simulated error when sending to site at {remoteAddress}");
-            }
-
-            Context testContext;
-
-            static readonly string FullRetriesHeaderKey = $"NServiceBus.Header.{Headers.Retries}";
-        }
-
-        class FakeChannelReceiver : IChannelReceiver
-        {
-            public void Start(string address, int maxConcurrency, Func<DataReceivedOnChannelArgs, Task> dataReceivedOnChannel)
-            {
-            }
-
-            public Task Stop()
-            {
-                return Task.FromResult(0);
+                Context testContext;
             }
         }
     }

@@ -75,6 +75,9 @@
     <Compile Include="EndpointTemplates\EndpointCustomizationConfigurationExtensions.cs" />
     <Compile Include="EndpointTemplates\ErrorQueueSpyServer.cs" />
     <Compile Include="EndpointTemplates\ServerWithNoDefaultPersistenceDefinitions.cs" />
+    <Compile Include="FakeChannelReceiver.cs" />
+    <Compile Include="FaultyChannelSender.cs" />
+    <Compile Include="ICountNumberOfRetries.cs" />
     <Compile Include="NServiceBusAcceptanceTest.cs" />
     <Compile Include="ScenarioDescriptors\AllOutboxCapableStorages.cs" />
     <Compile Include="ScenarioDescriptors\AllTransports.cs" />

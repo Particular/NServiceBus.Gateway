@@ -97,6 +97,7 @@
     <Compile Include="Receiving\HasherTests.cs" />
     <Compile Include="Recoverability\When_configuring_the_default_retry_policy_with_a_single_retry.cs" />
     <Compile Include="Recoverability\When_configuring_the_default_retry_policy_with_more_than_one_retry.cs" />
+    <Compile Include="Recoverability\When_invoking_gateway_recoverability_policy.cs" />
     <Compile Include="Routing\When_routing_a_reply_message.cs" />
     <Compile Include="Routing\When_routing_using_the_configuration_source.cs" />
     <Compile Include="SendOptionsExtensionsTests.cs" />

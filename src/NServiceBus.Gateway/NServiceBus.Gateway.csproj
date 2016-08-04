@@ -99,6 +99,7 @@
     <Compile Include="Receiving\IManageReceiveChannels.cs" />
     <Compile Include="Receiving\SingleCallChannelReceiver.cs" />
     <Compile Include="Recoverability\DefaultRetryPolicy.cs" />
+    <Compile Include="Recoverability\GatewayRecoverabilityPolicy.cs" />
     <Compile Include="Routing\RouteThroughGateway.cs" />
     <Compile Include="Routing\RouteToGatewayBehaviour.cs" />
     <Compile Include="Routing\Endpoints\EndpointRouter.cs" />

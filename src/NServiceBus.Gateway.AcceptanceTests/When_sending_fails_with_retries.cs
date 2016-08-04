@@ -1,16 +1,12 @@
 ﻿namespace NServiceBus.AcceptanceTests.Gateway
 {
     using System;
-    using System.Collections.Generic;
-    using System.IO;
     using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NServiceBus.Config;
     using NServiceBus.Features;
-    using NServiceBus.Gateway;
     using NUnit.Framework;
-    using static System.Int32;
 
     public class When_sending_fails_with_retries : NServiceBusAcceptanceTest
     {
@@ -20,17 +16,14 @@
             var context = await Scenario.Define<Context>(c => { c.Id = Guid.NewGuid(); })
                 .WithEndpoint<Headquarters>(b =>
                 {
-                    b.CustomConfig((c, ctx) =>
-                    {
-                        c.Gateway().ChannelFactories(s => new FaultyChannelSender(ctx), s => new FakeChannelReceiver());
-                    })
-                    .When((bus, c) => bus.SendToSites(new[]
-                    {
-                        "SiteA"
-                    }, new AnyMessage
-                    {
-                        Id = c.Id
-                    }));
+                    b.CustomConfig((c, ctx) => { c.Gateway().ChannelFactories(s => new FaultyChannelSender<Context>(ctx), s => new FakeChannelReceiver()); })
+                        .When((bus, c) => bus.SendToSites(new[]
+                        {
+                            "SiteA"
+                        }, new AnyMessage
+                        {
+                            Id = c.Id
+                        }));
                 })
                 .WithEndpoint<ErrorSpy>()
                 .Done(c => c.MessageMovedToErrorQueue)
@@ -49,7 +42,7 @@
                     b.CustomConfig((c, ctx) =>
                     {
                         c.Gateway().Retries(2, TimeSpan.FromSeconds(1));
-                        c.Gateway().ChannelFactories(s => new FaultyChannelSender(ctx), s => new FakeChannelReceiver());
+                        c.Gateway().ChannelFactories(s => new FaultyChannelSender<Context>(ctx), s => new FakeChannelReceiver());
                     })
                         .When((bus, c) => bus.SendToSites(new[]
                         {
@@ -95,12 +88,12 @@
 
         const string ErrorSpyQueueName = "gw_error_spy_queue";
 
-        class Context : ScenarioContext
+        class Context : ScenarioContext, ICountNumberOfRetries
         {
             public Guid Id { get; set; }
             public bool MessageMovedToErrorQueue { get; set; }
-            public int NumberOfRetries { get; set; }
             public bool CustomRetryPolicyWasCalled { get; set; }
+            public int NumberOfRetries { get; set; }
         }
 
         class Headquarters : EndpointConfigurationBuilder
@@ -168,39 +161,6 @@
                 }
 
                 Context testContext;
-            }
-        }
-
-        class FaultyChannelSender : IChannelSender
-        {
-            public FaultyChannelSender(Context testContext)
-            {
-                this.testContext = testContext;
-            }
-
-            public Task Send(string remoteAddress, IDictionary<string, string> headers, Stream data)
-            {
-                if (headers.ContainsKey(FullRetriesHeaderKey))
-                {
-                    testContext.NumberOfRetries = Parse(headers[FullRetriesHeaderKey]);
-                }
-                throw new SimulatedException($"Simulated error when sending to site at {remoteAddress}");
-            }
-
-            Context testContext;
-
-            static readonly string FullRetriesHeaderKey = $"NServiceBus.Header.{Headers.Retries}";
-        }
-
-        class FakeChannelReceiver : IChannelReceiver
-        {
-            public void Start(string address, int maxConcurrency, Func<DataReceivedOnChannelArgs, Task> dataReceivedOnChannel)
-            {
-            }
-
-            public Task Stop()
-            {
-                return Task.FromResult(0);
             }
         }
     }
