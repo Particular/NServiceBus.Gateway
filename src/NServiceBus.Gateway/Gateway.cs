@@ -22,7 +22,6 @@
     using NServiceBus.Gateway.Routing.Endpoints;
     using NServiceBus.Gateway.Routing.Sites;
     using NServiceBus.Gateway.Sending;
-    using NServiceBus.ObjectBuilder;
     using NServiceBus.Persistence;
     using NServiceBus.Routing;
     using Performance.TimeToBeReceived;
@@ -62,31 +61,24 @@
 
             var requiredTransactionSupport = context.Settings.GetRequiredTransactionModeForReceives();
 
-            var retryPolicy = context.Settings.GetOrDefault<Func<IncomingMessage, Exception, int, TimeSpan>>("Gateway.Retries.RetryPolicy");
+            var retryPolicy = context.Settings.Get<Func<IncomingMessage, Exception, int, TimeSpan>>("Gateway.Retries.RetryPolicy");
 
-            context.AddSatelliteReceiver("Gateway", gatewayInputAddress, requiredTransactionSupport, PushRuntimeSettings.Default,
-                (config, errorContext) => GatewayRecoverabilityPolicy.Invoke(errorContext, retryPolicy, config),
-                (builder, messageContext) => SendMessage(context, gatewayInputAddress, channelManager, builder, channelSenderFactory, messageContext));
-
-            context.Pipeline.Register("RouteToGateway", b => new RouteToGatewayBehavior(gatewayInputAddress), "Reroutes gateway messages to the gateway");
-            context.Pipeline.Register("GatewayIncomingBehavior", typeof(GatewayIncomingBehavior), "Extracts gateway related information from the incoming message");
-            context.Pipeline.Register("GatewayOutgoingBehavior", typeof(GatewayOutgoingBehavior), "Puts gateway related information on the headers of outgoing messages");
-
-            context.RegisterStartupTask(b => new GatewayReceiverStartupTask(channelManager, channelReceiverFactory, GetEndpointRouter(context), b.Build<IDispatchMessages>(), b.Build<IDeduplicateMessages>(), b.BuildAll<IDataBus>()?.FirstOrDefault(), gatewayInputAddress));
-        }
-
-        static Task SendMessage(FeatureConfigurationContext context, string gatewayInputAddress, IManageReceiveChannels channelManager, IBuilder builder, Func<string, IChannelSender> channelSenderFactory, MessageContext messageContext)
-        {
-            var sendBehavior = new GatewaySendBehavior(
+            var sender = new GatewayMessageSender(
                 gatewayInputAddress,
                 channelManager,
                 new MessageNotifier(),
-                builder.Build<IDispatchMessages>(),
-                context.Settings,
-                CreateForwarder(channelSenderFactory, builder.BuildAll<IDataBus>()?.FirstOrDefault()),
+                context.Settings.LocalAddress(),
                 GetConfigurationBasedSiteRouter(context));
 
-            return sendBehavior.Invoke(messageContext);
+            context.AddSatelliteReceiver("Gateway", gatewayInputAddress, requiredTransactionSupport, PushRuntimeSettings.Default,
+                (config, errorContext) => GatewayRecoverabilityPolicy.Invoke(errorContext, retryPolicy, config),
+                (builder, messageContext) => sender.SendToDestination(messageContext, builder.Build<IDispatchMessages>(), CreateForwarder(channelSenderFactory, builder.BuildAll<IDataBus>()?.FirstOrDefault())));
+
+            context.Pipeline.Register("RouteToGateway", new RouteToGatewayBehavior(gatewayInputAddress), "Reroutes gateway messages to the gateway");
+            context.Pipeline.Register("GatewayIncomingBehavior", new GatewayIncomingBehavior(), "Extracts gateway related information from the incoming message");
+            context.Pipeline.Register("GatewayOutgoingBehavior", new GatewayOutgoingBehavior(), "Puts gateway related information on the headers of outgoing messages");
+
+            context.RegisterStartupTask(b => new GatewayReceiverStartupTask(channelManager, channelReceiverFactory, GetEndpointRouter(context), b.Build<IDispatchMessages>(), b.Build<IDeduplicateMessages>(), b.BuildAll<IDataBus>()?.FirstOrDefault(), gatewayInputAddress));
         }
 
         static void RegisterChannels(FeatureConfigurationContext context, IManageReceiveChannels channelManager, out Func<string, IChannelSender> channelSenderFactory, out Func<string, IChannelReceiver> channelReceiverFactory)

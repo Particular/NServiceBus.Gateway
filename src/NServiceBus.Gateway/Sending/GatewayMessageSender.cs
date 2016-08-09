@@ -10,23 +10,20 @@ namespace NServiceBus.Gateway.Sending
     using NServiceBus.Gateway.Routing;
     using NServiceBus.Gateway.Routing.Sites;
     using NServiceBus.Routing;
-    using NServiceBus.Settings;
     using NServiceBus.Transport;
 
-    class GatewaySendBehavior
+    class GatewayMessageSender
     {
-        public GatewaySendBehavior(string inputAddress, IManageReceiveChannels channelManager, MessageNotifier notifier, IDispatchMessages dispatchMessages, ReadOnlySettings settings, SingleCallChannelForwarder forwarder, ConfigurationBasedSiteRouter configRouter)
+        public GatewayMessageSender(string inputAddress, IManageReceiveChannels channelManager, MessageNotifier notifier, string localAddress, ConfigurationBasedSiteRouter configRouter)
         {
             this.configRouter = configRouter;
             messageNotifier = notifier;
-            this.settings = settings;
-            this.forwarder = forwarder;
-            dispatcher = dispatchMessages;
+            this.localAddress = localAddress;
             this.channelManager = channelManager;
             this.inputAddress = inputAddress;
         }
 
-        public async Task Invoke(MessageContext context)
+        public async Task SendToDestination(MessageContext context, IDispatchMessages dispatcher, SingleCallChannelForwarder forwarder)
         {
             var intent = GetMessageIntent(context.Headers);
 
@@ -37,7 +34,7 @@ namespace NServiceBus.Gateway.Sending
             {
                 foreach (var destinationSite in destinationSites)
                 {
-                    await CloneAndSendLocal(context.Body, context.Headers, destinationSite, context.TransportTransaction).ConfigureAwait(false);
+                    await CloneAndSendLocal(context.Body, context.Headers, destinationSite, context.TransportTransaction, dispatcher).ConfigureAwait(false);
                 }
 
                 return;
@@ -50,7 +47,7 @@ namespace NServiceBus.Gateway.Sending
                 throw new InvalidOperationException("No destination found for message");
             }
 
-            await SendToSite(context.Body, context.Headers, destination).ConfigureAwait(false);
+            await SendToSite(context.Body, context.Headers, destination, forwarder).ConfigureAwait(false);
         }
 
         static MessageIntentEnum GetMessageIntent(Dictionary<string, string> headers)
@@ -79,7 +76,7 @@ namespace NServiceBus.Gateway.Sending
             return conventionRoutes.Concat(configuredRoutes).ToList();
         }
 
-        Task CloneAndSendLocal(byte[] body, Dictionary<string, string> headers, Site destinationSite, TransportTransaction transportTransaction)
+        Task CloneAndSendLocal(byte[] body, Dictionary<string, string> headers, Site destinationSite, TransportTransaction transportTransaction, IDispatchMessages dispatcher)
         {
             headers[Headers.DestinationSites] = destinationSite.Key;
 
@@ -89,13 +86,13 @@ namespace NServiceBus.Gateway.Sending
             return dispatcher.Dispatch(new TransportOperations(operation), transportTransaction, new ContextBag());
         }
 
-        async Task SendToSite(byte[] body, Dictionary<string, string> headers, Site targetSite)
+        async Task SendToSite(byte[] body, Dictionary<string, string> headers, Site targetSite, SingleCallChannelForwarder forwarder)
         {
             headers[Headers.OriginatingSite] = GetDefaultAddressForThisSite();
 
             await forwarder.Forward(body, headers, targetSite).ConfigureAwait(false);
 
-            messageNotifier.RaiseMessageForwarded(settings.LocalAddress(), targetSite.Channel.Type, body, headers);
+            messageNotifier.RaiseMessageForwarded(localAddress, targetSite.Channel.Type, body, headers);
         }
 
         string GetDefaultAddressForThisSite()
@@ -105,9 +102,7 @@ namespace NServiceBus.Gateway.Sending
         }
 
         IManageReceiveChannels channelManager;
-        IDispatchMessages dispatcher;
-        ReadOnlySettings settings;
-        SingleCallChannelForwarder forwarder;
+        string localAddress;
         ConfigurationBasedSiteRouter configRouter;
         MessageNotifier messageNotifier;
         string inputAddress;
