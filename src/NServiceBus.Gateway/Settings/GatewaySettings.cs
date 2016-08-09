@@ -3,7 +3,7 @@
     using System;
     using Configuration.AdvanceExtensibility;
     using Gateway;
-    using Transports;
+    using Transport;
 
     /// <summary>
     /// Placeholder for the various settings and extension points related to gateway.

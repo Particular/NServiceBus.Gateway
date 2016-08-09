@@ -9,40 +9,32 @@ namespace NServiceBus.Gateway.Sending
     using NServiceBus.Gateway.Receiving;
     using NServiceBus.Gateway.Routing;
     using NServiceBus.Gateway.Routing.Sites;
-    using NServiceBus.Pipeline;
     using NServiceBus.Routing;
-    using NServiceBus.Settings;
-    using NServiceBus.Transports;
+    using NServiceBus.Transport;
 
-    class GatewaySendBehavior : PipelineTerminator<ISatelliteProcessingContext>
+    class GatewayMessageSender
     {
-        public GatewaySendBehavior(string inputAddress, IManageReceiveChannels channelManager, MessageNotifier notifier, IDispatchMessages dispatchMessages, ReadOnlySettings settings, SingleCallChannelForwarder forwarder, ConfigurationBasedSiteRouter configRouter)
+        public GatewayMessageSender(string inputAddress, IManageReceiveChannels channelManager, MessageNotifier notifier, string localAddress, ConfigurationBasedSiteRouter configRouter)
         {
             this.configRouter = configRouter;
             messageNotifier = notifier;
-            this.settings = settings;
-            this.forwarder = forwarder;
-            dispatcher = dispatchMessages;
+            this.localAddress = localAddress;
             this.channelManager = channelManager;
             this.inputAddress = inputAddress;
         }
 
-        protected override async Task Terminate(ISatelliteProcessingContext context)
+        public async Task SendToDestination(MessageContext context, IDispatchMessages dispatcher, SingleCallChannelForwarder forwarder)
         {
-            var message = context.Message;
-            var headers = message.Headers;
-            var body = message.Body;
+            var intent = GetMessageIntent(context.Headers);
 
-            var intent = GetMessageIntent(message);
-
-            var destinationSites = GetDestinationSitesFor(headers, intent);
+            var destinationSites = GetDestinationSitesFor(context.Headers, intent);
 
             //if there is more than 1 destination we break it up into multiple dispatches
             if (destinationSites.Count > 1)
             {
                 foreach (var destinationSite in destinationSites)
                 {
-                    await CloneAndSendLocal(body, headers, destinationSite).ConfigureAwait(false);
+                    await CloneAndSendLocal(context.Body, context.Headers, destinationSite, context.TransportTransaction, dispatcher).ConfigureAwait(false);
                 }
 
                 return;
@@ -55,15 +47,15 @@ namespace NServiceBus.Gateway.Sending
                 throw new InvalidOperationException("No destination found for message");
             }
 
-            await SendToSite(body, headers, destination).ConfigureAwait(false);
+            await SendToSite(context.Body, context.Headers, destination, forwarder).ConfigureAwait(false);
         }
 
-        static MessageIntentEnum GetMessageIntent(IncomingMessage message)
+        static MessageIntentEnum GetMessageIntent(Dictionary<string, string> headers)
         {
             string messageIntentString;
             MessageIntentEnum messageIntent;
 
-            if (message.Headers.TryGetValue(Headers.MessageIntent, out messageIntentString) && Enum.TryParse(messageIntentString, true, out messageIntent))
+            if (headers.TryGetValue(Headers.MessageIntent, out messageIntentString) && Enum.TryParse(messageIntentString, true, out messageIntent))
             {
                 return messageIntent;
             }
@@ -84,23 +76,23 @@ namespace NServiceBus.Gateway.Sending
             return conventionRoutes.Concat(configuredRoutes).ToList();
         }
 
-        Task CloneAndSendLocal(byte[] body, Dictionary<string, string> headers, Site destinationSite)
+        Task CloneAndSendLocal(byte[] body, Dictionary<string, string> headers, Site destinationSite, TransportTransaction transportTransaction, IDispatchMessages dispatcher)
         {
             headers[Headers.DestinationSites] = destinationSite.Key;
 
             var message = new OutgoingMessage(headers[Headers.MessageId], headers, body);
             var operation = new TransportOperation(message, new UnicastAddressTag(inputAddress));
 
-            return dispatcher.Dispatch(new TransportOperations(operation), new ContextBag());
+            return dispatcher.Dispatch(new TransportOperations(operation), transportTransaction, new ContextBag());
         }
 
-        async Task SendToSite(byte[] body, Dictionary<string, string> headers, Site targetSite)
+        async Task SendToSite(byte[] body, Dictionary<string, string> headers, Site targetSite, SingleCallChannelForwarder forwarder)
         {
             headers[Headers.OriginatingSite] = GetDefaultAddressForThisSite();
 
             await forwarder.Forward(body, headers, targetSite).ConfigureAwait(false);
 
-            messageNotifier.RaiseMessageForwarded(settings.LocalAddress(), targetSite.Channel.Type, body, headers);
+            messageNotifier.RaiseMessageForwarded(localAddress, targetSite.Channel.Type, body, headers);
         }
 
         string GetDefaultAddressForThisSite()
@@ -110,9 +102,7 @@ namespace NServiceBus.Gateway.Sending
         }
 
         IManageReceiveChannels channelManager;
-        IDispatchMessages dispatcher;
-        ReadOnlySettings settings;
-        SingleCallChannelForwarder forwarder;
+        string localAddress;
         ConfigurationBasedSiteRouter configRouter;
         MessageNotifier messageNotifier;
         string inputAddress;

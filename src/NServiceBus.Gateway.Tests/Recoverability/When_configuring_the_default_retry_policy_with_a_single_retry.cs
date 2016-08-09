@@ -2,9 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using NServiceBus.Configuration.AdvanceExtensibility;
-    using NServiceBus.Transports;
+    using NServiceBus.Transport;
     using NUnit.Framework;
 
     [TestFixture]
@@ -13,7 +12,7 @@
         [SetUp]
         public void Setup()
         {
-            FailingMessage = new IncomingMessage("failing-id", new Dictionary<string, string>(), Stream.Null);
+            FailingMessage = new IncomingMessage("failing-id", new Dictionary<string, string>(), new byte[0]);
             Exception = new Exception("exception-message");
             TimeIncrease = TimeSpan.FromSeconds(1);
             NumberOfRetries = 1;

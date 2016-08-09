@@ -46,7 +46,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="NServiceBus.Core, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.6.0.0-beta0004\lib\net452\NServiceBus.Core.dll</HintPath>
+      <HintPath>..\packages\NServiceBus.6.0.0-beta0006\lib\net452\NServiceBus.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Obsolete, Version=4.0.5.0, Culture=neutral, PublicKeyToken=1ca091877d12ca03, processorArchitecture=MSIL">
@@ -98,9 +98,8 @@
     <Compile Include="Receiving\ConventionBasedChannelManager.cs" />
     <Compile Include="Receiving\IManageReceiveChannels.cs" />
     <Compile Include="Receiving\SingleCallChannelReceiver.cs" />
-    <Compile Include="Recoverability\ForwardFailedGatewayMessagesToErrorQueueBehavior.cs" />
-    <Compile Include="Recoverability\RetryFailedGatewayMessagesBehavior.cs" />
     <Compile Include="Recoverability\DefaultRetryPolicy.cs" />
+    <Compile Include="Recoverability\GatewayRecoverabilityPolicy.cs" />
     <Compile Include="Routing\RouteThroughGateway.cs" />
     <Compile Include="Routing\RouteToGatewayBehaviour.cs" />
     <Compile Include="Routing\Endpoints\EndpointRouter.cs" />
@@ -110,7 +109,7 @@
     <Compile Include="Routing\Sites\OriginatingSiteHeaderRouter.cs" />
     <Compile Include="Sending\CallInfo.cs" />
     <Compile Include="CallType.cs" />
-    <Compile Include="Sending\GatewaySendBehavior.cs" />
+    <Compile Include="Sending\GatewayMessageSender.cs" />
     <Compile Include="Sending\SingleCallChannelForwarder.cs" />
     <Compile Include="SendOptionsExtensions.cs" />
     <Compile Include="Settings\GatewayExtensions.cs" />
