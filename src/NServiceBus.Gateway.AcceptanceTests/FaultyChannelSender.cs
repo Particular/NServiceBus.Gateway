@@ -25,6 +25,6 @@ namespace NServiceBus.AcceptanceTests.Gateway
 
         TContext testContext;
 
-        static readonly string FullRetriesHeaderKey = $"NServiceBus.Header.{Headers.Retries}";
+        static readonly string FullRetriesHeaderKey = "NServiceBus.Header.NServiceBus.Retries";
     }
 }
