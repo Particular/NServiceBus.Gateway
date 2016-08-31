@@ -57,7 +57,7 @@
             Func<string, IChannelReceiver> channelReceiverFactory;
             RegisterChannels(context, channelManager, out channelSenderFactory, out channelReceiverFactory);
 
-            var gatewayInputAddress = context.Settings.GetTransportAddress(new LogicalAddress(context.Settings.EndpointInstanceName(), "gateway"));
+            var gatewayInputAddress = context.Settings.GetTransportAddress(context.Settings.LogicalAddress().CreateQualifiedAddress("gateway"));
 
             var requiredTransactionSupport = context.Settings.GetRequiredTransactionModeForReceives();
 
