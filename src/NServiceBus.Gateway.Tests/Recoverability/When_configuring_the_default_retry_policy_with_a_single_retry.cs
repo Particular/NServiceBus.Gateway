@@ -2,9 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
-    using NServiceBus.Configuration.AdvanceExtensibility;
-    using NServiceBus.Transport;
+    using Transport;
     using NUnit.Framework;
+    using Configuration.AdvanceExtensibility;
 
     [TestFixture]
     class When_configuring_the_default_retry_policy_with_a_single_retry
