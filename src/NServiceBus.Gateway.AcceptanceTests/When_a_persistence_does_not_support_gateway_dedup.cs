@@ -26,7 +26,7 @@
             {
                 EndpointSetup<ServerWithNoDefaultPersistenceDefinitions>(c =>
                 {
-                    c.ScaleOut().InstanceDiscriminator("1");
+                    c.MakeInstanceUniquelyAddressable("1");
 
                     c.UsePersistence<InMemoryPersistence, StorageType.Sagas>();
                     c.UsePersistence<InMemoryPersistence, StorageType.Outbox>();

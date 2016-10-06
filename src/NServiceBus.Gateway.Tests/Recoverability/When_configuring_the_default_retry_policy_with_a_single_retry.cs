@@ -2,10 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
-    using NServiceBus.Configuration.AdvanceExtensibility;
-    using NServiceBus.Transports;
+    using Transport;
     using NUnit.Framework;
+    using Configuration.AdvanceExtensibility;
 
     [TestFixture]
     class When_configuring_the_default_retry_policy_with_a_single_retry
@@ -13,7 +12,7 @@
         [SetUp]
         public void Setup()
         {
-            FailingMessage = new IncomingMessage("failing-id", new Dictionary<string, string>(), Stream.Null);
+            FailingMessage = new IncomingMessage("failing-id", new Dictionary<string, string>(), new byte[0]);
             Exception = new Exception("exception-message");
             TimeIncrease = TimeSpan.FromSeconds(1);
             NumberOfRetries = 1;

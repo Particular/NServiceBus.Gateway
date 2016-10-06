@@ -5,7 +5,7 @@ namespace NServiceBus.Gateway.Tests
     using System.Threading.Tasks;
     using Extensibility;
     using HeaderManagement;
-    using NServiceBus.Pipeline;
+    using Pipeline;
     using NServiceBus.Routing;
     using ObjectBuilder;
 
@@ -21,7 +21,7 @@ namespace NServiceBus.Gateway.Tests
                     [NServiceBus.Headers.CorrelationId] = Guid.NewGuid().ToString()
                 };
             }
-           
+
             Extensions = new ContextBag();
             if (state != null)
             {

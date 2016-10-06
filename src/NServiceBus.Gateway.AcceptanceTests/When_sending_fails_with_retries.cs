@@ -2,12 +2,11 @@
 {
     using System;
     using System.Threading.Tasks;
-    using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
+    using AcceptanceTesting;
+    using EndpointTemplates;
+    using Config;
+    using Features;
     using NUnit.Framework;
-    using static System.Int32;
 
     public class When_sending_fails_with_retries : NServiceBusAcceptanceTest
     {
@@ -17,13 +16,14 @@
             var context = await Scenario.Define<Context>(c => { c.Id = Guid.NewGuid(); })
                 .WithEndpoint<Headquarters>(b =>
                 {
-                    b.When((bus, c) => bus.SendToSites(new[]
-                    {
-                        "SiteA"
-                    }, new AnyMessage
-                    {
-                        Id = c.Id
-                    }));
+                    b.CustomConfig((c, ctx) => { c.Gateway().ChannelFactories(s => new FaultyChannelSender<Context>(ctx), s => new FakeChannelReceiver()); })
+                        .When((bus, c) => bus.SendToSites(new[]
+                        {
+                            "SiteA"
+                        }, new AnyMessage
+                        {
+                            Id = c.Id
+                        }));
                 })
                 .WithEndpoint<ErrorSpy>()
                 .Done(c => c.MessageMovedToErrorQueue)
@@ -39,7 +39,11 @@
             var context = await Scenario.Define<Context>(c => { c.Id = Guid.NewGuid(); })
                 .WithEndpoint<Headquarters>(b =>
                 {
-                    b.CustomConfig(c => c.Gateway().Retries(2, TimeSpan.FromSeconds(1)))
+                    b.CustomConfig((c, ctx) =>
+                    {
+                        c.Gateway().Retries(2, TimeSpan.FromSeconds(1));
+                        c.Gateway().ChannelFactories(s => new FaultyChannelSender<Context>(ctx), s => new FakeChannelReceiver());
+                    })
                         .When((bus, c) => bus.SendToSites(new[]
                         {
                             "SiteA"
@@ -84,12 +88,12 @@
 
         const string ErrorSpyQueueName = "gw_error_spy_queue";
 
-        class Context : ScenarioContext
+        class Context : ScenarioContext, ICountNumberOfRetries
         {
             public Guid Id { get; set; }
             public bool MessageMovedToErrorQueue { get; set; }
-            public int NumberOfRetries { get; set; }
             public bool CustomRetryPolicyWasCalled { get; set; }
+            public int NumberOfRetries { get; set; }
         }
 
         class Headquarters : EndpointConfigurationBuilder
@@ -150,10 +154,6 @@
                 {
                     if (errorMessage.Id == testContext.Id)
                     {
-                        if (context.MessageHeaders.ContainsKey(Headers.Retries))
-                        {
-                            testContext.NumberOfRetries = Parse(context.MessageHeaders[Headers.Retries]);
-                        }
                         testContext.MessageMovedToErrorQueue = true;
                     }
 

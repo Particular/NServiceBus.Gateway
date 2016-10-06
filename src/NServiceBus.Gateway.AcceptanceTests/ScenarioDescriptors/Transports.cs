@@ -3,8 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.Transports;
+    using AcceptanceTesting.Support;
+    using Transport;
 
     public static class Transports
     {
@@ -70,7 +70,7 @@
         {
             {"RabbitMQTransport", "host=localhost"},
             {"SqlServerTransport", @"Server=localhost\sqlexpress;Database=nservicebus;Trusted_Connection=True;"},
-            {"MsmqTransport", @"cacheSendConnection=false;journal=false;"}
+            {"MsmqTransport", "cacheSendConnection=false;journal=false;"}
         };
     }
 }

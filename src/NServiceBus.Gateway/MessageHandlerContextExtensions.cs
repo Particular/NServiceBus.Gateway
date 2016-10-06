@@ -7,7 +7,7 @@
     /// <summary>
     /// Gateways IBus extensions.
     /// </summary>
-    public static class BusExtensions
+    public static class MessageHandlerContextExtensions
     {
         /// <summary>
         /// Sends the message to all sites with matching site keys registered with the gateway.

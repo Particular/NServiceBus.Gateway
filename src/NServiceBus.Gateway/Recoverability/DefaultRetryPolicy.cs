@@ -1,6 +1,6 @@
 ﻿namespace NServiceBus.Gateway
 {
-    using NServiceBus.Transports;
+    using Transport;
     using System;
 
     class DefaultRetryPolicy

@@ -46,7 +46,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="NServiceBus.Core, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.6.0.0-beta0002\lib\net452\NServiceBus.Core.dll</HintPath>
+      <HintPath>..\packages\NServiceBus.6.0.0\lib\net452\NServiceBus.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Obsolete, Version=4.0.5.0, Culture=neutral, PublicKeyToken=1ca091877d12ca03, processorArchitecture=MSIL">
@@ -62,7 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="BusExtensions.cs" />
+    <Compile Include="MessageHandlerContextExtensions.cs" />
     <Compile Include="Channels\Channel.cs" />
     <Compile Include="Channels\ChannelSenderFactory.cs" />
     <Compile Include="Channels\ChannelReceiverFactory.cs" />
@@ -98,9 +98,8 @@
     <Compile Include="Receiving\ConventionBasedChannelManager.cs" />
     <Compile Include="Receiving\IManageReceiveChannels.cs" />
     <Compile Include="Receiving\SingleCallChannelReceiver.cs" />
-    <Compile Include="Recoverability\ForwardFailedGatewayMessagesToErrorQueueBehavior.cs" />
-    <Compile Include="Recoverability\RetryFailedGatewayMessagesBehavior.cs" />
     <Compile Include="Recoverability\DefaultRetryPolicy.cs" />
+    <Compile Include="Recoverability\GatewayRecoverabilityPolicy.cs" />
     <Compile Include="Routing\RouteThroughGateway.cs" />
     <Compile Include="Routing\RouteToGatewayBehaviour.cs" />
     <Compile Include="Routing\Endpoints\EndpointRouter.cs" />
@@ -110,7 +109,7 @@
     <Compile Include="Routing\Sites\OriginatingSiteHeaderRouter.cs" />
     <Compile Include="Sending\CallInfo.cs" />
     <Compile Include="CallType.cs" />
-    <Compile Include="Sending\GatewaySendBehavior.cs" />
+    <Compile Include="Sending\GatewayMessageSender.cs" />
     <Compile Include="Sending\SingleCallChannelForwarder.cs" />
     <Compile Include="SendOptionsExtensions.cs" />
     <Compile Include="Settings\GatewayExtensions.cs" />
@@ -136,10 +135,10 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Fody.1.29.4\build\dotnet\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Fody.1.29.4\build\dotnet\Fody.targets'))" />
     <Error Condition="!Exists('..\packages\Particular.CodeRules.0.1.1\build\Particular.CodeRules.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Particular.CodeRules.0.1.1\build\Particular.CodeRules.props'))" />
-    <Error Condition="!Exists('..\packages\GitVersionTask.3.4.1\build\dotnet\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.3.4.1\build\dotnet\GitVersionTask.targets'))" />
     <Error Condition="!Exists('..\packages\NuGetPackager.0.6.0\build\NuGetPackager.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NuGetPackager.0.6.0\build\NuGetPackager.targets'))" />
+    <Error Condition="!Exists('..\packages\GitVersionTask.3.6.3\build\dotnet\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GitVersionTask.3.6.3\build\dotnet\GitVersionTask.targets'))" />
   </Target>
   <Import Project="..\packages\Fody.1.29.4\build\dotnet\Fody.targets" Condition="Exists('..\packages\Fody.1.29.4\build\dotnet\Fody.targets')" />
-  <Import Project="..\packages\GitVersionTask.3.4.1\build\dotnet\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.3.4.1\build\dotnet\GitVersionTask.targets')" />
   <Import Project="..\packages\NuGetPackager.0.6.0\build\NuGetPackager.targets" Condition="Exists('..\packages\NuGetPackager.0.6.0\build\NuGetPackager.targets')" />
+  <Import Project="..\packages\GitVersionTask.3.6.3\build\dotnet\GitVersionTask.targets" Condition="Exists('..\packages\GitVersionTask.3.6.3\build\dotnet\GitVersionTask.targets')" />
 </Project>

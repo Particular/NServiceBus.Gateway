@@ -2,12 +2,11 @@
 {
     using System;
     using System.Threading.Tasks;
-    using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
+    using AcceptanceTesting;
+    using EndpointTemplates;
+    using Config;
+    using Features;
     using NUnit.Framework;
-    using static System.Int32;
 
     public class When_sending_fails_without_retries : NServiceBusAcceptanceTest
     {
@@ -15,13 +14,17 @@
         public async Task Should_move_to_error_queue()
         {
             var context = await Scenario.Define<Context>(c => { c.Id = Guid.NewGuid(); })
-                .WithEndpoint<Headquarters>(b => b.When((bus, ctx) => bus.SendToSites(new[]
+                .WithEndpoint<Headquarters>(b =>
                 {
-                    "SiteA"
-                }, new AnyMessage
-                {
-                    Id = ctx.Id
-                })))
+                    b.CustomConfig((c, ctx) => { c.Gateway().ChannelFactories(s => new FaultyChannelSender<Context>(ctx), s => new FakeChannelReceiver()); })
+                        .When((bus, ctx) => bus.SendToSites(new[]
+                        {
+                            "SiteA"
+                        }, new AnyMessage
+                        {
+                            Id = ctx.Id
+                        }));
+                })
                 .WithEndpoint<ErrorSpy>()
                 .Done(c => c.MessageMovedToErrorQueue)
                 .Run();
@@ -32,7 +35,7 @@
 
         const string ErrorSpyQueueName = "gw_error_spy_queue";
 
-        class Context : ScenarioContext
+        class Context : ScenarioContext, ICountNumberOfRetries
         {
             public Guid Id { get; set; }
             public bool MessageMovedToErrorQueue { get; set; }
@@ -88,8 +91,6 @@
 
             class ErrorMessageHandler : IHandleMessages<AnyMessage>
             {
-                Context testContext;
-
                 public ErrorMessageHandler(Context context)
                 {
                     testContext = context;
@@ -99,15 +100,13 @@
                 {
                     if (errorMessage.Id == testContext.Id)
                     {
-                        if (context.MessageHeaders.ContainsKey(Headers.Retries))
-                        {
-                            testContext.NumberOfRetries = Parse(context.MessageHeaders[Headers.Retries]);
-                        }
                         testContext.MessageMovedToErrorQueue = true;
                     }
 
                     return Task.FromResult(0);
                 }
+
+                Context testContext;
             }
         }
     }

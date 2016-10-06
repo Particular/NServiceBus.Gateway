@@ -4,12 +4,12 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using NServiceBus.AcceptanceTesting.Customization;
-    using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.Config.ConfigurationSource;
-    using NServiceBus.Configuration.AdvanceExtensibility;
-    using NServiceBus.Features;
-    using NServiceBus.Serialization;
+    using AcceptanceTesting.Customization;
+    using AcceptanceTesting.Support;
+    using Config.ConfigurationSource;
+    using Configuration.AdvanceExtensibility;
+    using Features;
+    using Serialization;
 
     public class DefaultServer : IEndpointSetupTemplate
     {
@@ -46,8 +46,9 @@
             builder.EnableInstallers();
 
             builder.DisableFeature<TimeoutManager>();
-            builder.DisableFeature<SecondLevelRetries>();
-            builder.DisableFeature<FirstLevelRetries>();
+            builder.Recoverability()
+                .Delayed(delayed => delayed.NumberOfRetries(0))
+                .Immediate(immediate => immediate.NumberOfRetries(0));
 
             await builder.DefineTransport(settings, endpointConfiguration.EndpointName).ConfigureAwait(false);
 

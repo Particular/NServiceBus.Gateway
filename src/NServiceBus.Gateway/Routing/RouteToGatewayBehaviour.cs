@@ -6,13 +6,13 @@
     using Pipeline;
     using Routing;
 
-    class RouteToGatewayBehaviour : Behavior<IRoutingContext>
+    class RouteToGatewayBehavior : Behavior<IRoutingContext>
     {
-        public RouteToGatewayBehaviour(string gatewayAddress)
+        public RouteToGatewayBehavior(string gatewayAddress)
         {
             this.gatewayAddress = gatewayAddress;
         }
-        
+
         public override Task Invoke(IRoutingContext context, Func<Task> next)
         {
             RouteThroughGateway routeThroughGateway;
