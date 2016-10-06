@@ -22,8 +22,8 @@
     using NServiceBus.Gateway.Routing.Endpoints;
     using NServiceBus.Gateway.Routing.Sites;
     using NServiceBus.Gateway.Sending;
-    using NServiceBus.Persistence;
-    using NServiceBus.Routing;
+    using Persistence;
+    using Routing;
     using Performance.TimeToBeReceived;
     using Transport;
 

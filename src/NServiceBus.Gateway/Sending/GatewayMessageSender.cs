@@ -4,13 +4,13 @@ namespace NServiceBus.Gateway.Sending
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using NServiceBus.Extensibility;
-    using NServiceBus.Gateway.Notifications;
-    using NServiceBus.Gateway.Receiving;
-    using NServiceBus.Gateway.Routing;
-    using NServiceBus.Gateway.Routing.Sites;
+    using Extensibility;
+    using Notifications;
+    using Receiving;
+    using Routing;
+    using Routing.Sites;
     using NServiceBus.Routing;
-    using NServiceBus.Transport;
+    using Transport;
 
     class GatewayMessageSender
     {

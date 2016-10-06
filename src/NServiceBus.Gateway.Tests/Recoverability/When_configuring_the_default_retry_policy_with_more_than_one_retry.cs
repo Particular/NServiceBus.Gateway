@@ -2,8 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
-    using NServiceBus.Configuration.AdvanceExtensibility;
-    using NServiceBus.Transport;
+    using Configuration.AdvanceExtensibility;
+    using Transport;
     using NUnit.Framework;
 
     [TestFixture]

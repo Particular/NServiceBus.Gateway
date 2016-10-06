@@ -1,7 +1,7 @@
 ﻿namespace NServiceBus.Gateway
 {
     using System;
-    using NServiceBus.Transport;
+    using Transport;
 
     static class GatewayRecoverabilityPolicy
     {

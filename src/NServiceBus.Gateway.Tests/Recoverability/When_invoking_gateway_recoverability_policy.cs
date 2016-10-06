@@ -2,7 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using NServiceBus.Transport;
+    using Transport;
     using NUnit.Framework;
 
     class When_invoking_gateway_recoverability_policy
