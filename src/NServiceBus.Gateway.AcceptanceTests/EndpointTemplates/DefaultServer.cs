@@ -4,12 +4,12 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using NServiceBus.AcceptanceTesting.Customization;
-    using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.Config.ConfigurationSource;
-    using NServiceBus.Configuration.AdvanceExtensibility;
-    using NServiceBus.Features;
-    using NServiceBus.Serialization;
+    using AcceptanceTesting.Customization;
+    using AcceptanceTesting.Support;
+    using Config.ConfigurationSource;
+    using Configuration.AdvanceExtensibility;
+    using Features;
+    using Serialization;
 
     public class DefaultServer : IEndpointSetupTemplate
     {

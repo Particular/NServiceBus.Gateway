@@ -4,8 +4,8 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.Hosting.Helpers;
+    using AcceptanceTesting.Support;
+    using Hosting.Helpers;
 
     public class AllTransports : ScenarioDescriptor
     {

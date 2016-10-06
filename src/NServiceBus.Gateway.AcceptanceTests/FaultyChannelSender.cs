@@ -4,7 +4,7 @@ namespace NServiceBus.AcceptanceTests.Gateway
     using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
-    using NServiceBus.AcceptanceTesting;
+    using AcceptanceTesting;
     using NServiceBus.Gateway;
 
     class FaultyChannelSender<TContext> : IChannelSender where TContext : ICountNumberOfRetries

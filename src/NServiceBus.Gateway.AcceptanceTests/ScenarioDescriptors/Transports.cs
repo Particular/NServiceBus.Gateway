@@ -3,8 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.Transport;
+    using AcceptanceTesting.Support;
+    using Transport;
 
     public static class Transports
     {

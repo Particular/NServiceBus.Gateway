@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using NServiceBus.AcceptanceTesting.Support;
+    using AcceptanceTesting.Support;
     using NServiceBus.Persistence;
 
     public static class Persistence

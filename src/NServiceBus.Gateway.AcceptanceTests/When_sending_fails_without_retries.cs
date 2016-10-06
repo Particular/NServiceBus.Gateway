@@ -2,10 +2,10 @@
 {
     using System;
     using System.Threading.Tasks;
-    using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
-    using NServiceBus.Config;
-    using NServiceBus.Features;
+    using AcceptanceTesting;
+    using EndpointTemplates;
+    using Config;
+    using Features;
     using NUnit.Framework;
 
     public class When_sending_fails_without_retries : NServiceBusAcceptanceTest
