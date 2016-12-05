@@ -5,7 +5,6 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Config;
-    using ConsistencyGuarantees;
     using DeliveryConstraints;
     using Extensibility;
     using Installation;
@@ -59,8 +58,6 @@
 
             var gatewayInputAddress = context.Settings.GetTransportAddress(context.Settings.LogicalAddress().CreateQualifiedAddress("gateway"));
 
-            var requiredTransactionSupport = context.Settings.GetRequiredTransactionModeForReceives();
-
             var retryPolicy = context.Settings.Get<Func<IncomingMessage, Exception, int, TimeSpan>>("Gateway.Retries.RetryPolicy");
 
             var sender = new GatewayMessageSender(
@@ -70,7 +67,7 @@
                 context.Settings.LocalAddress(),
                 GetConfigurationBasedSiteRouter(context));
 
-            context.AddSatelliteReceiver("Gateway", gatewayInputAddress, requiredTransactionSupport, PushRuntimeSettings.Default,
+            context.AddSatelliteReceiver("Gateway", gatewayInputAddress, PushRuntimeSettings.Default,
                 (config, errorContext) => GatewayRecoverabilityPolicy.Invoke(errorContext, retryPolicy, config),
                 (builder, messageContext) => sender.SendToDestination(messageContext, builder.Build<IDispatchMessages>(), CreateForwarder(channelSenderFactory, builder.BuildAll<IDataBus>()?.FirstOrDefault())));
 
@@ -136,7 +133,7 @@
 
         static ConfigurationBasedSiteRouter GetConfigurationBasedSiteRouter(FeatureConfigurationContext context)
         {
-           var sites = new Dictionary<string, Site>();
+            var sites = new Dictionary<string, Site>();
 
             var section = context.Settings.GetConfigSection<GatewayConfig>();
             if (section != null)
