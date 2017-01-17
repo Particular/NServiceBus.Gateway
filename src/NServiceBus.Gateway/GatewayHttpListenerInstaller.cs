@@ -48,8 +48,8 @@ netsh http add urlacl url={{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}}
             {
                 if (receiveChannel.Type.ToLower() != "http") continue;
 
-                var uri = new Uri(receiveChannel.Address);
-                if (!uri.Scheme.StartsWith("http", StringComparison.InvariantCultureIgnoreCase))
+                var uri = receiveChannel.Address;
+                if(!uri.StartsWith("http", StringComparison.InvariantCultureIgnoreCase))
                 {
                     continue;
                 }
@@ -69,7 +69,7 @@ netsh http add urlacl url={1} user=""{0}""", uri, identity);
             return Task.FromResult(0);
         }
 
-        static void StartNetshProcess(string identity, Uri uri)
+        static void StartNetshProcess(string identity, string uri)
         {
             var startInfo = new ProcessStartInfo
             {
