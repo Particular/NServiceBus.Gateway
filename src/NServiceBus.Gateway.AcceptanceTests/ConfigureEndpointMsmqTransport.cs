@@ -10,7 +10,7 @@ using NServiceBus.Transport;
 
 public class ConfigureEndpointMsmqTransport : IConfigureEndpointTestExecution
 {
-    public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings)
+    public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
     {
         queueBindings = configuration.GetSettings().Get<QueueBindings>();
         var connectionString = settings.Get<string>("Transport.ConnectionString");
