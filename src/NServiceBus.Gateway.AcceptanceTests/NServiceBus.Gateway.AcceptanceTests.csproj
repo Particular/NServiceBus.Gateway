@@ -1,110 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A294B9AD-3AC4-4A1D-8A51-14921F35AD08}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NServiceBus.Gateway.AcceptanceTests</RootNamespace>
-    <AssemblyName>NServiceBus.Gateway.AcceptanceTests</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <TargetFramework>net452</TargetFramework>
+    <DebugSymbols>True</DebugSymbols>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <UseVSHostingProcess>false</UseVSHostingProcess>
-    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NServiceBus.AcceptanceTesting, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.AcceptanceTesting.6.0.0\lib\net452\NServiceBus.AcceptanceTesting.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="NServiceBus.Callbacks, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.Callbacks.1.0.0\lib\net452\NServiceBus.Callbacks.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="NServiceBus.Core, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.6.0.0\lib\net452\NServiceBus.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="nunit.framework, Version=3.2.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
-      <HintPath>..\packages\NUnit.3.2.1\lib\net45\nunit.framework.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Messaging" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="6.0.0" />
+    <PackageReference Include="NServiceBus.Callbacks" Version="1.0.0" />
+    <PackageReference Include="NServiceBus" Version="6.0.0" />
+    <PackageReference Include="NUnit" Version="3.7.1" />
+    <ProjectReference Include="..\NServiceBus.Gateway\NServiceBus.Gateway.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Messaging" />
+    <Reference Include="System.Web" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ConfigureEndpointInMemoryPersistence.cs" />
-    <Compile Include="ConfigureEndpointMsmqTransport.cs" />
-    <Compile Include="ConfigureScenariosForMsmqTransport.cs" />
-    <Compile Include="EndpointTemplates\ConfigureExtensions.cs" />
-    <Compile Include="EndpointTemplates\DefaultPublisher.cs" />
-    <Compile Include="EndpointTemplates\DefaultServer.cs" />
-    <Compile Include="EndpointTemplates\DefaultServerWithCallbacks.cs" />
-    <Compile Include="EndpointTemplates\EndpointCustomizationConfigurationExtensions.cs" />
-    <Compile Include="EndpointTemplates\ErrorQueueSpyServer.cs" />
-    <Compile Include="EndpointTemplates\ServerWithNoDefaultPersistenceDefinitions.cs" />
-    <Compile Include="FakeChannelReceiver.cs" />
-    <Compile Include="FaultyChannelSender.cs" />
-    <Compile Include="ICountNumberOfRetries.cs" />
-    <Compile Include="NServiceBusAcceptanceTest.cs" />
-    <Compile Include="ScenarioDescriptors\AllOutboxCapableStorages.cs" />
-    <Compile Include="ScenarioDescriptors\AllTransports.cs" />
-    <Compile Include="ScenarioDescriptors\Builders.cs" />
-    <Compile Include="ScenarioDescriptors\EnvironmentHelper.cs" />
-    <Compile Include="ScenarioDescriptors\Persistence.cs" />
-    <Compile Include="ScenarioDescriptors\Serializers.cs" />
-    <Compile Include="ScenarioDescriptors\Transports.cs" />
-    <Compile Include="When_a_persistence_does_not_support_gateway_dedup.cs" />
-    <Compile Include="When_doing_request_response_between_sites.cs" />
-    <Compile Include="When_doing_request_response_with_databus_between_sites.cs" />
-    <Compile Include="When_doing_request_reply.cs" />
-    <Compile Include="When_sending_fails_with_retries.cs" />
-    <Compile Include="When_sending_fails_without_retries.cs" />
-    <Compile Include="When_sending_a_message_to_another_site.cs" />
-    <Compile Include="When_sending_a_message_via_the_gateway.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\NServiceBus.Gateway\NServiceBus.Gateway.csproj">
-      <Project>{25ad2314-8d8f-4950-b12c-d80487e666c9}</Project>
-      <Name>NServiceBus.Gateway</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

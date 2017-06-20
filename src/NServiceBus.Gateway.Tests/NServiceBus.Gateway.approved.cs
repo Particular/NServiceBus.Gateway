@@ -2,8 +2,10 @@
 [assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute(@"NServiceBus.Gateway.Tests, PublicKey=0024000004800000940000000602000000240000525341310004000001000100dde965e6172e019ac82c2639ffe494dd2e7dd16347c34762a05732b492e110f2e4e2e1b5ef2d85c848ccfb671ee20a47c8d1376276708dc30a90ff1121b647ba3b7259a6bc383b2034938ef0e275b58b920375ac605076178123693c6c4f1331661a62eba28c249386855637780e3ff5f23a6d854700eaa6803ef48907513b92")]
 [assembly: System.Runtime.InteropServices.ComVisibleAttribute(false)]
 [assembly: System.Runtime.Versioning.TargetFrameworkAttribute(".NETFramework,Version=v4.5.2", FrameworkDisplayName=".NET Framework 4.5.2")]
+
 namespace NServiceBus
 {
+    
     [System.ObsoleteAttribute("Use `MessageHandlerContextExtensions` instead. Will be removed in version 3.0.0.", true)]
     public class static BusExtensions { }
     public class static GatewayExtensions
@@ -30,6 +32,7 @@ namespace NServiceBus
 }
 namespace NServiceBus.Config
 {
+    
     public class ChannelCollection : System.Configuration.ConfigurationElementCollection
     {
         public ChannelCollection() { }
@@ -52,8 +55,8 @@ namespace NServiceBus.Config
         public int MaxConcurrency { get; set; }
         [System.Configuration.ConfigurationPropertyAttribute("NumberOfWorkerThreads", DefaultValue=1, IsKey=false, IsRequired=false)]
         [System.ObsoleteAttribute("NumberOfWorkerThreads has been removed. Please use the MaxConcurrency setting ins" +
-            "tead. Will be treated as an error from version 6.0.0. Will be removed in version" +
-            " 7.0.0.", false)]
+            "tead. Will be treated as an error from version 6.0.0. The member currently throw" +
+            "s a NotImplementedException. Will be removed in version 7.0.0.", false)]
         public int NumberOfWorkerThreads { get; set; }
     }
     public class GatewayConfig : System.Configuration.ConfigurationSection
@@ -92,6 +95,7 @@ namespace NServiceBus.Config
 }
 namespace NServiceBus.Features
 {
+    
     public class Gateway : NServiceBus.Features.Feature
     {
         protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
@@ -99,6 +103,7 @@ namespace NServiceBus.Features
 }
 namespace NServiceBus.Gateway
 {
+    
     public enum CallType
     {
         SingleCallSubmit = 0,
@@ -122,6 +127,7 @@ namespace NServiceBus.Gateway
 }
 namespace NServiceBus.Gateway.Channels
 {
+    
     public class Channel : System.IEquatable<NServiceBus.Gateway.Channels.Channel>
     {
         public Channel() { }
@@ -141,6 +147,7 @@ namespace NServiceBus.Gateway.Channels
 }
 namespace NServiceBus.Gateway.Routing
 {
+    
     [System.ObsoleteAttribute("Not used anymore. Use config.Gateway().ChannelFactories() to provide custom chann" +
         "el factories if you want to override the gatways default http implementation. Wi" +
         "ll be removed in version 3.0.0.", true)]
@@ -159,6 +166,7 @@ namespace NServiceBus.Gateway.Routing
 }
 namespace NServiceBus.Gateway.Sending
 {
+    
     [System.ObsoleteAttribute("Not used anymore. Use config.Gateway().ChannelFactories() to provide custom chann" +
         "el factories if you want to override the gatways default http implementation. Wi" +
         "ll be removed in version 3.0.0.", true)]
