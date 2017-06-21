@@ -14,10 +14,10 @@
     <PackageReference Include="NServiceBus" Version="6.0.0" />
     <PackageReference Include="Obsolete.Fody" Version="4.2.2" />
     <PackageReference Include="Fody" Version="2.1.0" />
-    <None Include="..\..\packaging\nuget\nservicebus.gateway.nuspec" Link="nservicebus.gateway.nuspec" />
     <PackageReference Include="GitVersionTask" Version="4.0.0-beta0012" />
     <PackageReference Include="NuGetPackager" Version="0.6.3" />
     <PackageReference Include="Particular.CodeRules" Version="0.1.1" />
+    <None Include="..\..\packaging\nuget\nservicebus.gateway.nuspec" Link="nservicebus.gateway.nuspec" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
