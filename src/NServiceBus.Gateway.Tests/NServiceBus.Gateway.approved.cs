@@ -6,7 +6,8 @@
 namespace NServiceBus
 {
     
-    [System.ObsoleteAttribute("Use `MessageHandlerContextExtensions` instead. Will be removed in version 3.0.0.", true)]
+    [System.ObsoleteAttribute("Use `MessageHandlerContextExtensions` instead. Will be treated as an error from v" +
+        "ersion 2.0.0. Will be removed in version 3.0.0.", false)]
     public class static BusExtensions { }
     public class static GatewayExtensions
     {
@@ -150,11 +151,11 @@ namespace NServiceBus.Gateway.Routing
     
     [System.ObsoleteAttribute("Not used anymore. Use config.Gateway().ChannelFactories() to provide custom chann" +
         "el factories if you want to override the gatways default http implementation. Wi" +
-        "ll be removed in version 3.0.0.", true)]
+        "ll be treated as an error from version 2.0.0. Will be removed in version 3.0.0.", false)]
     public interface IRouteMessagesToEndpoints { }
     [System.ObsoleteAttribute("Not used anymore. Use config.Gateway().ChannelFactories() to provide custom chann" +
         "el factories if you want to override the gatways default http implementation. Wi" +
-        "ll be removed in version 3.0.0.", true)]
+        "ll be treated as an error from version 2.0.0. Will be removed in version 3.0.0.", false)]
     public interface IRouteMessagesToSites { }
     public class Site
     {
@@ -169,6 +170,6 @@ namespace NServiceBus.Gateway.Sending
     
     [System.ObsoleteAttribute("Not used anymore. Use config.Gateway().ChannelFactories() to provide custom chann" +
         "el factories if you want to override the gatways default http implementation. Wi" +
-        "ll be removed in version 3.0.0.", true)]
+        "ll be treated as an error from version 2.0.0. Will be removed in version 3.0.0.", false)]
     public interface IForwardMessagesToSites { }
 }
