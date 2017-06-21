@@ -7,6 +7,7 @@
     <DebugType>full</DebugType>
     <DebugSymbols>True</DebugSymbols>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>PCR0001</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="NServiceBus.Gateway.approved.cs" />
