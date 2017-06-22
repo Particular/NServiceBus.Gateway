@@ -57,7 +57,7 @@
         public async Task Should_not_store_returninfo_for_legacy_messages_missing_both_kinds_of_from_information()
         {
             var headersWithoutFrom = new Dictionary<string, string> ();
-            
+
             var context = new IncomingPhysicalMessageContextFake(null, headersWithoutFrom);
 
             await new GatewayIncomingBehavior().Invoke(context, () => Task.FromResult(0));

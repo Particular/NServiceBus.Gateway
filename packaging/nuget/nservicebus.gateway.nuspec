@@ -18,6 +18,6 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="..\..\src\NServiceBus.Gateway\bin\Release\NServiceBus.Gateway.???" target="lib\net452" />
+    <file src="..\..\binaries\net452\NServiceBus.Gateway.???" target="lib\net452" />
   </files>
 </package>
