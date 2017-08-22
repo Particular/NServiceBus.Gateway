@@ -4,21 +4,21 @@
     <TargetFramework>net452</TargetFramework>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(SolutionDir)NServiceBus.snk</AssemblyOriginatorKeyFile>
-    <DebugType>full</DebugType>
-    <DebugSymbols>True</DebugSymbols>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NoWarn>PCR0001</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="NServiceBus.Gateway.approved.cs" />
-    <Compile Remove="NServiceBus.Gateway.received.cs" />
-    <PackageReference Include="ApprovalTests" Version="3.0.13" />
-    <PackageReference Include="ApprovalUtilities" Version="3.0.13" />
-    <PackageReference Include="Mono.Cecil" Version="0.10.0-beta6" />
-    <PackageReference Include="NUnit" Version="3.7.1" />
-    <PackageReference Include="ApiApprover" Version="6.1.0-beta2" />
-    <PackageReference Include="PublicApiGenerator" Version="6.1.0-beta2" />
     <ProjectReference Include="..\NServiceBus.Gateway\NServiceBus.Gateway.csproj" />
     <Reference Include="System.Configuration" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NServiceBus" Version="7.0.0-alpharelease0051" />
+    <PackageReference Include="ApprovalTests" Version="3.0.13" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
+    <PackageReference Include="Mono.Cecil" Version="0.10.0-beta6" />
+    <PackageReference Include="NUnit" Version="3.7.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.8.0-alpha1" />
+    <PackageReference Include="PublicApiGenerator" Version="6.1.0-beta2" />
   </ItemGroup>
 </Project>

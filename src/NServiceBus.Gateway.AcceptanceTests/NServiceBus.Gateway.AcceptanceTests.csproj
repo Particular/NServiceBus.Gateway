@@ -7,14 +7,12 @@
     <NoWarn>PCR0001</NoWarn>
 </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="6.0.0" />
-    <PackageReference Include="NServiceBus.Callbacks" Version="1.0.0" />
-    <PackageReference Include="NServiceBus" Version="6.0.0" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="7.0.0-alpharelease0051" />
+    <PackageReference Include="NServiceBus.Callbacks" Version="2.0.0-*" />
+    <PackageReference Include="NServiceBus" Version="7.0.0-alpharelease0051" />
     <PackageReference Include="NUnit" Version="3.7.1" />
     <ProjectReference Include="..\NServiceBus.Gateway\NServiceBus.Gateway.csproj" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Configuration" />
-    <Reference Include="System.Messaging" />
     <Reference Include="System.Web" />
   </ItemGroup>
 </Project>

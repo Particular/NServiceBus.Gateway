@@ -21,7 +21,7 @@
             config = new RecoverabilityConfig(
                 new ImmediateConfig(0),
                 new DelayedConfig(4, TimeSpan.FromSeconds(10)),
-                new FailedConfig("error"));
+                new FailedConfig("error", new HashSet<Type>()));
         }
 
         [Test]
