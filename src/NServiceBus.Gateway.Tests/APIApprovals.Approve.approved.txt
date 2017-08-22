@@ -1,0 +1,149 @@
+﻿[assembly: System.CLSCompliantAttribute(true)]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute(@"NServiceBus.Gateway.Tests, PublicKey=0024000004800000940000000602000000240000525341310004000001000100dde965e6172e019ac82c2639ffe494dd2e7dd16347c34762a05732b492e110f2e4e2e1b5ef2d85c848ccfb671ee20a47c8d1376276708dc30a90ff1121b647ba3b7259a6bc383b2034938ef0e275b58b920375ac605076178123693c6c4f1331661a62eba28c249386855637780e3ff5f23a6d854700eaa6803ef48907513b92")]
+[assembly: System.Runtime.InteropServices.ComVisibleAttribute(false)]
+[assembly: System.Runtime.Versioning.TargetFrameworkAttribute(".NETFramework,Version=v4.5.2", FrameworkDisplayName=".NET Framework 4.5.2")]
+namespace NServiceBus.Config
+{
+    public class ChannelCollection : System.Configuration.ConfigurationElementCollection
+    {
+        public ChannelCollection() { }
+        public void Add(NServiceBus.Config.ChannelConfig channel) { }
+        protected override void BaseAdd(System.Configuration.ConfigurationElement element) { }
+        protected override System.Configuration.ConfigurationElement CreateNewElement() { }
+        protected override object GetElementKey(System.Configuration.ConfigurationElement element) { }
+        public override bool IsReadOnly() { }
+    }
+    public class ChannelConfig : System.Configuration.ConfigurationElement
+    {
+        public ChannelConfig() { }
+        [System.Configuration.ConfigurationPropertyAttribute("Address", IsKey=false, IsRequired=true)]
+        public string Address { get; set; }
+        [System.Configuration.ConfigurationPropertyAttribute("ChannelType", IsKey=false, IsRequired=true)]
+        public string ChannelType { get; set; }
+        [System.Configuration.ConfigurationPropertyAttribute("Default", DefaultValue=false, IsKey=false, IsRequired=false)]
+        public bool Default { get; set; }
+        [System.Configuration.ConfigurationPropertyAttribute("MaxConcurrency", DefaultValue=1, IsKey=false, IsRequired=false)]
+        public int MaxConcurrency { get; set; }
+        [System.Configuration.ConfigurationPropertyAttribute("NumberOfWorkerThreads", DefaultValue=1, IsKey=false, IsRequired=false)]
+        [System.ObsoleteAttribute("NumberOfWorkerThreads has been removed. Please use the MaxConcurrency setting ins" +
+            "tead. Will be treated as an error from version 6.0.0. The member currently throw" +
+            "s a NotImplementedException. Will be removed in version 7.0.0.", false)]
+        public int NumberOfWorkerThreads { get; set; }
+    }
+    public class GatewayConfig : System.Configuration.ConfigurationSection
+    {
+        public GatewayConfig() { }
+        [System.Configuration.ConfigurationCollectionAttribute(typeof(NServiceBus.Config.ChannelCollection), AddItemName="Channel")]
+        [System.Configuration.ConfigurationPropertyAttribute("Channels", IsRequired=true)]
+        public NServiceBus.Config.ChannelCollection Channels { get; set; }
+        [System.Configuration.ConfigurationCollectionAttribute(typeof(NServiceBus.Config.SiteCollection), AddItemName="Site")]
+        [System.Configuration.ConfigurationPropertyAttribute("Sites", IsRequired=true)]
+        public NServiceBus.Config.SiteCollection Sites { get; set; }
+        [System.Configuration.ConfigurationPropertyAttribute("TransactionTimeout", DefaultValue="00:00:00", IsRequired=false)]
+        public System.TimeSpan TransactionTimeout { get; set; }
+    }
+    public class SiteCollection : System.Configuration.ConfigurationElementCollection
+    {
+        public SiteCollection() { }
+        public void Add(NServiceBus.Config.SiteConfig site) { }
+        protected override void BaseAdd(System.Configuration.ConfigurationElement element) { }
+        protected override System.Configuration.ConfigurationElement CreateNewElement() { }
+        protected override object GetElementKey(System.Configuration.ConfigurationElement element) { }
+        public override bool IsReadOnly() { }
+    }
+    public class SiteConfig : System.Configuration.ConfigurationElement
+    {
+        public SiteConfig() { }
+        [System.Configuration.ConfigurationPropertyAttribute("Address", IsKey=false, IsRequired=true)]
+        public string Address { get; set; }
+        [System.Configuration.ConfigurationPropertyAttribute("ChannelType", IsKey=false, IsRequired=true)]
+        public string ChannelType { get; set; }
+        [System.Configuration.ConfigurationPropertyAttribute("Key", IsKey=true, IsRequired=true)]
+        public string Key { get; set; }
+        [System.Configuration.ConfigurationPropertyAttribute("LegacyMode", DefaultValue=true, IsKey=false, IsRequired=false)]
+        public bool LegacyMode { get; set; }
+    }
+}
+namespace NServiceBus.Features
+{
+    public class Gateway : NServiceBus.Features.Feature
+    {
+        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
+    }
+}
+namespace NServiceBus.Gateway
+{
+    public enum CallType
+    {
+        SingleCallSubmit = 0,
+        SingleCallDatabusProperty = 1,
+    }
+    public class DataReceivedOnChannelArgs : System.EventArgs
+    {
+        public DataReceivedOnChannelArgs() { }
+        public System.IO.Stream Data { get; set; }
+        public System.Collections.Generic.IDictionary<string, string> Headers { get; set; }
+    }
+    public interface IChannelReceiver
+    {
+        void Start(string address, int maxConcurrency, System.Func<NServiceBus.Gateway.DataReceivedOnChannelArgs, System.Threading.Tasks.Task> dataReceivedOnChannel);
+        System.Threading.Tasks.Task Stop();
+    }
+    public interface IChannelSender
+    {
+        System.Threading.Tasks.Task Send(string remoteAddress, System.Collections.Generic.IDictionary<string, string> headers, System.IO.Stream data);
+    }
+}
+namespace NServiceBus.Gateway.Channels
+{
+    public class Channel : System.IEquatable<NServiceBus.Gateway.Channels.Channel>
+    {
+        public Channel() { }
+        public string Address { get; set; }
+        public string Type { get; set; }
+        public bool Equals(NServiceBus.Gateway.Channels.Channel other) { }
+        public override bool Equals(object obj) { }
+        public override int GetHashCode() { }
+        public override string ToString() { }
+    }
+    [System.AttributeUsageAttribute(System.AttributeTargets.Class | System.AttributeTargets.All, AllowMultiple=true)]
+    public sealed class ChannelTypeAttribute : System.Attribute
+    {
+        public ChannelTypeAttribute(string type) { }
+        public string Type { get; set; }
+    }
+}
+namespace NServiceBus.Gateway.Routing
+{
+    public class Site
+    {
+        public Site() { }
+        public NServiceBus.Gateway.Channels.Channel Channel { get; set; }
+        public string Key { get; set; }
+        public bool LegacyMode { get; set; }
+    }
+}
+namespace NServiceBus
+{
+    public class static GatewayExtensions
+    {
+        public static NServiceBus.GatewaySettings Gateway(this NServiceBus.EndpointConfiguration config) { }
+    }
+    public class GatewaySettings
+    {
+        public void ChannelFactories(System.Func<string, NServiceBus.Gateway.IChannelSender> senderFactory, System.Func<string, NServiceBus.Gateway.IChannelReceiver> receiverFactory) { }
+        public void CustomRetryPolicy(System.Func<NServiceBus.Transport.IncomingMessage, System.Exception, int, System.TimeSpan> customRetryPolicy) { }
+        public void DisableRetries() { }
+        public void Retries(int numberOfRetries, System.TimeSpan timeIncrease) { }
+    }
+    public class static MessageHandlerContextExtensions
+    {
+        public static System.Threading.Tasks.Task SendToSites(this NServiceBus.IMessageHandlerContext context, System.Collections.Generic.IEnumerable<string> siteKeys, object message) { }
+        public static System.Threading.Tasks.Task SendToSites(this NServiceBus.IMessageSession context, System.Collections.Generic.IEnumerable<string> siteKeys, object message) { }
+    }
+    public class static SendOptionsExtensions
+    {
+        public static string[] GetSitesRoutingTo(this NServiceBus.SendOptions options) { }
+        public static void RouteToSites(this NServiceBus.SendOptions options, params string[] siteKeys) { }
+    }
+}
