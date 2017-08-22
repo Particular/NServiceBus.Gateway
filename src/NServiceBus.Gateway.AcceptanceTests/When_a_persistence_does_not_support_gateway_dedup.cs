@@ -24,7 +24,7 @@
         {
             public Endpoint()
             {
-                EndpointSetup<ServerWithNoDefaultPersistenceDefinitions>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     c.MakeInstanceUniquelyAddressable("1");
 

@@ -2,14 +2,12 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting.Customization;
     using AcceptanceTesting.Support;
-    using Config.ConfigurationSource;
-    using Configuration.AdvanceExtensibility;
     using Features;
-    using Serialization;
 
     public class DefaultServer : IEndpointSetupTemplate
     {
@@ -29,43 +27,36 @@
                 };
 
 
-        public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, IConfigurationSource configSource, Action<EndpointConfiguration> configurationBuilderCustomization)
+        public Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizationConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
-            var settings = runDescriptor.Settings;
-
-            var types = endpointConfiguration.GetTypesScopedByTestClass();
+            var types = endpointCustomizationConfiguration.GetTypesScopedByTestClass();
 
             types = types.Where(t => !AssembliesToExclude.Contains(t.Assembly.GetName().Name));
 
             typesToInclude.AddRange(types);
 
-            var builder = new EndpointConfiguration(endpointConfiguration.EndpointName);
+            var endpointConfiguration = new EndpointConfiguration(endpointCustomizationConfiguration.EndpointName);
 
-            builder.TypesToIncludeInScan(typesToInclude);
-            builder.CustomConfigurationSource(configSource);
-            builder.EnableInstallers();
+            endpointConfiguration.TypesToIncludeInScan(typesToInclude);
+            endpointConfiguration.EnableInstallers();
 
-            builder.DisableFeature<TimeoutManager>();
-            builder.Recoverability()
+            endpointConfiguration.DisableFeature<TimeoutManager>();
+            endpointConfiguration.Recoverability()
                 .Delayed(delayed => delayed.NumberOfRetries(0))
                 .Immediate(immediate => immediate.NumberOfRetries(0));
 
-            await builder.DefineTransport(settings, endpointConfiguration.EndpointName).ConfigureAwait(false);
 
-            builder.DefineBuilder(settings);
-            builder.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
+            var storageDir = Path.Combine(NServiceBusAcceptanceTest.StorageRootDir, NUnit.Framework.TestContext.CurrentContext.Test.ID);
 
-            Type serializerType;
-            if (settings.TryGet("Serializer", out serializerType))
-            {
-                builder.UseSerialization((SerializationDefinition) Activator.CreateInstance(serializerType));
-            }
-            await builder.DefinePersistence(settings, endpointConfiguration.EndpointName).ConfigureAwait(false);
+            endpointConfiguration.UseTransport<LearningTransport>()
+                .StorageDirectory(storageDir);
 
-            builder.GetSettings().SetDefault("ScaleOut.UseSingleBrokerQueue", true);
-            configurationBuilderCustomization(builder);
+            endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 
-            return builder;
+
+            configurationBuilderCustomization(endpointConfiguration);
+
+            return Task.FromResult(endpointConfiguration);
         }
 
         List<Type> typesToInclude;

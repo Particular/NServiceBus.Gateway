@@ -7,21 +7,21 @@
     using AcceptanceTesting;
     using Features;
     using NUnit.Framework;
-    using ScenarioDescriptors;
 
     public class When_sending_a_message_to_another_site : NServiceBusAcceptanceTest
     {
         [Test]
-        public Task Should_be_able_to_reply_to_the_message()
+        public async Task Should_be_able_to_reply_to_the_message()
         {
-            return Scenario.Define<Context>()
-                    .WithEndpoint<Headquarters>(b => b.When(async (bus,c) => await bus.SendToSites(new[] { "SiteA" }, new MyRequest())))
+            var context = await Scenario.Define<Context>()
+                    .WithEndpoint<Headquarters>(b => b.When(async (bus, c) => await bus.SendToSites(new[] { "SiteA" }, new MyRequest())))
                     .WithEndpoint<SiteA>()
                     .Done(c => c.GotResponseBack)
-                    .Repeat(r => r.For(Transports.Default)
-                    )
-                    .Should(c => Assert.IsTrue(c.GotResponseBack))
+
+
                     .Run();
+
+            Assert.IsTrue(context.GotResponseBack);
         }
 
         public class Context : ScenarioContext

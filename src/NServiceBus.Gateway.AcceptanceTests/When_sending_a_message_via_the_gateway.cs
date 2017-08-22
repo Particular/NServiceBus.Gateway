@@ -10,17 +10,18 @@
     using EndpointTemplates;
     using AcceptanceTesting;
     using NUnit.Framework;
-    using ScenarioDescriptors;
 
     public class When_sending_a_message_via_the_gateway : NServiceBusAcceptanceTest
     {
         [Test]
-        public Task Should_process_message()
+        public async Task Should_process_message()
         {
-            return Scenario.Define<Context>()
+            var context = await Scenario.Define<Context>()
                 .WithEndpoint<Headquarters>(b => b.When(bus =>
                 {
+#pragma warning disable DE0003 // API is deprecated
                     var webRequest = (HttpWebRequest)WebRequest.Create("http://localhost:25898/Headquarters/");
+#pragma warning restore DE0003 // API is deprecated
                     webRequest.Method = "POST";
                     webRequest.ContentType = "text/xml; charset=utf-8";
                     webRequest.UserAgent = "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)";
@@ -48,7 +49,7 @@
                     {
                         try
                         {
-                            using (var myWebResponse = (HttpWebResponse) webRequest.GetResponse())
+                            using (var myWebResponse = (HttpWebResponse)webRequest.GetResponse())
                             {
                                 if (myWebResponse.StatusCode == HttpStatusCode.OK)
                                 {
@@ -62,14 +63,10 @@
                     }
                     return Task.FromResult(0);
                 }))
-                .Done(c => c.GotMessage)
-                .Repeat(r => r.For(Transports.Default))
-                .Should(c =>
-                {
-                    Assert.IsTrue(c.GotMessage);
-                    Assert.AreEqual("MySpecialValue", c.MySpecialHeader);
-                })
                 .Run();
+
+            Assert.IsTrue(context.GotMessage);
+            Assert.AreEqual("MySpecialValue", context.MySpecialHeader);
         }
 
         static string Hash(Stream stream)

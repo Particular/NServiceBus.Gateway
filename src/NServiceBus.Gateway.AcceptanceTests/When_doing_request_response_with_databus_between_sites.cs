@@ -6,38 +6,34 @@
     using EndpointTemplates;
     using AcceptanceTesting;
     using NUnit.Framework;
-    using ScenarioDescriptors;
 
     public class When_doing_request_response_with_databus_between_sites : NServiceBusAcceptanceTest
     {
         static byte[] PayloadToSend = new byte[1024 * 1024 * 10];
 
         [Test]
-        public Task Should_be_able_to_reply_to_the_message_using_databus()
+        public async Task Should_be_able_to_reply_to_the_message_using_databus()
         {
-            return Scenario.Define<Context>()
+            var context = await Scenario.Define<Context>()
                 .WithEndpoint<SiteA>(
-                    b => b.When(async (bus, context) =>
+                    b => b.When(async (bus, c) =>
                     {
                         var options = new SendOptions();
                         options.RouteToSites("SiteB");
-                        context.Response = await bus.Request<MyResponse>(new MyRequest { Payload = new DataBusProperty<byte[]>(PayloadToSend) }, options);
-                        context.GotCallback = true;
+                        c.Response = await bus.Request<MyResponse>(new MyRequest { Payload = new DataBusProperty<byte[]>(PayloadToSend) }, options);
+                        c.GotCallback = true;
                     }))
                 .WithEndpoint<SiteB>()
                 .Done(c => c.GotResponseBack && c.GotCallback)
-                .Repeat(r => r.For(Transports.Default))
-                .Should(c =>
-                {
-                    Assert.AreEqual(PayloadToSend, c.SiteBReceivedPayload,
-                        "The large payload should be marshalled correctly using the databus");
-                    Assert.AreEqual(PayloadToSend, c.SiteAReceivedPayloadInResponse,
-                        "The large payload should be marshalled correctly using the databus");
-                    Assert.AreEqual("http,http://localhost:25899/SiteA/", c.OriginatingSiteForRequest);
-                    Assert.AreEqual("http,http://localhost:25899/SiteB/", c.OriginatingSiteForResponse);
-                    Assert.NotNull(c.Response);
-                })
-                .Run();
+                 .Run();
+
+            Assert.AreEqual(PayloadToSend, context.SiteBReceivedPayload,
+                "The large payload should be marshalled correctly using the databus");
+            Assert.AreEqual(PayloadToSend, context.SiteAReceivedPayloadInResponse,
+                "The large payload should be marshalled correctly using the databus");
+            Assert.AreEqual("http,http://localhost:25899/SiteA/", context.OriginatingSiteForRequest);
+            Assert.AreEqual("http,http://localhost:25899/SiteB/", context.OriginatingSiteForResponse);
+            Assert.NotNull(context.Response);
         }
 
         public class Context : ScenarioContext
@@ -59,29 +55,29 @@
                 {
                     c.MakeInstanceUniquelyAddressable("1");
                     c.EnableFeature<Features.Gateway>();
-                        c.UseDataBus<FileShareDataBus>().BasePath(@".\databus\siteA");
-                    }).WithConfig<GatewayConfig>(c =>
-                     {
-                         c.Sites = new SiteCollection
-                        {
+                    c.UseDataBus<FileShareDataBus>().BasePath(@".\databus\siteA");
+                }).WithConfig<GatewayConfig>(c =>
+                 {
+                     c.Sites = new SiteCollection
+                    {
                             new SiteConfig
                             {
                                 Key = "SiteB",
                                 Address = "http://localhost:25899/SiteB/",
                                 ChannelType = "http"
                             }
-                        };
+                    };
 
-                         c.Channels = new ChannelCollection
-                        {
+                     c.Channels = new ChannelCollection
+                    {
                             new ChannelConfig
                             {
                                 Address = "http://localhost:25899/SiteA/",
                                 ChannelType = "http",
                                 Default = true
                             }
-                        };
-                     });
+                    };
+                 });
             }
 
             public class MyResponseHandler : IHandleMessages<MyResponse>

@@ -6,7 +6,6 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Config;
-    using ConsistencyGuarantees;
     using DeliveryConstraints;
     using Extensibility;
     using Installation;
