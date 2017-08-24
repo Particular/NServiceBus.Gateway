@@ -15,9 +15,8 @@
 
         public override Task Invoke(IRoutingContext context, Func<Task> next)
         {
-            RouteThroughGateway routeThroughGateway;
 
-            if (context.Extensions.TryGet(out routeThroughGateway))
+            if (context.Extensions.TryGet(out RouteThroughGateway _))
             {
                 //Hack 133
                 context.RoutingStrategies = new[]
