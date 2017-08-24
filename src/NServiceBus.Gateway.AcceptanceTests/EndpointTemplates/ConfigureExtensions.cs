@@ -1,6 +1,5 @@
 ﻿namespace NServiceBus.AcceptanceTests.EndpointTemplates
 {
-    using System;
     using AcceptanceTesting.Support;
     using Config;
     using Configuration.AdvancedExtensibility;
