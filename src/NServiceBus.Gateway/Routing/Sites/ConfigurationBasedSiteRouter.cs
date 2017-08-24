@@ -2,7 +2,7 @@ namespace NServiceBus.Gateway.Routing.Sites
 {
     using System.Collections.Generic;
 
-    class ConfigurationBasedSiteRouter : IRouteMessagesToSites
+    class ConfigurationBasedSiteRouter
     {
         public ConfigurationBasedSiteRouter(IDictionary<string, Site> sites)
         {

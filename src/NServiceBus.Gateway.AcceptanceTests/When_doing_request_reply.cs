@@ -1,10 +1,9 @@
 ﻿namespace NServiceBus.AcceptanceTests.Gateway
 {
-    using System;
     using System.Threading.Tasks;
+    using AcceptanceTesting;
     using Config;
     using EndpointTemplates;
-    using AcceptanceTesting;
     using NUnit.Framework;
 
     public class When_doing_request_reply : NServiceBusAcceptanceTest
@@ -26,7 +25,7 @@
                 .Run();
 
             Assert.IsTrue(context.GotCallback);
-            Assert.AreEqual(1, context.Response);
+            Assert.AreEqual(1,context.Response);
         }
 
         public class Context : ScenarioContext
@@ -42,11 +41,10 @@
                 EndpointSetup<DefaultServerWithCallbacks>(c =>
                 {
                     c.MakeInstanceUniquelyAddressable("1");
-                    c.EnableFeature<Features.Gateway>();
-                })
-                    .WithConfig<GatewayConfig>(c =>
+                    c.EnableCallbacks();
+                    c.EnableGateway(new GatewayConfig
                     {
-                        c.Sites = new SiteCollection
+                        Sites = new SiteCollection
                         {
                             new SiteConfig
                             {
@@ -54,9 +52,9 @@
                                 Address = "http://localhost:25699/SiteB/",
                                 ChannelType = "http"
                             }
-                        };
+                        },
 
-                        c.Channels = new ChannelCollection
+                        Channels = new ChannelCollection
                         {
                             new ChannelConfig
                             {
@@ -64,8 +62,9 @@
                                 ChannelType = "http",
                                 Default = true
                             }
-                        };
+                        }
                     });
+                });
             }
         }
 
@@ -75,12 +74,10 @@
             {
                 EndpointSetup<DefaultServerWithCallbacks>(c =>
                 {
-                    c.MakeInstanceUniquelyAddressable("1");
-                    c.EnableFeature<Features.Gateway>();
-                })
-                    .WithConfig<GatewayConfig>(c =>
+                    c.EnableCallbacks(makesRequests: false);
+                    c.EnableGateway(new GatewayConfig
                     {
-                        c.Channels = new ChannelCollection
+                        Channels = new ChannelCollection
                         {
                             new ChannelConfig
                             {
@@ -88,9 +85,9 @@
                                 ChannelType = "http",
                                 Default = true
                             }
-                        };
+                        }
                     });
-
+                });
             }
 
             public class MyRequestHandler : IHandleMessages<MyRequest>
@@ -102,7 +99,7 @@
             }
         }
 
-        [Serializable]
+
         public class MyRequest : ICommand
         {
         }

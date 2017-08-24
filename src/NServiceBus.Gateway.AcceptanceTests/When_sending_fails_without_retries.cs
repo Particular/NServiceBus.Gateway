@@ -3,9 +3,9 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using EndpointTemplates;
+    using AcceptanceTesting.Customization;
     using Config;
-    using Features;
+    using EndpointTemplates;
     using NUnit.Framework;
 
     public class When_sending_fails_without_retries : NServiceBusAcceptanceTest
@@ -33,8 +33,6 @@
             Assert.AreEqual(0, context.NumberOfRetries, "Message was retried");
         }
 
-        const string ErrorSpyQueueName = "gw_error_spy_queue";
-
         class Context : ScenarioContext, ICountNumberOfRetries
         {
             public Guid Id { get; set; }
@@ -48,13 +46,11 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    c.EnableFeature<Gateway>();
-                    c.SendFailedMessagesTo(ErrorSpyQueueName);
-                    c.Gateway().DisableRetries();
-                })
-                    .WithConfig<GatewayConfig>(c =>
+                    c.SendFailedMessagesTo(Conventions.EndpointNamingConvention(typeof(ErrorSpy)));
+                  
+                    c.EnableGateway(new GatewayConfig
                     {
-                        c.Sites = new SiteCollection
+                        Sites = new SiteCollection
                         {
                             new SiteConfig
                             {
@@ -62,17 +58,18 @@
                                 Address = "http://localhost:25999/SiteA/",
                                 ChannelType = "http"
                             }
-                        };
-
-                        c.Channels = new ChannelCollection
+                        },
+                        Channels = new ChannelCollection
                         {
                             new ChannelConfig
                             {
                                 Address = "http://localhost:25999/Headquarters/",
                                 ChannelType = "http"
                             }
-                        };
-                    });
+                        }
+                    })
+                    .DisableRetries();
+                });
             }
         }
 
@@ -85,8 +82,7 @@
         {
             public ErrorSpy()
             {
-                EndpointSetup<ErrorQueueSpyServer>()
-                    .CustomEndpointName(ErrorSpyQueueName);
+                EndpointSetup<ErrorQueueSpy>();
             }
 
             class ErrorMessageHandler : IHandleMessages<AnyMessage>
@@ -98,10 +94,7 @@
 
                 public Task Handle(AnyMessage errorMessage, IMessageHandlerContext context)
                 {
-                    if (errorMessage.Id == testContext.Id)
-                    {
-                        testContext.MessageMovedToErrorQueue = true;
-                    }
+                    testContext.MessageMovedToErrorQueue = true;
 
                     return Task.FromResult(0);
                 }

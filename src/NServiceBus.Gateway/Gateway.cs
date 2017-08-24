@@ -2,10 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Configuration;
     using System.Linq;
     using System.Threading.Tasks;
     using Config;
-    using ConsistencyGuarantees;
     using DeliveryConstraints;
     using Extensibility;
     using Installation;
@@ -44,11 +44,21 @@
         /// </summary>
         protected override void Setup(FeatureConfigurationContext context)
         {
-            if (!context.Settings.Get<List<Type>>("ResultingSupportedStorages").Contains(typeof(StorageType.GatewayDeduplication)))
-            {
-                throw new Exception("The selected persistence doesn't have support for gateway deduplication storage. Select another persistence or disable the gateway feature using endpointConfiguration.DisableFeature<Gateway>()");
-            }
+            List<Type> supportedStorages;
 
+            if (context.Settings.TryGet("ResultingSupportedStorages",out supportedStorages))
+            {
+                if (!supportedStorages.Contains(typeof(StorageType.GatewayDeduplication)))
+                {
+                    throw new Exception("The selected persistence doesn't have support for gateway deduplication storage. Please configure one that supports gateway deduplication storage.");
+                }
+            }
+            else
+            {
+                throw new Exception("No persistence configured, please configure one that supports gateway deduplication storage.");
+
+            }
+            
             ConfigureTransaction(context);
 
             var channelManager = CreateChannelManager(context);
@@ -59,8 +69,6 @@
 
             var gatewayInputAddress = context.Settings.GetTransportAddress(context.Settings.LogicalAddress().CreateQualifiedAddress("gateway"));
 
-            var requiredTransactionSupport = context.Settings.GetRequiredTransactionModeForReceives();
-
             var retryPolicy = context.Settings.Get<Func<IncomingMessage, Exception, int, TimeSpan>>("Gateway.Retries.RetryPolicy");
 
             var sender = new GatewayMessageSender(
@@ -70,7 +78,7 @@
                 context.Settings.LocalAddress(),
                 GetConfigurationBasedSiteRouter(context));
 
-            context.AddSatelliteReceiver("Gateway", gatewayInputAddress, requiredTransactionSupport, PushRuntimeSettings.Default,
+            context.AddSatelliteReceiver("Gateway", gatewayInputAddress, PushRuntimeSettings.Default,
                 (config, errorContext) => GatewayRecoverabilityPolicy.Invoke(errorContext, retryPolicy, config),
                 (builder, messageContext) => sender.SendToDestination(messageContext, builder.Build<IDispatchMessages>(), CreateForwarder(channelSenderFactory, builder.BuildAll<IDataBus>()?.FirstOrDefault())));
 
@@ -112,17 +120,26 @@
 
         static void ConfigureTransaction(FeatureConfigurationContext context)
         {
-            var configSection = context.Settings.GetConfigSection<GatewayConfig>();
-
+            var configSection = GetConfigSection(context);
             if (configSection != null)
             {
                 GatewayTransaction.ConfiguredTimeout = configSection.TransactionTimeout;
             }
         }
 
+        static GatewayConfig GetConfigSection(FeatureConfigurationContext context)
+        {
+            if (context.Settings.TryGet(out GatewayConfig config))
+            {
+                return config;
+            }
+
+            return ConfigurationManager.GetSection(typeof(GatewayConfig).Name) as GatewayConfig;
+        }
+
         static IManageReceiveChannels CreateChannelManager(FeatureConfigurationContext context)
         {
-            var configSection = context.Settings.GetConfigSection<GatewayConfig>();
+            var configSection = GetConfigSection(context);
 
             if (configSection != null && configSection.GetChannels().Any())
             {
@@ -136,12 +153,12 @@
 
         static ConfigurationBasedSiteRouter GetConfigurationBasedSiteRouter(FeatureConfigurationContext context)
         {
-           var sites = new Dictionary<string, Site>();
+            var sites = new Dictionary<string, Site>();
 
-            var section = context.Settings.GetConfigSection<GatewayConfig>();
-            if (section != null)
+            var configSection = GetConfigSection(context);
+            if (configSection != null)
             {
-                sites = section.SitesAsDictionary();
+                sites = configSection.SitesAsDictionary();
             }
 
             return new ConfigurationBasedSiteRouter(sites);

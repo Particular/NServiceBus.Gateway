@@ -87,8 +87,7 @@ namespace NServiceBus.Gateway.Channels.Http
 
                     receiveTask.ContinueWith(t =>
                     {
-                        Task toBeRemoved;
-                        runningReceiveTasks.TryRemove(receiveTask, out toBeRemoved);
+                        runningReceiveTasks.TryRemove(receiveTask, out Task _);
                     }, TaskContinuationOptions.ExecuteSynchronously)
                     .Forget();
                 }
