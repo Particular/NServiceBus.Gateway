@@ -44,11 +44,21 @@
         /// </summary>
         protected override void Setup(FeatureConfigurationContext context)
         {
-            if (!context.Settings.Get<List<Type>>("ResultingSupportedStorages").Contains(typeof(StorageType.GatewayDeduplication)))
-            {
-                throw new Exception("The selected persistence doesn't have support for gateway deduplication storage. Select another persistence or disable the gateway feature using endpointConfiguration.DisableFeature<Gateway>()");
-            }
+            List<Type> supportedStorages;
 
+            if (context.Settings.TryGet("ResultingSupportedStorages",out supportedStorages))
+            {
+                if (!supportedStorages.Contains(typeof(StorageType.GatewayDeduplication)))
+                {
+                    throw new Exception("The selected persistence doesn't have support for gateway deduplication storage. Please configure one that supports gateway deduplication storage.");
+                }
+            }
+            else
+            {
+                throw new Exception("No persistence configured, please configure one that supports gateway deduplication storage.");
+
+            }
+            
             ConfigureTransaction(context);
 
             var channelManager = CreateChannelManager(context);
@@ -110,21 +120,26 @@
 
         static void ConfigureTransaction(FeatureConfigurationContext context)
         {
-            var configSection = GetConfigSection();
+            var configSection = GetConfigSection(context);
             if (configSection != null)
             {
                 GatewayTransaction.ConfiguredTimeout = configSection.TransactionTimeout;
             }
         }
 
-        static GatewayConfig GetConfigSection()
+        static GatewayConfig GetConfigSection(FeatureConfigurationContext context)
         {
+            if (context.Settings.TryGet(out GatewayConfig config))
+            {
+                return config;
+            }
+
             return ConfigurationManager.GetSection(typeof(GatewayConfig).Name) as GatewayConfig;
         }
 
         static IManageReceiveChannels CreateChannelManager(FeatureConfigurationContext context)
         {
-            var configSection = GetConfigSection();
+            var configSection = GetConfigSection(context);
 
             if (configSection != null && configSection.GetChannels().Any())
             {
@@ -140,7 +155,7 @@
         {
             var sites = new Dictionary<string, Site>();
 
-            var configSection = GetConfigSection();
+            var configSection = GetConfigSection(context);
             if (configSection != null)
             {
                 sites = configSection.SitesAsDictionary();

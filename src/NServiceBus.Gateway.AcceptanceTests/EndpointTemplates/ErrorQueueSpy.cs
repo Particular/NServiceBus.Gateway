@@ -2,7 +2,7 @@ namespace NServiceBus.AcceptanceTests.EndpointTemplates
 {
     using System.Collections.Generic;
 
-    public class ErrorQueueSpyServer : DefaultServer
+    public class ErrorQueueSpy : DefaultServer
     {
         protected override List<string> AssembliesToExclude { get; } = new List<string>
         {

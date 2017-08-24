@@ -17,6 +17,7 @@
             {
                 throw new ArgumentNullException(nameof(config));
             }
+            config.EnableFeature<Features.Gateway>();
 
             return new GatewaySettings(config);
         }

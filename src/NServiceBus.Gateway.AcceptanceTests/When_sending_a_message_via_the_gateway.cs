@@ -4,11 +4,12 @@
     using System.IO;
     using System.Net;
     using System.Security.Cryptography;
+    using System.Text;
     using System.Threading.Tasks;
     using System.Web;
+    using AcceptanceTesting;
     using Config;
     using EndpointTemplates;
-    using AcceptanceTesting;
     using NUnit.Framework;
 
     public class When_sending_a_message_via_the_gateway : NServiceBusAcceptanceTest
@@ -34,7 +35,7 @@
 
                     const string message = "<?xml version=\"1.0\" ?><Messages xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"http://tempuri.net/NServiceBus.AcceptanceTests.Gateway\"><MyRequest></MyRequest></Messages>";
 
-                    using (var messagePayload = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(message)))
+                    using (var messagePayload = new MemoryStream(Encoding.UTF8.GetBytes(message)))
                     {
                         webRequest.Headers.Add(HttpRequestHeader.ContentMd5, HttpUtility.UrlEncode(Hash(messagePayload)));
                         webRequest.ContentLength = messagePayload.Length;
@@ -63,6 +64,7 @@
                     }
                     return Task.FromResult(0);
                 }))
+                .Done(c => c.GotMessage)
                 .Run();
 
             Assert.IsTrue(context.GotMessage);
@@ -92,21 +94,19 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    c.EnableFeature<Features.Gateway>();
-                    c.UseSerialization<XmlSerializer>();
-                })
-                    .IncludeType<MyRequest>()
-                    .WithConfig<GatewayConfig>(c =>
+                    c.EnableGateway(new GatewayConfig
                     {
-                        c.Channels = new ChannelCollection
+                        Channels = new ChannelCollection
                         {
                             new ChannelConfig
                             {
                                 Address = "http://localhost:25898/Headquarters/",
                                 ChannelType = "http"
                             }
-                        };
+                        }
                     });
+                })
+                .IncludeType<MyRequest>();
             }
 
             public class MyResponseHandler : IHandleMessages<MyRequest>
@@ -123,7 +123,6 @@
         }
     }
 
-    [Serializable]
     public class MyRequest : IMessage
     {
     }
