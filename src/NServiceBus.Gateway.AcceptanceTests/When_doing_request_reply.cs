@@ -38,7 +38,7 @@
         {
             public SiteA()
             {
-                EndpointSetup<DefaultServerWithCallbacks>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     c.MakeInstanceUniquelyAddressable("1");
                     c.EnableCallbacks();
@@ -72,7 +72,7 @@
         {
             public SiteB()
             {
-                EndpointSetup<DefaultServerWithCallbacks>(c =>
+                EndpointSetup<DefaultServer>(c =>
                 {
                     c.EnableCallbacks(makesRequests: false);
                     c.EnableGateway(new GatewayConfig

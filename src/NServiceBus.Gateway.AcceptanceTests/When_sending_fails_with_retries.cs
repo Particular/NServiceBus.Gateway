@@ -112,7 +112,7 @@
         {
             public ErrorSpy()
             {
-                EndpointSetup<ErrorQueueSpy>();
+                EndpointSetup<DefaultServer>();
             }
 
             class ErrorMessageHandler : IHandleMessages<AnyMessage>
