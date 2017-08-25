@@ -1,10 +1,7 @@
 namespace NServiceBus.Config
 {
     using System;
-    using System.Collections.Generic;
     using System.Configuration;
-    using System.Linq;
-    using Gateway.Channels;
 
     /// <summary>
     /// Config section for the gateway
@@ -42,28 +39,6 @@ namespace NServiceBus.Config
         {
             get => this["Channels"] as ChannelCollection;
             set => this["Channels"] = value;
-        }
-
-        internal Dictionary<string, Gateway.Routing.Site> SitesAsDictionary()
-        {
-            return Sites.Cast<SiteConfig>().ToDictionary(site => site.Key, site => new Gateway.Routing.Site
-            {
-                Key = site.Key,
-                Channel = new Channel {Type = site.ChannelType, Address = site.Address},
-                LegacyMode = site.LegacyMode
-            });
-        }
-
-        internal IEnumerable<ReceiveChannel> GetChannels()
-        {
-            return (from ChannelConfig channel in Channels
-                select new ReceiveChannel
-                {
-                    Address = channel.Address,
-                    Type = channel.ChannelType,
-                    MaxConcurrency = channel.MaxConcurrency,
-                    Default = channel.Default
-                }).ToList();
         }
     }
 }

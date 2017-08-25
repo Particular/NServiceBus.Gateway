@@ -2,10 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Configuration;
     using System.Linq;
     using System.Threading.Tasks;
-    using Config;
     using DeliveryConstraints;
     using Extensibility;
     using Installation;
@@ -18,13 +16,13 @@
     using NServiceBus.Gateway.HeaderManagement;
     using NServiceBus.Gateway.Notifications;
     using NServiceBus.Gateway.Receiving;
-    using NServiceBus.Gateway.Routing;
     using NServiceBus.Gateway.Routing.Endpoints;
     using NServiceBus.Gateway.Routing.Sites;
     using NServiceBus.Gateway.Sending;
     using Persistence;
     using Routing;
     using Performance.TimeToBeReceived;
+    using Settings;
     using Transport;
 
 
@@ -48,9 +46,8 @@
         /// </summary>
         protected override void Setup(FeatureConfigurationContext context)
         {
-            List<Type> supportedStorages;
 
-            if (context.Settings.TryGet("ResultingSupportedStorages",out supportedStorages))
+            if (context.Settings.TryGet("ResultingSupportedStorages", out List<Type> supportedStorages))
             {
                 if (!supportedStorages.Contains(typeof(StorageType.GatewayDeduplication)))
                 {
@@ -62,10 +59,10 @@
                 throw new Exception("No persistence configured, please configure one that supports gateway deduplication storage.");
 
             }
-            
+
             ConfigureTransaction(context);
 
-            var channelManager = CreateChannelManager(context);
+            var channelManager = CreateChannelManager(context.Settings);
 
             Func<string, IChannelSender> channelSenderFactory;
             Func<string, IChannelReceiver> channelReceiverFactory;
@@ -124,58 +121,25 @@
 
         static void ConfigureTransaction(FeatureConfigurationContext context)
         {
-            var configSection = GetConfigSection(context);
-            if (configSection != null)
-            {
-                GatewayTransaction.ConfiguredTimeout = configSection.TransactionTimeout;
-            }
+            GatewayTransaction.ConfiguredTimeout = GatewaySettings.GetTransactionTimeout(context.Settings);
         }
 
-        static GatewayConfig GetConfigSection(FeatureConfigurationContext context)
+        internal static IManageReceiveChannels CreateChannelManager(ReadOnlySettings settings)
         {
-            if (context.Settings.TryGet(out GatewayConfig config))
+            var channels = GatewaySettings.GetConfiguredChannels(settings);
+
+            if (channels.Any())
             {
-                return config;
+                return new ConfigurationBasedChannelManager(channels);
             }
 
-            return ConfigurationManager.GetSection(typeof(GatewayConfig).Name) as GatewayConfig;
-        }
-
-        static IManageReceiveChannels CreateChannelManager(FeatureConfigurationContext context)
-        {
-            var configSection = GetConfigSection(context);
-
-            if (configSection != null && configSection.GetChannels().Any())
-            {
-                return new ConfigurationBasedChannelManager { ReceiveChannels = configSection.GetChannels().ToList() };
-            }
-
-            return new ConventionBasedChannelManager { EndpointName = context.Settings.EndpointName() };
-
+            return new ConventionBasedChannelManager(settings.EndpointName());
         }
 
 
         static ConfigurationBasedSiteRouter GetConfigurationBasedSiteRouter(FeatureConfigurationContext context)
         {
-
-
-            if (!context.Settings.TryGet(out List<Site> sites))
-            {
-                var configSection = GetConfigSection(context);
-                if (configSection != null)
-                {
-                    sites = configSection.Sites.Cast<SiteConfig>().Select(site => new Site
-                    {
-                        Key = site.Key,
-                        Channel = new Channel
-                        {
-                            Type = site.ChannelType,
-                            Address = site.Address
-                        },
-                        LegacyMode = site.LegacyMode
-                    }).ToList();
-                }
-            }
+            var sites = GatewaySettings.GetConfiguredSites(context.Settings);
 
             return new ConfigurationBasedSiteRouter(sites);
         }
