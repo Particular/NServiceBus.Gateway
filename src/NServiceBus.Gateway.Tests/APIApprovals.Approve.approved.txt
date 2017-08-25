@@ -40,6 +40,8 @@ namespace NServiceBus.Config
         [System.Configuration.ConfigurationPropertyAttribute("Sites", IsRequired=true)]
         public NServiceBus.Config.SiteCollection Sites { get; set; }
         [System.Configuration.ConfigurationPropertyAttribute("TransactionTimeout", DefaultValue="00:00:00", IsRequired=false)]
+        [System.ObsoleteAttribute("No longer used and can safely be removed. The member currently throws a NotImplem" +
+            "entedException. Will be removed in version 4.0.0.", true)]
         public System.TimeSpan TransactionTimeout { get; set; }
     }
     public class SiteCollection : System.Configuration.ConfigurationElementCollection

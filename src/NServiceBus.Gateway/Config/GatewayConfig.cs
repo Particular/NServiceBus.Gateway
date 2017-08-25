@@ -1,6 +1,5 @@
 namespace NServiceBus.Config
 {
-    using System;
     using System.Collections.Generic;
     using System.Configuration;
     using System.Linq;
@@ -9,25 +8,8 @@ namespace NServiceBus.Config
     /// <summary>
     /// Config section for the gateway
     /// </summary>
-    public class GatewayConfig : ConfigurationSection
+    public partial class GatewayConfig : ConfigurationSection
     {
-        /// <summary>
-        /// Property for getting/setting the period of time when the outgoing gateway transaction times out.
-        /// Defaults to the TransactionTimeout of the main transport.
-        /// </summary>
-        [ConfigurationProperty("TransactionTimeout", IsRequired = false, DefaultValue = "00:00:00")]
-        public TimeSpan TransactionTimeout
-        {
-            get
-            {
-                return (TimeSpan) this["TransactionTimeout"];
-            }
-            set
-            {
-                this["TransactionTimeout"] = value;
-            }
-        }
-
         /// <summary>
         /// Collection of sites
         /// </summary>
