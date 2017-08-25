@@ -23,7 +23,7 @@
         {
             public Endpoint()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithNoStorage>(c =>
                 {
                     c.EnableGateway(new GatewayConfig
                     {
@@ -35,7 +35,7 @@
                                 ChannelType = "http"
                             }
                         }
-                    }, configureInMemoryPersistence: false);
+                    });
                 });
             }
         }

@@ -4,7 +4,6 @@
     using Config;
     using Configuration.AdvancedExtensibility;
     using ObjectBuilder;
-    using Persistence;
 
     public static class ConfigureExtensions
     {
@@ -24,14 +23,10 @@
             }
         }
 
-        public static GatewaySettings EnableGateway(this EndpointConfiguration config, GatewayConfig gatewayConfig, bool configureInMemoryPersistence = true)
+        public static GatewaySettings EnableGateway(this EndpointConfiguration config, GatewayConfig gatewayConfig)
         {
             config.GetSettings().Set<GatewayConfig>(gatewayConfig);
 
-            if (configureInMemoryPersistence)
-            {
-                config.UsePersistence<InMemoryPersistence, StorageType.GatewayDeduplication>();
-            }
             return config.Gateway();
         }
     }
