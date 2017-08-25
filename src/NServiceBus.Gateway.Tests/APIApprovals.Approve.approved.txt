@@ -66,6 +66,8 @@ namespace NServiceBus.Config
 }
 namespace NServiceBus.Features
 {
+    [System.ObsoleteAttribute("Use `EndpointConfiguration.Gateway() to enable the gateway. Will be removed in ve" +
+        "rsion 4.0.0.", true)]
     public class Gateway : NServiceBus.Features.Feature
     {
         protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }

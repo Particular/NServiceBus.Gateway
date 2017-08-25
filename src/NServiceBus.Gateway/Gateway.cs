@@ -31,6 +31,10 @@
     /// <summary>
     /// Used to configure the gateway.
     /// </summary>
+    [ObsoleteEx(
+        RemoveInVersion = "4.0",
+        TreatAsErrorFromVersion = "3.0",
+        Message = "Use `EndpointConfiguration.Gateway() to enable the gateway.")]
     public class Gateway : Feature
     {
         internal Gateway()
