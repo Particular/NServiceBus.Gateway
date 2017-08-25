@@ -1,5 +1,6 @@
 namespace NServiceBus.Config
 {
+    using System;
     using System.Collections.Generic;
     using System.Configuration;
     using System.Linq;
@@ -8,8 +9,19 @@ namespace NServiceBus.Config
     /// <summary>
     /// Config section for the gateway
     /// </summary>
-    public partial class GatewayConfig : ConfigurationSection
+    public class GatewayConfig : ConfigurationSection
     {
+        /// <summary>
+        /// Property for getting/setting the period of time when the outgoing gateway transaction times out.
+        /// Defaults to the TransactionTimeout of the main transport.
+        /// </summary>
+        [ConfigurationProperty("TransactionTimeout", IsRequired = false, DefaultValue = "00:00:00")]
+        public TimeSpan TransactionTimeout
+        {
+            get => (TimeSpan)this["TransactionTimeout"];
+            set => this["TransactionTimeout"] = value;
+        }
+
         /// <summary>
         /// Collection of sites
         /// </summary>
@@ -17,14 +29,8 @@ namespace NServiceBus.Config
         [ConfigurationCollection(typeof(SiteCollection), AddItemName = "Site")]
         public SiteCollection Sites
         {
-            get
-            {
-                return this["Sites"] as SiteCollection;
-            }
-            set
-            {
-                this["Sites"] = value;
-            }
+            get => this["Sites"] as SiteCollection;
+            set => this["Sites"] = value;
         }
 
         /// <summary>
@@ -34,14 +40,8 @@ namespace NServiceBus.Config
         [ConfigurationCollection(typeof(ChannelCollection), AddItemName = "Channel")]
         public ChannelCollection Channels
         {
-            get
-            {
-                return this["Channels"] as ChannelCollection;
-            }
-            set
-            {
-                this["Channels"] = value;
-            }
+            get => this["Channels"] as ChannelCollection;
+            set => this["Channels"] = value;
         }
 
         internal Dictionary<string, Gateway.Routing.Site> SitesAsDictionary()

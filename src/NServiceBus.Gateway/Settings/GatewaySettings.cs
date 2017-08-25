@@ -1,6 +1,7 @@
 ﻿namespace NServiceBus
 {
     using System;
+    using System.Collections.Generic;
     using Configuration.AdvancedExtensibility;
     using Gateway;
     using Transport;
@@ -74,6 +75,15 @@
         public void DisableRetries()
         {
             SetDefaultRetryPolicySettings(0, TimeSpan.MinValue);
+        }
+
+        /// <summary>
+        /// The sites that this Gateway should communicate with.
+        /// </summary>
+        /// <param name="sites"></param>
+        public void Sites(IEnumerable<Gateway.Routing.Site> sites)
+        {
+            config.GetSettings().Set<List<Gateway.Routing.Site>>(sites);
         }
 
         void SetDefaultRetryPolicySettings(int numberOfRetries, TimeSpan timeIncrease)

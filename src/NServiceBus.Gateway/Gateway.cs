@@ -157,12 +157,24 @@
 
         static ConfigurationBasedSiteRouter GetConfigurationBasedSiteRouter(FeatureConfigurationContext context)
         {
-            var sites = new Dictionary<string, Site>();
 
-            var configSection = GetConfigSection(context);
-            if (configSection != null)
+
+            if (!context.Settings.TryGet(out List<Site> sites))
             {
-                sites = configSection.SitesAsDictionary();
+                var configSection = GetConfigSection(context);
+                if (configSection != null)
+                {
+                    sites = configSection.Sites.Cast<SiteConfig>().Select(site => new Site
+                    {
+                        Key = site.Key,
+                        Channel = new Channel
+                        {
+                            Type = site.ChannelType,
+                            Address = site.Address
+                        },
+                        LegacyMode = site.LegacyMode
+                    }).ToList();
+                }
             }
 
             return new ConfigurationBasedSiteRouter(sites);
