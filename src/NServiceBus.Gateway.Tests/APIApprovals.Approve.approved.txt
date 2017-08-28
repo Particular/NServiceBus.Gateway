@@ -26,8 +26,8 @@ namespace NServiceBus.Config
         public int MaxConcurrency { get; set; }
         [System.Configuration.ConfigurationPropertyAttribute("NumberOfWorkerThreads", DefaultValue=1, IsKey=false, IsRequired=false)]
         [System.ObsoleteAttribute("NumberOfWorkerThreads has been removed. Please use the MaxConcurrency setting ins" +
-            "tead. Will be treated as an error from version 6.0.0. The member currently throw" +
-            "s a NotImplementedException. Will be removed in version 7.0.0.", false)]
+            "tead. The member currently throws a NotImplementedException. Will be removed in " +
+            "version 4.0.0.", true)]
         public int NumberOfWorkerThreads { get; set; }
     }
     public class GatewayConfig : System.Configuration.ConfigurationSection
@@ -95,6 +95,13 @@ namespace NServiceBus.Gateway
     {
         System.Threading.Tasks.Task Send(string remoteAddress, System.Collections.Generic.IDictionary<string, string> headers, System.IO.Stream data);
     }
+    public class ReceiveChannel : NServiceBus.Gateway.Channels.Channel
+    {
+        public ReceiveChannel() { }
+        public bool Default { get; set; }
+        public int MaxConcurrency { get; set; }
+        public override string ToString() { }
+    }
 }
 namespace NServiceBus.Gateway.Channels
 {
@@ -134,6 +141,7 @@ namespace NServiceBus
     public class GatewaySettings
     {
         public void ChannelFactories(System.Func<string, NServiceBus.Gateway.IChannelSender> senderFactory, System.Func<string, NServiceBus.Gateway.IChannelReceiver> receiverFactory) { }
+        public void Channels(System.Collections.Generic.IEnumerable<NServiceBus.Gateway.ReceiveChannel> channels) { }
         public void CustomRetryPolicy(System.Func<NServiceBus.Transport.IncomingMessage, System.Exception, int, System.TimeSpan> customRetryPolicy) { }
         public void DisableRetries() { }
         public void Retries(int numberOfRetries, System.TimeSpan timeIncrease) { }

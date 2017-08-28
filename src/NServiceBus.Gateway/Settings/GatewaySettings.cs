@@ -90,10 +90,17 @@
         /// <summary>
         /// The sites that this Gateway should communicate with.
         /// </summary>
-        /// <param name="sites"></param>
         public void Sites(IEnumerable<Site> sites)
         {
-            config.GetSettings().Set<List<Site>>(sites);
+            config.GetSettings().Set<List<Site>>(sites.ToList());
+        }
+
+        /// <summary>
+        /// The channels this Gateway should listen to.
+        /// </summary>
+        public void Channels(IEnumerable<ReceiveChannel> channels)
+        {
+            config.GetSettings().Set<List<ReceiveChannel>>(channels.ToList());
         }
 
         internal static TimeSpan? GetTransactionTimeout(ReadOnlySettings settings)
@@ -150,13 +157,13 @@
             }
 
             return (from ChannelConfig channel in configSection.Channels
-                select new ReceiveChannel
-                {
-                    Address = channel.Address,
-                    Type = channel.ChannelType,
-                    MaxConcurrency = channel.MaxConcurrency,
-                    Default = channel.Default
-                }).ToList();
+                    select new ReceiveChannel
+                    {
+                        Address = channel.Address,
+                        Type = channel.ChannelType,
+                        MaxConcurrency = channel.MaxConcurrency,
+                        Default = channel.Default
+                    }).ToList();
         }
 
         static GatewayConfig GetConfigSection(ReadOnlySettings settings)
