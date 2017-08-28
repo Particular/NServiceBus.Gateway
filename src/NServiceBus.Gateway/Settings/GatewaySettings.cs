@@ -22,7 +22,6 @@
             this.config = config;
         }
 
-      
 
         /// <summary>
         /// Register custom factories for creating channel receivers and channel senders. This allows for overriding the default
@@ -36,10 +35,14 @@
         public void ChannelFactories(Func<string, IChannelSender> senderFactory, Func<string, IChannelReceiver> receiverFactory)
         {
             if (senderFactory == null)
+            {
                 throw new ArgumentNullException(nameof(senderFactory));
+            }
 
             if (receiverFactory == null)
+            {
                 throw new ArgumentNullException(nameof(receiverFactory));
+            }
 
             config.GetSettings().Set("GatewayChannelSenderFactory", senderFactory);
             config.GetSettings().Set("GatewayChannelReceiverFactory", receiverFactory);
@@ -54,10 +57,14 @@
         public void Retries(int numberOfRetries, TimeSpan timeIncrease)
         {
             if (numberOfRetries < 0)
+            {
                 throw new ArgumentOutOfRangeException(nameof(numberOfRetries), numberOfRetries, $"{nameof(numberOfRetries)} must be non-negative");
+            }
 
             if (timeIncrease < TimeSpan.Zero)
+            {
                 throw new ArgumentOutOfRangeException(nameof(timeIncrease), timeIncrease, $"{nameof(timeIncrease)} must be non-negative");
+            }
 
             SetDefaultRetryPolicySettings(numberOfRetries, timeIncrease);
         }
@@ -92,7 +99,9 @@
         internal static TimeSpan? GetTransactionTimeout(ReadOnlySettings settings)
         {
             if (settings.TryGet("Gateway.TransactionTimeout", out TimeSpan? timeout))
+            {
                 return timeout;
+            }
 
             var configSection = GetConfigSection(settings);
 
@@ -103,12 +112,16 @@
         internal static List<Site> GetConfiguredSites(ReadOnlySettings settings)
         {
             if (settings.TryGet(out List<Site> sites))
+            {
                 return sites;
+            }
 
             var configSection = GetConfigSection(settings);
 
             if (configSection == null)
+            {
                 return new List<Site>();
+            }
 
             return configSection.Sites.Cast<SiteConfig>().Select(site => new Site
             {
@@ -125,12 +138,16 @@
         internal static List<ReceiveChannel> GetConfiguredChannels(ReadOnlySettings settings)
         {
             if (settings.TryGet(out List<ReceiveChannel> channels))
+            {
                 return channels;
+            }
 
             var configSection = GetConfigSection(settings);
 
             if (configSection == null)
+            {
                 return new List<ReceiveChannel>();
+            }
 
             return (from ChannelConfig channel in configSection.Channels
                 select new ReceiveChannel
@@ -145,7 +162,9 @@
         static GatewayConfig GetConfigSection(ReadOnlySettings settings)
         {
             if (settings.TryGet(out GatewayConfig config))
+            {
                 return config;
+            }
 
             return ConfigurationManager.GetSection(typeof(GatewayConfig).Name) as GatewayConfig;
         }
