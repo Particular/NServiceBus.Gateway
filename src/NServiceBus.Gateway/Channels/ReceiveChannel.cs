@@ -10,7 +10,7 @@ namespace NServiceBus.Gateway
         /// <summary>
         /// Maximum concurrency for this channel.
         /// </summary>
-        public int MaxConcurrency { get; set; }
+        public int MaxConcurrency { get; set; } = 1;
 
         /// <summary>
         /// Defines if the this channel should be the default if not specified when sending messages.

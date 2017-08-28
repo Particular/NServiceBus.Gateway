@@ -96,11 +96,71 @@
         }
 
         /// <summary>
+        /// The site key to use, this goes hand in hand with Bus.SendToSites(key, message).
+        /// </summary>
+        /// <param name="siteKey"></param>
+        /// <param name="address">The channel address.</param>
+        /// <param name="type">The channel type. Default is `http`.</param>
+        /// <param name="legacyMode">Pass `true` to set the forwarding mode for this site to legacy mode.</param>
+        public void AddSite(string siteKey, string address, string type = "http", bool legacyMode = false)
+        {
+            var site = new Site
+            {
+                Channel = new Channel
+                {
+                    Address = address,
+                    Type = type
+                },
+                Key = siteKey,
+                LegacyMode = legacyMode
+            };
+
+            if (config.GetSettings().TryGet(out List<Site> sites))
+            {
+                sites.Add(site);
+            }
+
+            config.GetSettings().Set<List<Site>>(new List<Site>
+            {
+                site
+            });
+        }
+
+
+        /// <summary>
         /// The channels this Gateway should listen to.
         /// </summary>
         public void Channels(IEnumerable<ReceiveChannel> channels)
         {
             config.GetSettings().Set<List<ReceiveChannel>>(channels.ToList());
+        }
+
+        /// <summary>
+        /// Adds a receive channel that the gateway should listen to.
+        /// </summary>
+        /// <param name="address">The channel address.</param>
+        /// <param name="maxConcurrency">Maximum number of receive connections. Default is `1`.</param>
+        /// <param name="type">The channel type. Default is `http`.</param>
+        /// <param name="isDefault">True if this should be the default channel for send operations. Default is `false`.</param>
+        public void AddReceiveChannel(string address, int maxConcurrency = 1, string type = "http", bool isDefault = false)
+        {
+            var channel = new ReceiveChannel
+            {
+                Address = address,
+                MaxConcurrency = maxConcurrency,
+                Type = type,
+                Default = isDefault
+            };
+
+            if (config.GetSettings().TryGet(out List<ReceiveChannel> channels))
+            {
+                channels.Add(channel);
+            }
+
+            config.GetSettings().Set<List<ReceiveChannel>>(new List<ReceiveChannel>
+            {
+                channel
+            });
         }
 
         internal static TimeSpan? GetTransactionTimeout(ReadOnlySettings settings)

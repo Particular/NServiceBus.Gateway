@@ -2,7 +2,6 @@
 {
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Config;
     using EndpointTemplates;
     using NUnit.Framework;
 
@@ -25,17 +24,7 @@
             {
                 EndpointSetup<DefaultServerWithNoStorage>(c =>
                 {
-                    c.EnableGateway(new GatewayConfig
-                    {
-                        Channels = new ChannelCollection
-                        {
-                            new ChannelConfig
-                            {
-                                Address = "http://localhost:25898/SomeSite/",
-                                ChannelType = "http"
-                            }
-                        }
-                    });
+                    c.Gateway().AddReceiveChannel("http://localhost:25898/SomeSite/");
                 });
             }
         }
