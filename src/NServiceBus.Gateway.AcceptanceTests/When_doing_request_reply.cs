@@ -2,7 +2,6 @@
 {
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Config;
     using EndpointTemplates;
     using NUnit.Framework;
 
@@ -42,28 +41,11 @@
                 {
                     c.MakeInstanceUniquelyAddressable("1");
                     c.EnableCallbacks();
-                    c.EnableGateway(new GatewayConfig
-                    {
-                        Sites = new SiteCollection
-                        {
-                            new SiteConfig
-                            {
-                                Key = "SiteB",
-                                Address = "http://localhost:25699/SiteB/",
-                                ChannelType = "http"
-                            }
-                        },
 
-                        Channels = new ChannelCollection
-                        {
-                            new ChannelConfig
-                            {
-                                Address = "http://localhost:25699/SiteA/",
-                                ChannelType = "http",
-                                Default = true
-                            }
-                        }
-                    });
+                    var gatewaySettings = c.Gateway();
+
+                    gatewaySettings.AddReceiveChannel("http://localhost:25699/SiteA/");
+                    gatewaySettings.AddSite("SiteB", "http://localhost:25699/SiteB/");
                 });
             }
         }
@@ -75,18 +57,7 @@
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.EnableCallbacks(makesRequests: false);
-                    c.EnableGateway(new GatewayConfig
-                    {
-                        Channels = new ChannelCollection
-                        {
-                            new ChannelConfig
-                            {
-                                Address = "http://localhost:25699/SiteB/",
-                                ChannelType = "http",
-                                Default = true
-                            }
-                        }
-                    });
+                    c.Gateway().AddReceiveChannel("http://localhost:25699/SiteB/");
                 });
             }
 

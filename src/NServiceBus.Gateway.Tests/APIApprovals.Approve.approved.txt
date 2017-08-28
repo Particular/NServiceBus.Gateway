@@ -140,12 +140,12 @@ namespace NServiceBus
     }
     public class GatewaySettings
     {
+        public void AddReceiveChannel(string address, string type = "http", int maxConcurrency = 1, bool isDefault = False) { }
+        public void AddSite(string siteKey, string address, string type = "http", bool legacyMode = False) { }
         public void ChannelFactories(System.Func<string, NServiceBus.Gateway.IChannelSender> senderFactory, System.Func<string, NServiceBus.Gateway.IChannelReceiver> receiverFactory) { }
-        public void Channels(System.Collections.Generic.IEnumerable<NServiceBus.Gateway.ReceiveChannel> channels) { }
         public void CustomRetryPolicy(System.Func<NServiceBus.Transport.IncomingMessage, System.Exception, int, System.TimeSpan> customRetryPolicy) { }
         public void DisableRetries() { }
         public void Retries(int numberOfRetries, System.TimeSpan timeIncrease) { }
-        public void Sites(System.Collections.Generic.IEnumerable<NServiceBus.Gateway.Routing.Site> sites) { }
     }
     public class static MessageHandlerContextExtensions
     {

@@ -88,14 +88,6 @@
         }
 
         /// <summary>
-        /// The sites that this Gateway should communicate with.
-        /// </summary>
-        public void Sites(IEnumerable<Site> sites)
-        {
-            config.GetSettings().Set<List<Site>>(sites.ToList());
-        }
-
-        /// <summary>
         /// The site key to use, this goes hand in hand with Bus.SendToSites(key, message).
         /// </summary>
         /// <param name="siteKey"></param>
@@ -104,6 +96,10 @@
         /// <param name="legacyMode">Pass `true` to set the forwarding mode for this site to legacy mode.</param>
         public void AddSite(string siteKey, string address, string type = "http", bool legacyMode = false)
         {
+            Guard.AgainstNullAndEmpty(nameof(siteKey), siteKey);
+            Guard.AgainstNullAndEmpty(nameof(address), address);
+            Guard.AgainstNullAndEmpty(nameof(type), type);
+
             var site = new Site
             {
                 Channel = new Channel
@@ -126,15 +122,6 @@
             });
         }
 
-
-        /// <summary>
-        /// The channels this Gateway should listen to.
-        /// </summary>
-        public void Channels(IEnumerable<ReceiveChannel> channels)
-        {
-            config.GetSettings().Set<List<ReceiveChannel>>(channels.ToList());
-        }
-
         /// <summary>
         /// Adds a receive channel that the gateway should listen to.
         /// </summary>
@@ -142,8 +129,12 @@
         /// <param name="maxConcurrency">Maximum number of receive connections. Default is `1`.</param>
         /// <param name="type">The channel type. Default is `http`.</param>
         /// <param name="isDefault">True if this should be the default channel for send operations. Default is `false`.</param>
-        public void AddReceiveChannel(string address, int maxConcurrency = 1, string type = "http", bool isDefault = false)
+        public void AddReceiveChannel(string address, string type = "http", int maxConcurrency = 1, bool isDefault = false)
         {
+            Guard.AgainstNullAndEmpty(nameof(address), address);
+            Guard.AgainstNullAndEmpty(nameof(type), type);
+            Guard.AgainstNegativeAndZero(nameof(maxConcurrency), 1);
+
             var channel = new ReceiveChannel
             {
                 Address = address,
@@ -217,13 +208,13 @@
             }
 
             return (from ChannelConfig channel in configSection.Channels
-                    select new ReceiveChannel
-                    {
-                        Address = channel.Address,
-                        Type = channel.ChannelType,
-                        MaxConcurrency = channel.MaxConcurrency,
-                        Default = channel.Default
-                    }).ToList();
+                select new ReceiveChannel
+                {
+                    Address = channel.Address,
+                    Type = channel.ChannelType,
+                    MaxConcurrency = channel.MaxConcurrency,
+                    Default = channel.Default
+                }).ToList();
         }
 
         static GatewayConfig GetConfigSection(ReadOnlySettings settings)

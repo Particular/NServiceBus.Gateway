@@ -8,7 +8,6 @@
     using System.Threading.Tasks;
     using System.Web;
     using AcceptanceTesting;
-    using Config;
     using EndpointTemplates;
     using NUnit.Framework;
 
@@ -94,17 +93,7 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    c.EnableGateway(new GatewayConfig
-                    {
-                        Channels = new ChannelCollection
-                        {
-                            new ChannelConfig
-                            {
-                                Address = "http://localhost:25898/Headquarters/",
-                                ChannelType = "http"
-                            }
-                        }
-                    });
+                    c.Gateway().AddReceiveChannel("http://localhost:25898/Headquarters/");
                 })
                 .IncludeType<MyRequest>();
             }
