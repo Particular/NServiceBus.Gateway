@@ -19,7 +19,7 @@
     {
         internal GatewaySettings(EndpointConfiguration config)
         {
-            this.config = config;
+            settings = config.GetSettings();
         }
 
 
@@ -34,18 +34,11 @@
         /// </param>
         public void ChannelFactories(Func<string, IChannelSender> senderFactory, Func<string, IChannelReceiver> receiverFactory)
         {
-            if (senderFactory == null)
-            {
-                throw new ArgumentNullException(nameof(senderFactory));
-            }
+            Guard.AgainstNull(nameof(senderFactory), senderFactory);
+            Guard.AgainstNull(nameof(receiverFactory), receiverFactory);
 
-            if (receiverFactory == null)
-            {
-                throw new ArgumentNullException(nameof(receiverFactory));
-            }
-
-            config.GetSettings().Set("GatewayChannelSenderFactory", senderFactory);
-            config.GetSettings().Set("GatewayChannelReceiverFactory", receiverFactory);
+            settings.Set("GatewayChannelSenderFactory", senderFactory);
+            settings.Set("GatewayChannelReceiverFactory", receiverFactory);
         }
 
 
@@ -56,15 +49,8 @@
         /// <param name="timeIncrease">The time to wait between each retry.</param>
         public void Retries(int numberOfRetries, TimeSpan timeIncrease)
         {
-            if (numberOfRetries < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(numberOfRetries), numberOfRetries, $"{nameof(numberOfRetries)} must be non-negative");
-            }
-
-            if (timeIncrease < TimeSpan.Zero)
-            {
-                throw new ArgumentOutOfRangeException(nameof(timeIncrease), timeIncrease, $"{nameof(timeIncrease)} must be non-negative");
-            }
+            Guard.AgainstNegative(nameof(numberOfRetries), numberOfRetries);
+            Guard.AgainstNegative(nameof(timeIncrease), timeIncrease);
 
             SetDefaultRetryPolicySettings(numberOfRetries, timeIncrease);
         }
@@ -76,7 +62,9 @@
         /// <param name="customRetryPolicy">The custom retry policy to use.</param>
         public void CustomRetryPolicy(Func<IncomingMessage, Exception, int, TimeSpan> customRetryPolicy)
         {
-            config.GetSettings().Set("Gateway.Retries.RetryPolicy", customRetryPolicy);
+            Guard.AgainstNull(nameof(customRetryPolicy), customRetryPolicy);
+
+            settings.Set("Gateway.Retries.RetryPolicy", customRetryPolicy);
         }
 
         /// <summary>
@@ -111,12 +99,12 @@
                 LegacyMode = legacyMode
             };
 
-            if (config.GetSettings().TryGet(out List<Site> sites))
+            if (settings.TryGet(out List<Site> sites))
             {
                 sites.Add(site);
             }
 
-            config.GetSettings().Set<List<Site>>(new List<Site>
+            settings.Set<List<Site>>(new List<Site>
             {
                 site
             });
@@ -143,12 +131,12 @@
                 Default = isDefault
             };
 
-            if (config.GetSettings().TryGet(out List<ReceiveChannel> channels))
+            if (settings.TryGet(out List<ReceiveChannel> channels))
             {
                 channels.Add(channel);
             }
 
-            config.GetSettings().Set<List<ReceiveChannel>>(new List<ReceiveChannel>
+            settings.Set<List<ReceiveChannel>>(new List<ReceiveChannel>
             {
                 channel
             });
@@ -229,9 +217,9 @@
 
         void SetDefaultRetryPolicySettings(int numberOfRetries, TimeSpan timeIncrease)
         {
-            config.GetSettings().Set("Gateway.Retries.RetryPolicy", DefaultRetryPolicy.Build(numberOfRetries, timeIncrease));
+            settings.Set("Gateway.Retries.RetryPolicy", DefaultRetryPolicy.Build(numberOfRetries, timeIncrease));
         }
 
-        EndpointConfiguration config;
+        SettingsHolder settings;
     }
 }
