@@ -6,11 +6,15 @@ namespace NServiceBus.Gateway.Receiving
 
     class ConventionBasedChannelManager : IManageReceiveChannels
     {
+        public ConventionBasedChannelManager(string endpointName)
+        {
+            this.endpointName = endpointName;
+        }
         public IEnumerable<ReceiveChannel> GetReceiveChannels()
         {
             yield return new ReceiveChannel
             {
-                Address = $"http://localhost/{EndpointName}/",
+                Address = $"http://localhost/{endpointName}/",
                 Type = "Http",
                 MaxConcurrency = 1
             };
@@ -21,6 +25,6 @@ namespace NServiceBus.Gateway.Receiving
             return GetReceiveChannels().First();
         }
 
-        public string EndpointName { get; set; }
+        string endpointName;
     }
 }

@@ -1,4 +1,4 @@
-namespace NServiceBus.AcceptanceTests.Gateway
+namespace NServiceBus.Gateway.AcceptanceTests
 {
     interface ICountNumberOfRetries
     {

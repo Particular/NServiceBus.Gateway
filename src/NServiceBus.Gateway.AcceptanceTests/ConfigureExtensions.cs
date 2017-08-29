@@ -1,10 +1,7 @@
-﻿namespace NServiceBus.AcceptanceTests.EndpointTemplates
+﻿namespace NServiceBus.Gateway.AcceptanceTests
 {
     using AcceptanceTesting.Support;
-    using Config;
-    using Configuration.AdvancedExtensibility;
     using ObjectBuilder;
-    using Persistence;
 
     public static class ConfigureExtensions
     {
@@ -22,17 +19,6 @@
                 r.RegisterSingleton(type, runDescriptor.ScenarioContext);
                 type = type.BaseType;
             }
-        }
-
-        public static GatewaySettings EnableGateway(this EndpointConfiguration config, GatewayConfig gatewayConfig, bool configureInMemoryPersistence = true)
-        {
-            config.GetSettings().Set<GatewayConfig>(gatewayConfig);
-
-            if (configureInMemoryPersistence)
-            {
-                config.UsePersistence<InMemoryPersistence, StorageType.GatewayDeduplication>();
-            }
-            return config.Gateway();
         }
     }
 }

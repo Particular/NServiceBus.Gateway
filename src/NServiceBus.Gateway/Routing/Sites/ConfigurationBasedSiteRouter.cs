@@ -4,9 +4,12 @@ namespace NServiceBus.Gateway.Routing.Sites
 
     class ConfigurationBasedSiteRouter
     {
-        public ConfigurationBasedSiteRouter(IDictionary<string, Site> sites)
+        public ConfigurationBasedSiteRouter(IList<Site> configuredSites)
         {
-            this.sites = sites;
+            foreach (var site in configuredSites)
+            {
+                sites[site.Key] = site;
+            }
         }
 
         public IEnumerable<Site> GetDestinationSitesFor(Dictionary<string, string> headers)
@@ -27,6 +30,6 @@ namespace NServiceBus.Gateway.Routing.Sites
             }
         }
 
-        IDictionary<string, Site> sites;
+        IDictionary<string, Site> sites = new Dictionary<string, Site>();
     }
 }

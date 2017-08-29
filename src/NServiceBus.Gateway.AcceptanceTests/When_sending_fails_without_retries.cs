@@ -1,11 +1,9 @@
-﻿namespace NServiceBus.AcceptanceTests.Gateway
+﻿namespace NServiceBus.Gateway.AcceptanceTests
 {
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.Customization;
-    using Config;
-    using EndpointTemplates;
     using NUnit.Framework;
 
     public class When_sending_fails_without_retries : NServiceBusAcceptanceTest
@@ -47,28 +45,12 @@
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.SendFailedMessagesTo(Conventions.EndpointNamingConvention(typeof(ErrorSpy)));
-                  
-                    c.EnableGateway(new GatewayConfig
-                    {
-                        Sites = new SiteCollection
-                        {
-                            new SiteConfig
-                            {
-                                Key = "SiteA",
-                                Address = "http://localhost:25999/SiteA/",
-                                ChannelType = "http"
-                            }
-                        },
-                        Channels = new ChannelCollection
-                        {
-                            new ChannelConfig
-                            {
-                                Address = "http://localhost:25999/Headquarters/",
-                                ChannelType = "http"
-                            }
-                        }
-                    })
-                    .DisableRetries();
+
+                    var gatewaySettings = c.Gateway();
+                    
+                    gatewaySettings.AddReceiveChannel("http://localhost:25999/Headquarters/");
+                    gatewaySettings.AddSite("SiteA","http://localhost:25999/SiteA/");
+                    gatewaySettings.DisableRetries();
                 });
             }
         }
@@ -82,7 +64,7 @@
         {
             public ErrorSpy()
             {
-                EndpointSetup<ErrorQueueSpy>();
+                EndpointSetup<DefaultServer>();
             }
 
             class ErrorMessageHandler : IHandleMessages<AnyMessage>

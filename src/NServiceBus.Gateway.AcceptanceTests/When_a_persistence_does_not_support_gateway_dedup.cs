@@ -1,9 +1,7 @@
-﻿namespace NServiceBus.AcceptanceTests.Gateway
+﻿namespace NServiceBus.Gateway.AcceptanceTests
 {
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Config;
-    using EndpointTemplates;
     using NUnit.Framework;
 
     public class When_a_persistence_does_not_support_gateway_dedup : NServiceBusAcceptanceTest
@@ -23,19 +21,9 @@
         {
             public Endpoint()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithNoStorage>(c =>
                 {
-                    c.EnableGateway(new GatewayConfig
-                    {
-                        Channels = new ChannelCollection
-                        {
-                            new ChannelConfig
-                            {
-                                Address = "http://localhost:25898/SomeSite/",
-                                ChannelType = "http"
-                            }
-                        }
-                    }, configureInMemoryPersistence: false);
+                    c.Gateway().AddReceiveChannel("http://localhost:25898/SomeSite/");
                 });
             }
         }

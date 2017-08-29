@@ -1,39 +1,25 @@
 namespace NServiceBus.Gateway.Tests.Routing
 {
     using System.Collections.Generic;
-    using System.Configuration;
     using System.Linq;
     using Channels;
-    using Config;
     using NUnit.Framework;
     using Receiving;
+    using Settings;
 
     [TestFixture]
-    public class When_using_the_configuration_bases_channel_manager
+    public class When_using_the_configuration_based_channel_manager
     {
-        IManageReceiveChannels config;
-        IEnumerable<ReceiveChannel> activeChannels;
-        Channel defaultChannel;
-
         [SetUp]
         public void SetUp()
         {
-
-            var section = ConfigurationManager.GetSection(typeof(GatewayConfig).Name) as GatewayConfig;
-
-
-            config = new ConfigurationBasedChannelManager
-            {
-                ReceiveChannels = section.GetChannels().ToList()
-            };
-
-            activeChannels = config.GetReceiveChannels();
-            defaultChannel = config.GetDefaultChannel();
-
+            channelManager = new ConfigurationBasedChannelManager(GatewaySettings.GetConfiguredChannels(new SettingsHolder()));
+            activeChannels = channelManager.GetReceiveChannels();
+            defaultChannel = channelManager.GetDefaultChannel();
         }
 
         [Test]
-        public void Should_read_the_channels_from_the_configSource()
+        public void Should_read_the_channels_from_app_config()
         {
             Assert.AreEqual(activeChannels.Count(), 3);
         }
@@ -55,5 +41,9 @@ namespace NServiceBus.Gateway.Tests.Routing
         {
             Assert.AreEqual(activeChannels.First(), defaultChannel);
         }
+
+        IManageReceiveChannels channelManager;
+        IEnumerable<ReceiveChannel> activeChannels;
+        Channel defaultChannel;
     }
 }

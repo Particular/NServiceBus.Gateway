@@ -1,9 +1,7 @@
-﻿namespace NServiceBus.AcceptanceTests.Gateway
+﻿namespace NServiceBus.Gateway.AcceptanceTests
 {
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Config;
-    using EndpointTemplates;
     using NUnit.Framework;
 
     public class When_sending_a_message_to_another_site : NServiceBusAcceptanceTest
@@ -34,26 +32,10 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    c.EnableGateway(new GatewayConfig
-                    {
-                        Sites = new SiteCollection
-                        {
-                            new SiteConfig
-                            {
-                                Key = "SiteA",
-                                Address = "http://localhost:25999/SiteA/",
-                                ChannelType = "http"
-                            }
-                        },
-                        Channels = new ChannelCollection
-                        {
-                            new ChannelConfig
-                            {
-                                Address = "http://localhost:25999/Headquarters/",
-                                ChannelType = "http"
-                            }
-                        }
-                    });
+                    var gatewaySettings = c.Gateway();
+
+                    gatewaySettings.AddReceiveChannel("http://localhost:25999/Headquarters/");
+                    gatewaySettings.AddSite("SiteA", "http://localhost:25999/SiteA/");
                 });
             }
 
@@ -75,17 +57,7 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    c.EnableGateway(new GatewayConfig
-                    {
-                        Channels = new ChannelCollection
-                        {
-                            new ChannelConfig
-                            {
-                                Address = "http://localhost:25999/SiteA/",
-                                ChannelType = "http"
-                            }
-                        }
-                    });
+                    c.Gateway().AddReceiveChannel("http://localhost:25999/SiteA/");
                 });
             }
 
