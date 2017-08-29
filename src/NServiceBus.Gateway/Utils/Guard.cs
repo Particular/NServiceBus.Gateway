@@ -2,22 +2,9 @@
 {
     using System;
     using System.Collections;
-    using System.Linq;
-    using System.Reflection;
 
     static class Guard
     {
-// ReSharper disable UnusedParameter.Global
-        public static void TypeHasDefaultConstructor(Type type, string argumentName)
-        {
-            if (type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .All(ctor => ctor.GetParameters().Length != 0))
-            {
-                var error = $"Type '{type.FullName}' must have a default constructor.";
-                throw new ArgumentException(error, argumentName);
-            }
-        }
-
         public static void AgainstNull(string argumentName, object value)
         {
             if (value == null)
