@@ -94,10 +94,21 @@
             {
                 channelReceiverFactory = s => new ChannelReceiverFactory(typeof(HttpChannelReceiver)).GetReceiver(s);
                 channelSenderFactory = s => new ChannelSenderFactory(typeof(HttpChannelSender)).GetSender(s);
+                CheckForNonWildcardDefaultChannel(channelManager);
             }
 
             var enableHttpListener = !usingCustomChannelProviders;
             RegisterHttpListenerInstaller(context, channelManager, enableHttpListener);
+            
+        }
+
+        static void CheckForNonWildcardDefaultChannel(IManageReceiveChannels channelManager)
+        {
+            var defaultChannel = channelManager.GetDefaultChannel();
+            if (defaultChannel.Address.Contains("*"))
+            {
+                throw new Exception($"Listening on {defaultChannel.Address} with a wildcard uri. An extra channel with a fully qualified non-wildcard url must be configured as default for Reply routing.");
+            }
         }
 
         static SingleCallChannelForwarder CreateForwarder(Func<string, IChannelSender> channelSenderFactory, IDataBus databus)
