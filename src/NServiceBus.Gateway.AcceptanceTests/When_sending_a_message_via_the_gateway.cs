@@ -31,7 +31,7 @@
                     webRequest.Headers.Add("MySpecialHeader", "MySpecialValue");
                     webRequest.Headers.Add("NServiceBus.Id", Guid.NewGuid().ToString("N"));
 
-                    const string message = "<?xml version=\"1.0\" ?><Messages xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"http://tempuri.net/NServiceBus.AcceptanceTests.Gateway\"><MyRequest></MyRequest></Messages>";
+                    const string message = "<?xml version=\"1.0\" ?><Messages xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"http://tempuri.net/NServiceBus.Gateway.AcceptanceTests\"><MyRequest></MyRequest></Messages>";
 
                     using (var messagePayload = new MemoryStream(Encoding.UTF8.GetBytes(message)))
                     {

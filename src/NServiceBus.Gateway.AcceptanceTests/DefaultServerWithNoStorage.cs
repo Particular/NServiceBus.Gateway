@@ -10,15 +10,11 @@
 
     public class DefaultServerWithNoStorage : IEndpointSetupTemplate
     {
-        protected bool ConfigureStorage;
-
         public Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizationConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
-            var types = endpointCustomizationConfiguration.GetTypesScopedByTestClass();
-
             var endpointConfiguration = new EndpointConfiguration(endpointCustomizationConfiguration.EndpointName);
 
-            endpointConfiguration.TypesToIncludeInScan(types);
+            endpointConfiguration.TypesToIncludeInScan(endpointCustomizationConfiguration.GetTypesScopedByTestClass());
 
             endpointConfiguration.Recoverability()
                 .Delayed(delayed => delayed.NumberOfRetries(0))
@@ -30,7 +26,9 @@
                 .StorageDirectory(storageDir);
 
             if (ConfigureStorage)
+            {
                 endpointConfiguration.UsePersistence<InMemoryPersistence, StorageType.GatewayDeduplication>();
+            }
 
             endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 
@@ -38,5 +36,7 @@
 
             return Task.FromResult(endpointConfiguration);
         }
+
+        protected bool ConfigureStorage;
     }
 }
