@@ -1,4 +1,4 @@
-﻿namespace NServiceBus.AcceptanceTests.Gateway
+﻿namespace NServiceBus.Gateway.AcceptanceTests
 {
     using System;
     using System.IO;
@@ -8,7 +8,6 @@
     using System.Threading.Tasks;
     using System.Web;
     using AcceptanceTesting;
-    using EndpointTemplates;
     using NUnit.Framework;
 
     public class When_sending_a_message_via_the_gateway : NServiceBusAcceptanceTest

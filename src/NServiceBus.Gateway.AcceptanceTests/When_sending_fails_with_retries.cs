@@ -1,10 +1,9 @@
-﻿namespace NServiceBus.AcceptanceTests.Gateway
+﻿namespace NServiceBus.Gateway.AcceptanceTests
 {
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.Customization;
-    using EndpointTemplates;
     using NUnit.Framework;
 
     public class When_sending_fails_with_retries : NServiceBusAcceptanceTest

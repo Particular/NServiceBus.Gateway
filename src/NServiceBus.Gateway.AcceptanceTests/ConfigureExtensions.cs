@@ -1,4 +1,4 @@
-﻿namespace NServiceBus.AcceptanceTests.EndpointTemplates
+﻿namespace NServiceBus.Gateway.AcceptanceTests
 {
     using AcceptanceTesting.Support;
     using ObjectBuilder;
