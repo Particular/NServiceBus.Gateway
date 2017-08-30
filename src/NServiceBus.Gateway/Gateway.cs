@@ -16,6 +16,7 @@
     using NServiceBus.Gateway.Channels.Http;
     using NServiceBus.Gateway.Deduplication;
     using NServiceBus.Gateway.HeaderManagement;
+    using NServiceBus.Gateway.Installer;
     using NServiceBus.Gateway.Notifications;
     using NServiceBus.Gateway.Receiving;
     using NServiceBus.Gateway.Routing;
@@ -37,6 +38,10 @@
         {
             DependsOn("NServiceBus.Features.DelayedDeliveryFeature");
             Defaults(s => s.SetDefault("Gateway.Retries.RetryPolicy", DefaultRetryPolicy.BuildWithDefaults()));
+            
+            // since the installers are registered even if the feature isn't enabled we need to make 
+            // this a no-op if the installer runs without the feature enabled
+            Defaults(c => c.Set<InstallerSettings>(new InstallerSettings()));
         }
 
         /// <summary>
@@ -89,17 +94,17 @@
             {
                 channelReceiverFactory = context.Settings.Get<Func<string, IChannelReceiver>>("GatewayChannelReceiverFactory");
                 channelSenderFactory = context.Settings.Get<Func<string, IChannelSender>>("GatewayChannelSenderFactory");
-            }
-            else
-            {
-                channelReceiverFactory = s => new ChannelReceiverFactory(typeof(HttpChannelReceiver)).GetReceiver(s);
-                channelSenderFactory = s => new ChannelSenderFactory(typeof(HttpChannelSender)).GetSender(s);
-                CheckForNonWildcardDefaultChannel(channelManager);
+                return;
             }
 
-            var enableHttpListener = !usingCustomChannelProviders;
-            RegisterHttpListenerInstaller(context, channelManager, enableHttpListener);
-            
+            CheckForNonWildcardDefaultChannel(channelManager);
+
+            channelReceiverFactory = s => new ChannelReceiverFactory(typeof(HttpChannelReceiver)).GetReceiver(s);
+            channelSenderFactory = s => new ChannelSenderFactory(typeof(HttpChannelSender)).GetSender(s);
+
+            var installerSettings = context.Settings.Get<InstallerSettings>();
+            installerSettings.ChannelManager = channelManager;
+            installerSettings.Enabled = true;
         }
 
         static void CheckForNonWildcardDefaultChannel(IManageReceiveChannels channelManager)
@@ -156,11 +161,6 @@
             }
 
             return new ConfigurationBasedSiteRouter(sites);
-        }
-
-        static void RegisterHttpListenerInstaller(FeatureConfigurationContext context, IManageReceiveChannels channelManager, bool enableHttpListener)
-        {
-            context.Container.ConfigureComponent(() => new GatewayHttpListenerInstaller(channelManager, enableHttpListener), DependencyLifecycle.SingleInstance);
         }
 
         class GatewayReceiverStartupTask : FeatureStartupTask

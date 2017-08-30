@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Installer\InstallerSettings.cs" />
     <Compile Include="MessageHandlerContextExtensions.cs" />
     <Compile Include="Channels\Channel.cs" />
     <Compile Include="Channels\ChannelSenderFactory.cs" />
@@ -83,7 +84,7 @@
     <Compile Include="ElevateChecker.cs" />
     <Compile Include="Gateway.cs" />
     <Compile Include="GatewayExtensions.cs" />
-    <Compile Include="GatewayHttpListenerInstaller.cs" />
+    <Compile Include="Installer\GatewayHttpListenerInstaller.cs" />
     <Compile Include="GatewayTransaction.cs" />
     <Compile Include="HeaderManagement\DataBusHeaderManager.cs" />
     <Compile Include="HeaderManagement\GatewayIncomingBehavior.cs" />

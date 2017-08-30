@@ -4,18 +4,21 @@ namespace NServiceBus.Installation
     using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
+    using Gateway.Installer;
     using Gateway.Receiving;
     using Logging;
+    using Settings;
 
     class GatewayHttpListenerInstaller : INeedToInstallSomething
     {
         IManageReceiveChannels channelManager;
         bool enabled;
 
-        public GatewayHttpListenerInstaller(IManageReceiveChannels channelManager, bool enabled)
+        public GatewayHttpListenerInstaller(ReadOnlySettings settings)
         {
-            this.channelManager = channelManager;
-            this.enabled = enabled;
+            var installerSettings = settings.Get<InstallerSettings>();
+            channelManager = installerSettings.ChannelManager;
+            enabled = installerSettings.Enabled;
         }
 
         static ILog logger = LogManager.GetLogger<GatewayHttpListenerInstaller>();
