@@ -34,7 +34,7 @@
                         {
                             new ChannelConfig
                             {
-                                Address = "http://*:25699/",
+                                Address = "http://+:25699/",
                                 ChannelType = "http",
                                 Default = true
                             }

@@ -8,7 +8,6 @@
     using ConsistencyGuarantees;
     using DeliveryConstraints;
     using Extensibility;
-    using Installation;
     using Logging;
     using NServiceBus.DataBus;
     using NServiceBus.Gateway;
@@ -110,7 +109,7 @@
         static void CheckForNonWildcardDefaultChannel(IManageReceiveChannels channelManager)
         {
             var defaultChannel = channelManager.GetDefaultChannel();
-            if (defaultChannel.Address.Contains("*"))
+            if (defaultChannel.Address.Contains("*") || defaultChannel.Address.Contains("+"))
             {
                 throw new Exception($"Listening on {defaultChannel.Address} with a wildcard uri. An extra channel with a fully qualified non-wildcard url must be configured as default for Reply routing.");
             }
