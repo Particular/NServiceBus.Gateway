@@ -17,7 +17,7 @@
                 await Scenario.Define<ScenarioContext>()
                     .WithEndpoint<EndpointWithWildCardUriAsDefault>(e => e.When(b => Task.FromResult(0)))
                     .Run();
-            }, Throws.Exception.InnerException.InnerException.With.Message.Contains("An extra channel with a fully qualified non-wildcard url must be configured as default for Reply routing."));
+            }, Throws.Exception.InnerException.InnerException.With.Message.Contains("Please add an extra channel with a fully qualified non-wildcard uri in order for replies to be transmitted properly."));
         }
 
         class EndpointWithWildCardUriAsDefault : EndpointConfigurationBuilder

@@ -111,7 +111,7 @@
             var defaultChannel = channelManager.GetDefaultChannel();
             if (defaultChannel.Address.Contains("*") || defaultChannel.Address.Contains("+"))
             {
-                throw new Exception($"Listening on {defaultChannel.Address} with a wildcard uri. An extra channel with a fully qualified non-wildcard url must be configured as default for Reply routing.");
+                throw new Exception($"Default channel {defaultChannel.Address} is using a wildcard uri. Please add an extra channel with a fully qualified non-wildcard uri in order for replies to be transmitted properly.");
             }
         }
 
