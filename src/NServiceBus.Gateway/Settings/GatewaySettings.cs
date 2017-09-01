@@ -2,16 +2,17 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Configuration;
-    using System.Linq;
-    using Config;
     using Configuration.AdvancedExtensibility;
     using Gateway;
     using Gateway.Channels;
     using Gateway.Routing;
     using Settings;
     using Transport;
-
+#if NET452
+    using System.Configuration;
+    using System.Linq;
+    using Config;
+#endif
     /// <summary>
     /// Placeholder for the various settings and extension points related to gateway.
     /// </summary>
@@ -148,11 +149,15 @@
             {
                 return timeout;
             }
-
+#if NETSTANDARD2_0
+            return null;
+#endif
+#if NET452
             var configSection = GetConfigSection(settings);
 
 
             return configSection?.TransactionTimeout;
+#endif
         }
 
         internal static List<Site> GetConfiguredSites(ReadOnlySettings settings)
@@ -161,7 +166,10 @@
             {
                 return sites;
             }
-
+#if NETSTANDARD2_0
+            return new List<Site>();
+#endif
+#if NET452
             var configSection = GetConfigSection(settings);
 
             if (configSection == null)
@@ -179,6 +187,7 @@
                 },
                 LegacyMode = site.LegacyMode
             }).ToList();
+#endif
         }
 
         internal static List<ReceiveChannel> GetConfiguredChannels(ReadOnlySettings settings)
@@ -187,6 +196,10 @@
             {
                 return channels;
             }
+#if NETSTANDARD2_0
+            return new List<ReceiveChannel>();
+#endif
+#if NET452
 
             var configSection = GetConfigSection(settings);
 
@@ -196,17 +209,19 @@
             }
 
             return (from ChannelConfig channel in configSection.Channels
-                select new ReceiveChannel
-                {
-                    Address = channel.Address,
-                    Type = channel.ChannelType,
-                    MaxConcurrency = channel.MaxConcurrency,
-                    Default = channel.Default
-                }).ToList();
+                    select new ReceiveChannel
+                    {
+                        Address = channel.Address,
+                        Type = channel.ChannelType,
+                        MaxConcurrency = channel.MaxConcurrency,
+                        Default = channel.Default
+                    }).ToList();
+#endif
         }
-
+#if NET452
         static GatewayConfig GetConfigSection(ReadOnlySettings settings)
         {
+
             if (settings.TryGet(out GatewayConfig config))
             {
                 return config;
@@ -214,7 +229,7 @@
 
             return ConfigurationManager.GetSection(typeof(GatewayConfig).Name) as GatewayConfig;
         }
-
+#endif
         void SetDefaultRetryPolicySettings(int numberOfRetries, TimeSpan timeIncrease)
         {
             settings.Set("Gateway.Retries.RetryPolicy", DefaultRetryPolicy.Build(numberOfRetries, timeIncrease));
