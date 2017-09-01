@@ -11,9 +11,9 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NServiceBus" Version="7.0.0-alpharelease0051" />
-    <PackageReference Include="Obsolete.Fody" Version="4.2.2" />
-    <PackageReference Include="Fody" Version="2.1.0" />
+    <PackageReference Include="NServiceBus" Version="7.0.0-*" />
+    <PackageReference Include="Obsolete.Fody" Version="4.*" />
+    <PackageReference Include="Fody" Version="2.*" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
