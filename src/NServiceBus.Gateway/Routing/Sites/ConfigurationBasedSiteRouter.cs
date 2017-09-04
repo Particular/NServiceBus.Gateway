@@ -14,13 +14,13 @@ namespace NServiceBus.Gateway.Routing.Sites
 
         public IEnumerable<Site> GetDestinationSitesFor(Dictionary<string, string> headers)
         {
-            if (headers.TryGetValue(Headers.DestinationSites, out string destinationSites))
+            if (headers.TryGetValue(Headers.DestinationSites, out var destinationSites))
             {
                 var siteKeys = destinationSites.Split(',');
 
                 foreach (var siteKey in siteKeys)
                 {
-                    if (sites.TryGetValue(siteKey, out Site site))
+                    if (sites.TryGetValue(siteKey, out var site))
                     {
                         yield return site;
                     }

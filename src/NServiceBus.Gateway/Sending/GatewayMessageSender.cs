@@ -52,7 +52,7 @@ namespace NServiceBus.Gateway.Sending
 
         static MessageIntentEnum GetMessageIntent(Dictionary<string, string> headers)
         {
-            if (headers.TryGetValue(Headers.MessageIntent, out string messageIntentString) && Enum.TryParse(messageIntentString, true, out MessageIntentEnum messageIntent))
+            if (headers.TryGetValue(Headers.MessageIntent, out var messageIntentString) && Enum.TryParse(messageIntentString, true, out MessageIntentEnum messageIntent))
             {
                 return messageIntent;
             }
