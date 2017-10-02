@@ -1,5 +1,6 @@
 namespace NServiceBus.Gateway.Tests.Routing
 {
+#if NET452
     using System.Collections.Generic;
     using System.Linq;
     using Channels;
@@ -46,4 +47,5 @@ namespace NServiceBus.Gateway.Tests.Routing
         IEnumerable<ReceiveChannel> activeChannels;
         Channel defaultChannel;
     }
+#endif
 }
