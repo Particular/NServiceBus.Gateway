@@ -9,6 +9,7 @@ namespace NServiceBus.Gateway.Tests.Routing
     using Gateway.Routing.Sites;
     using NUnit.Framework;
 
+#if NET452
     [TestFixture]
     public class When_routing_using_app_config
     {
@@ -36,4 +37,5 @@ namespace NServiceBus.Gateway.Tests.Routing
             Assert.AreEqual(new Channel{ Address = "http://sitea.com",Type = "http"},sites.First().Channel);
         }
     }
+#endif
 }
