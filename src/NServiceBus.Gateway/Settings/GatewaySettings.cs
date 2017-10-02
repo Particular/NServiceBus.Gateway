@@ -122,7 +122,7 @@
         {
             Guard.AgainstNullAndEmpty(nameof(address), address);
             Guard.AgainstNullAndEmpty(nameof(type), type);
-            Guard.AgainstNegativeAndZero(nameof(maxConcurrency), 1);
+            Guard.AgainstNegativeAndZero(nameof(maxConcurrency), maxConcurrency);
 
             var channel = new ReceiveChannel
             {
@@ -143,6 +143,17 @@
             });
         }
 
+        /// <summary>
+        /// Configures the transaction timeout to use when transmitting messages to remote sites. By default, the transaction timeout of the underlying transport is used.
+        /// </summary>
+        /// <param name="timeout">The new timeout value.</param>
+        public void TransactionTimeout(TimeSpan timeout)
+        {
+            Guard.AgainstNegativeAndZero(nameof(timeout), timeout);
+
+            settings.Set("Gateway.TransactionTimeout",timeout);
+        }
+
         internal static TimeSpan? GetTransactionTimeout(ReadOnlySettings settings)
         {
             if (settings.TryGet("Gateway.TransactionTimeout", out TimeSpan? timeout))
@@ -155,7 +166,10 @@
 #if NET452
             var configSection = GetConfigSection(settings);
 
-
+            if (configSection?.TransactionTimeout != null)
+            {
+                logger.WarnFormat("The ability to specify transaction timeout via the GatewayConfig config section will be removed in v4. Use the `EndpointConfiguration.Gateway().TransactionTimeout(...)` API instead.");
+            }
             return configSection?.TransactionTimeout;
 #endif
         }
@@ -176,6 +190,8 @@
             {
                 return new List<Site>();
             }
+
+            logger.WarnFormat("The ability to specify sites via the GatewayConfig config section will be removed in v4. Use the `EndpointConfiguration.Gateway().AddSite(...)` API instead.");
 
             return configSection.Sites.Cast<SiteConfig>().Select(site => new Site
             {
@@ -208,6 +224,8 @@
                 return new List<ReceiveChannel>();
             }
 
+            logger.WarnFormat("The ability to specify receive channels via the GatewayConfig config section will be removed in v4. Use the `EndpointConfiguration.Gateway().AddReceiveChannel(...)` API instead.");
+
             return (from ChannelConfig channel in configSection.Channels
                     select new ReceiveChannel
                     {
@@ -236,5 +254,7 @@
         }
 
         SettingsHolder settings;
+
+        static Logging.ILog logger = Logging.LogManager.GetLogger<TransportExtensions>();
     }
 }
