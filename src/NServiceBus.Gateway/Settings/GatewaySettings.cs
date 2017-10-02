@@ -144,7 +144,7 @@
         }
 
         /// <summary>
-        /// Configures the transaction timeout to use when transmitting messages to remote sites. Will by default use the transaction timeout of the underlying transport.
+        /// Configures the transaction timeout to use when transmitting messages to remote sites. By default, the transaction timeout of the underlying transport is used.
         /// </summary>
         /// <param name="timeout">The new timeout value.</param>
         public void TransactionTimeout(TimeSpan timeout)
