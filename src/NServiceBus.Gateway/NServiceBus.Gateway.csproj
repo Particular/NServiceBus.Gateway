@@ -12,8 +12,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="NServiceBus" Version="7.0.0-*" />
-    <PackageReference Include="Obsolete.Fody" Version="4.*" />
-    <PackageReference Include="Fody" Version="2.*" />
+    <PackageReference Include="Obsolete.Fody" Version="4.*" PrivateAssets="All" />
+    <PackageReference Include="Fody" Version="2.*" PrivateAssets="All" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
   </ItemGroup>
