@@ -64,9 +64,7 @@
 
             var channelManager = CreateChannelManager(context.Settings);
 
-            Func<string, IChannelSender> channelSenderFactory;
-            Func<string, IChannelReceiver> channelReceiverFactory;
-            RegisterChannels(context, channelManager, out channelSenderFactory, out channelReceiverFactory);
+            RegisterChannels(context, channelManager, out var channelSenderFactory, out var channelReceiverFactory);
 
             var gatewayInputAddress = context.Settings.GetTransportAddress(context.Settings.LogicalAddress().CreateQualifiedAddress("gateway"));
 

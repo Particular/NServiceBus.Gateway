@@ -1,3 +1,4 @@
+#if NET452
 namespace NServiceBus.Config
 {
     using System;
@@ -42,3 +43,4 @@ namespace NServiceBus.Config
         }
     }
 }
+#endif
