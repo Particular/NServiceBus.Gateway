@@ -6,7 +6,6 @@
     using AcceptanceTesting.Customization;
     using AcceptanceTesting.Support;
     using NUnit.Framework;
-    using Persistence;
 
     public class DefaultServerWithNoStorage : IEndpointSetupTemplate
     {
