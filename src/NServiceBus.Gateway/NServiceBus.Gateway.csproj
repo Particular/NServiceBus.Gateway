@@ -4,7 +4,6 @@
     <TargetFrameworks>net452;netstandard2.0</TargetFrameworks>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(SolutionDir)NServiceBus.snk</AssemblyOriginatorKeyFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <OutputPath>..\..\binaries\</OutputPath>
     <Description>The NServiceBus Gateway</Description>
   </PropertyGroup>
