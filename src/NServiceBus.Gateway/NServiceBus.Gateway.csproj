@@ -8,14 +8,7 @@
     <Description>The NServiceBus Gateway</Description>
   </PropertyGroup>
 
-  <!--Workaround for https://github.com/dotnet/sdk/issues/1469 -->
-  <PropertyGroup>
-    <DisableLockFileFrameworks>true</DisableLockFileFrameworks>
-  </PropertyGroup>
-
   <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
   </ItemGroup>
 
