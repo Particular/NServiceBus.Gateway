@@ -21,5 +21,10 @@ namespace NServiceBus.Gateway.Routing
         /// <code>true</code> to set the forwarding mode for this site to use legacy mode.
         /// </summary>
         public bool LegacyMode { get; set; }
+
+        /// <summary>
+        /// <code>true</code> to use reverse proxy friendly headers.
+        /// </summary>
+        public bool UsesReverseProxy { get; set; }
     }
 }

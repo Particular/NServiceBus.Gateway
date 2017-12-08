@@ -83,7 +83,8 @@
         /// <param name="address">The channel address.</param>
         /// <param name="type">The channel type. Default is `http`.</param>
         /// <param name="legacyMode">Pass `true` to set the forwarding mode for this site to legacy mode.</param>
-        public void AddSite(string siteKey, string address, string type = "http", bool legacyMode = false)
+        /// <param name="usesReverseProxy">Pass `true` if site is behind a reverse proxy that doesn't like headers with periods in them.</param>
+        public void AddSite(string siteKey, string address, string type = "http", bool legacyMode = false, bool usesReverseProxy = false)
         {
             Guard.AgainstNullAndEmpty(nameof(siteKey), siteKey);
             Guard.AgainstNullAndEmpty(nameof(address), address);
@@ -97,7 +98,8 @@
                     Type = type
                 },
                 Key = siteKey,
-                LegacyMode = legacyMode
+                LegacyMode = legacyMode,
+                UsesReverseProxy = usesReverseProxy
             };
 
             if (settings.TryGet(out List<Site> sites))
