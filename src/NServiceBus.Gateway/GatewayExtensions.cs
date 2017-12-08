@@ -29,5 +29,19 @@
 
             return legacyMode;
         }
+
+        /// <summary>
+        ///     encode headers for reverse proxy
+        /// </summary>
+        public static IDictionary<string, string> EncodeHeadersForReverseProxy(this IDictionary<string, string> headers)
+        {
+            var encodedHeaders = new Dictionary<string, string>();
+            foreach (var header in headers)
+            {
+                encodedHeaders.Add(header.Key.Replace(".","-"),header.Value);
+            }
+
+            return encodedHeaders;
+        }
     }
 }

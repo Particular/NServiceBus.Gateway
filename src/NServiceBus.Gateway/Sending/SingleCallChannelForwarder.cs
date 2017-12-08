@@ -88,6 +88,11 @@
 
             Logger.DebugFormat("Sending message - {0} to: {1}", callType, targetSite.Channel.Address);
 
+            if (targetSite.UsesReverseProxy)
+            {
+                headers = headers.EncodeHeadersForReverseProxy();
+            }
+
             await channelSender.Send(targetSite.Channel.Address, headers, data).ConfigureAwait(false);
         }
 

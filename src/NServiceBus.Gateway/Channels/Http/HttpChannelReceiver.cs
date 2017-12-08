@@ -176,7 +176,13 @@ namespace NServiceBus.Gateway.Channels.Http
 
             foreach (string header in context.Request.Headers.Keys)
             {
-                headers.Add(HttpUtility.UrlDecode(header), HttpUtility.UrlDecode(context.Request.Headers[header]));
+                var key = HttpUtility.UrlDecode(header);
+                if (key.Contains("NServiceBus-"))
+                {
+                    key = key.Replace("-", ".");
+                }
+
+                headers.Add(key, HttpUtility.UrlDecode(context.Request.Headers[header]));
             }
 
             foreach (string header in context.Request.QueryString.Keys)

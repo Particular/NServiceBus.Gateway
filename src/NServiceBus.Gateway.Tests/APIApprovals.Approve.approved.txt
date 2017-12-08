@@ -62,6 +62,8 @@ namespace NServiceBus.Config
         public string Key { get; set; }
         [System.Configuration.ConfigurationPropertyAttribute("LegacyMode", DefaultValue=true, IsKey=false, IsRequired=false)]
         public bool LegacyMode { get; set; }
+        [System.Configuration.ConfigurationPropertyAttribute("UsesReverseProxy", DefaultValue=false, IsKey=false, IsRequired=false)]
+        public bool UsesReverseProxy { get; set; }
     }
 }
 namespace NServiceBus.Features
@@ -130,6 +132,7 @@ namespace NServiceBus.Gateway.Routing
         public NServiceBus.Gateway.Channels.Channel Channel { get; set; }
         public string Key { get; set; }
         public bool LegacyMode { get; set; }
+        public bool UsesReverseProxy { get; set; }
     }
 }
 namespace NServiceBus
@@ -141,7 +144,7 @@ namespace NServiceBus
     public class GatewaySettings
     {
         public void AddReceiveChannel(string address, string type = "http", int maxConcurrency = 1, bool isDefault = False) { }
-        public void AddSite(string siteKey, string address, string type = "http", bool legacyMode = False) { }
+        public void AddSite(string siteKey, string address, string type = "http", bool legacyMode = False, bool usesReverseProxy = False) { }
         public void ChannelFactories(System.Func<string, NServiceBus.Gateway.IChannelSender> senderFactory, System.Func<string, NServiceBus.Gateway.IChannelReceiver> receiverFactory) { }
         public void CustomRetryPolicy(System.Func<NServiceBus.Transport.IncomingMessage, System.Exception, int, System.TimeSpan> customRetryPolicy) { }
         public void DisableRetries() { }
