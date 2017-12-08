@@ -89,7 +89,7 @@
             Guard.AgainstNullAndEmpty(nameof(siteKey), siteKey);
             Guard.AgainstNullAndEmpty(nameof(address), address);
             Guard.AgainstNullAndEmpty(nameof(type), type);
-            
+
             var site = new Site
             {
                 Channel = new Channel
