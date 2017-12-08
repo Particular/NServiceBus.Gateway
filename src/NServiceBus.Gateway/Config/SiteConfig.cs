@@ -72,22 +72,6 @@ namespace NServiceBus.Config
                 this["LegacyMode"] = value;
             }
         }
-
-        /// <summary>
-        /// Is the site behind a reverse proxy 
-        /// </summary>
-        [ConfigurationProperty("UsesReverseProxy", IsRequired = false, DefaultValue = false, IsKey = false)]
-        public bool UsesReverseProxy
-        {
-            get
-            {
-                return (bool) this["UsesReverseProxy"]; 
-            }
-            set
-            {
-                this["UsesReverseProxy"] = value;
-            }
-        }
     }
 }
 #endif

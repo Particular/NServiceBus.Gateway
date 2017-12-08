@@ -62,8 +62,6 @@ namespace NServiceBus.Config
         public string Key { get; set; }
         [System.Configuration.ConfigurationPropertyAttribute("LegacyMode", DefaultValue=true, IsKey=false, IsRequired=false)]
         public bool LegacyMode { get; set; }
-        [System.Configuration.ConfigurationPropertyAttribute("UsesReverseProxy", DefaultValue=false, IsKey=false, IsRequired=false)]
-        public bool UsesReverseProxy { get; set; }
     }
 }
 namespace NServiceBus.Features
