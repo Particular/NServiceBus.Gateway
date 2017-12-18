@@ -9,7 +9,7 @@
 
     public class DefaultServerWithNoStorage : IEndpointSetupTemplate
     {
-        public Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizationConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
+        public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizationConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
             var endpointConfiguration = new EndpointConfiguration(endpointCustomizationConfiguration.EndpointName);
 
@@ -26,14 +26,18 @@
 
             if (ConfigureStorage)
             {
-                endpointConfiguration.UsePersistence<InMemoryPersistence, StorageType.GatewayDeduplication>();
+                var persistenceConfiguration = GatewayTestSuiteConstraints.Current.CreatePersistenceConfiguration();
+
+                await persistenceConfiguration.Configure(endpointCustomizationConfiguration.EndpointName, endpointConfiguration, runDescriptor.Settings).ConfigureAwait(false);
+
+                runDescriptor.OnTestCompleted(_ => persistenceConfiguration.Cleanup());
             }
 
             endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 
             configurationBuilderCustomization(endpointConfiguration);
 
-            return Task.FromResult(endpointConfiguration);
+            return endpointConfiguration;
         }
 
         protected bool ConfigureStorage;

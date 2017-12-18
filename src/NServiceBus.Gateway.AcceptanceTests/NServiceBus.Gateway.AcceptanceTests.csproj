@@ -38,6 +38,16 @@
       <PackagePath>content\App_Packages\NSB.Gateway.AcceptanceTests\;contentFiles\cs\any\NSB.Gateway.AcceptanceTests\</PackagePath>
     </_PackageFiles>
     <_PackageFiles Remove="**\obj\**\*.cs" />
+    <_PackageFiles Remove="**\InMemoryPersistenceConfiguration.cs" />
+    <_PackageFiles Remove="**\InMemoryTestSuiteConstaints.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_PackageFiles Remove="GatewayTestSuiteConstraints.cs" />
+    <_PackageFiles Remove="IConfigureGatewayPersitenceExecution.cs" />
+    <_PackageFiles Remove="IGatewayTestSuiteConstraints.cs" />
+    <_PackageFiles Remove="InMemoryPersistenceConfiguration.cs" />
+    <_PackageFiles Remove="InMemoryTestSuiteConstaints.cs" />
   </ItemGroup>
 
 </Project>
