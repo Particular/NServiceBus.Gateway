@@ -14,11 +14,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
-    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="7.0.0-beta0012" />
-    <PackageReference Include="NServiceBus.Callbacks" Version="3.0.0-beta0003" />
-    <PackageReference Include="NUnit" Version="3.7.1" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.8.0-alpha1" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="[7.0.0-beta0012, 8.0.0)" />
+    <PackageReference Include="NServiceBus.Callbacks" Version="[3.0.0-beta0003, 4.0.0)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" PrivateAssets="All" />
+    <PackageReference Include="NUnit" Version="3.7.1" PrivateAssets="All" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.8.0-alpha1" PrivateAssets="All" />
     <PackageReference Include="Particular.Packaging" Version="0.1.0" PrivateAssets="All" />
   </ItemGroup>
 
@@ -32,10 +35,9 @@
   <ItemGroup>
     <_PackageFiles Include="**\*.cs">
       <BuildAction>Compile</BuildAction>
-      <PackagePath>content\App_Packages\NSB.GW.AcceptanceTests\;contentFiles\cs\any\NSB.GW.AcceptanceTests\</PackagePath>
+      <PackagePath>content\App_Packages\NSB.Gateway.AcceptanceTests\;contentFiles\cs\any\NSB.Gateway.AcceptanceTests\</PackagePath>
     </_PackageFiles>
-    <_PackageFiles Remove="**\obj\**\*.cs" />    
-    <_PackageFiles Remove="AssemblyInfo.cs" />
+    <_PackageFiles Remove="**\obj\**\*.cs" />
   </ItemGroup>
 
 </Project>
