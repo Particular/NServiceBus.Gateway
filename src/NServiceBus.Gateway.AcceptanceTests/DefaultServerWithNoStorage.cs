@@ -21,6 +21,8 @@
 
             var storageDir = Path.Combine(NServiceBusAcceptanceTest.StorageRootDir, TestContext.CurrentContext.Test.ID);
 
+            endpointConfiguration.EnableInstallers();
+
             endpointConfiguration.UseTransport<LearningTransport>()
                 .StorageDirectory(storageDir);
 
