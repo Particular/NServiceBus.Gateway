@@ -1,9 +1,8 @@
 ﻿namespace NServiceBus.Gateway.AcceptanceTests
 {
-    //we don't ship this class in the package
+    //we don't ship this class in the source package since downstreams should provide their own storage config.
     public partial class GatewayTestSuiteConstraints
     {
-        //we don't ship this class in the package
         public IConfigureGatewayPersitenceExecution CreatePersistenceConfiguration()
         {
             return new InMemoryPersistenceConfiguration();
