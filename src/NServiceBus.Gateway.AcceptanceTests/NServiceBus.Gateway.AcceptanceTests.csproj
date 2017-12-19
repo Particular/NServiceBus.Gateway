@@ -41,9 +41,4 @@
     <_PackageFiles Remove="**\InMemoryTestSuiteConstaints.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <_PackageFiles Remove="GatewayEndpoint.cs" />
-    <_PackageFiles Remove="GatewayEndpointWithNoStorage.cs" />
-  </ItemGroup>
-
 </Project>
