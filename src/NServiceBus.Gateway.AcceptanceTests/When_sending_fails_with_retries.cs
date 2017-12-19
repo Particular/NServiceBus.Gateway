@@ -73,7 +73,7 @@
         {
             public Headquarters()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<GatewayEndpoint>(c =>
                 {
                     var gatewaySettings = c.Gateway();
 
@@ -94,7 +94,7 @@
         {
             public ErrorSpy()
             {
-                EndpointSetup<DefaultServer>();
+                EndpointSetup<GatewayEndpoint>();
             }
 
             class ErrorMessageHandler : IHandleMessages<AnyMessage>

@@ -30,7 +30,7 @@
         {
             public Headquarters()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<GatewayEndpoint>(c =>
                 {
                     var gatewaySettings = c.Gateway();
 
@@ -55,7 +55,7 @@
         {
             public SiteA()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<GatewayEndpoint>(c =>
                 {
                     c.Gateway().AddReceiveChannel("http://localhost:25999/SiteA/");
                 });

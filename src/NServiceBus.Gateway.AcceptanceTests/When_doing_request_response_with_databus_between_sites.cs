@@ -51,7 +51,7 @@
         {
             public SiteA()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<GatewayEndpoint>(c =>
                 {
                     c.UseDataBus<FileShareDataBus>().BasePath(@".\databus\siteA");
                     c.MakeInstanceUniquelyAddressable("1");
@@ -85,7 +85,7 @@
         {
             public SiteB()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<GatewayEndpoint>(c =>
                 {
                     c.UseDataBus<FileShareDataBus>().BasePath(@".\databus\siteB");
                     c.EnableCallbacks(makesRequests: false);

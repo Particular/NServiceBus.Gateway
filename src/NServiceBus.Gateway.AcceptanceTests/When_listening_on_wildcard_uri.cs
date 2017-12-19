@@ -21,7 +21,7 @@
         {
             public EndpointWithWildCardUriAsDefault()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<GatewayEndpoint>(c =>
                 {
                     var gatewaySettings = c.Gateway();
 

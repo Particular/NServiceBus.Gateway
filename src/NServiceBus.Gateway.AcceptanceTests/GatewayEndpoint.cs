@@ -1,8 +1,8 @@
 ﻿namespace NServiceBus.Gateway.AcceptanceTests
 {
-    public class DefaultServer : DefaultServerWithNoStorage
+    public class GatewayEndpoint : GatewayEndpointWithNoStorage
     {
-        public DefaultServer()
+        public GatewayEndpoint()
         {
             ConfigureStorage = true;
         }

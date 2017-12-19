@@ -7,7 +7,7 @@
     using AcceptanceTesting.Support;
     using NUnit.Framework;
 
-    public class DefaultServerWithNoStorage : IEndpointSetupTemplate
+    public class GatewayEndpointWithNoStorage : IEndpointSetupTemplate
     {
         public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizationConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
