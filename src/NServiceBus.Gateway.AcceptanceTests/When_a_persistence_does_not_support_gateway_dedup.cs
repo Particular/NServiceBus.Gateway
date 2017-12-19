@@ -21,7 +21,7 @@
         {
             public Endpoint()
             {
-                EndpointSetup<DefaultServerWithNoStorage>(c =>
+                EndpointSetup<GatewayEndpointWithNoStorage>(c =>
                 {
                     c.Gateway().AddReceiveChannel("http://localhost:25898/SomeSite/");
                 });

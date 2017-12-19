@@ -38,8 +38,8 @@
         {
             DependsOn("NServiceBus.Features.DelayedDeliveryFeature");
             Defaults(s => s.SetDefault("Gateway.Retries.RetryPolicy", DefaultRetryPolicy.BuildWithDefaults()));
-            
-            // since the installers are registered even if the feature isn't enabled we need to make 
+
+            // since the installers are registered even if the feature isn't enabled we need to make
             // this a no-op if the installer runs without the feature enabled
             Defaults(c => c.Set<InstallerSettings>(new InstallerSettings()));
         }

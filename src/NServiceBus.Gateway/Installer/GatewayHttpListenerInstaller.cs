@@ -16,7 +16,11 @@ namespace NServiceBus.Installation
 
         public GatewayHttpListenerInstaller(ReadOnlySettings settings)
         {
-            var installerSettings = settings.Get<InstallerSettings>();
+            if (!settings.TryGet<InstallerSettings>(out var installerSettings))
+            {
+                return;
+            }
+
             channelManager = installerSettings.ChannelManager;
             enabled = installerSettings.Enabled;
         }

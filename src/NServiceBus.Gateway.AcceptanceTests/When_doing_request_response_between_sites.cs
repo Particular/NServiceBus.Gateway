@@ -36,7 +36,7 @@
         {
             public SiteA()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<GatewayEndpoint>(c =>
                 {
                     c.MakeInstanceUniquelyAddressable("1");
                     c.EnableCallbacks();
@@ -53,7 +53,7 @@
         {
             public SiteB()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<GatewayEndpoint>(c =>
                 {
                     c.EnableCallbacks(makesRequests: false);
                     c.Gateway().AddReceiveChannel("http://localhost:25799/SiteB/");

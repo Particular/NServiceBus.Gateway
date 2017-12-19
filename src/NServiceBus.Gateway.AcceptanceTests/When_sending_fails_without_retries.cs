@@ -42,7 +42,7 @@
         {
             public Headquarters()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<GatewayEndpoint>(c =>
                 {
                     c.SendFailedMessagesTo(Conventions.EndpointNamingConvention(typeof(ErrorSpy)));
 
@@ -64,7 +64,7 @@
         {
             public ErrorSpy()
             {
-                EndpointSetup<DefaultServer>();
+                EndpointSetup<GatewayEndpoint>();
             }
 
             class ErrorMessageHandler : IHandleMessages<AnyMessage>
