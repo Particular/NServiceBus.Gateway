@@ -1,11 +1,9 @@
-﻿namespace NServiceBus.AcceptanceTests.Gateway
+﻿namespace NServiceBus.Gateway.AcceptanceTests
 {
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using EndpointTemplates;
-    using Config;
-    using Features;
+    using AcceptanceTesting.Customization;
     using NUnit.Framework;
 
     public class When_sending_fails_without_retries : NServiceBusAcceptanceTest
@@ -33,8 +31,6 @@
             Assert.AreEqual(0, context.NumberOfRetries, "Message was retried");
         }
 
-        const string ErrorSpyQueueName = "gw_error_spy_queue";
-
         class Context : ScenarioContext, ICountNumberOfRetries
         {
             public Guid Id { get; set; }
@@ -46,33 +42,16 @@
         {
             public Headquarters()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<GatewayEndpoint>(c =>
                 {
-                    c.EnableFeature<Gateway>();
-                    c.SendFailedMessagesTo(ErrorSpyQueueName);
-                    c.Gateway().DisableRetries();
-                })
-                    .WithConfig<GatewayConfig>(c =>
-                    {
-                        c.Sites = new SiteCollection
-                        {
-                            new SiteConfig
-                            {
-                                Key = "SiteA",
-                                Address = "http://localhost:25999/SiteA/",
-                                ChannelType = "http"
-                            }
-                        };
+                    c.SendFailedMessagesTo(Conventions.EndpointNamingConvention(typeof(ErrorSpy)));
 
-                        c.Channels = new ChannelCollection
-                        {
-                            new ChannelConfig
-                            {
-                                Address = "http://localhost:25999/Headquarters/",
-                                ChannelType = "http"
-                            }
-                        };
-                    });
+                    var gatewaySettings = c.Gateway();
+                    
+                    gatewaySettings.AddReceiveChannel("http://localhost:25999/Headquarters/");
+                    gatewaySettings.AddSite("SiteA","http://localhost:25999/SiteA/");
+                    gatewaySettings.DisableRetries();
+                });
             }
         }
 
@@ -85,8 +64,7 @@
         {
             public ErrorSpy()
             {
-                EndpointSetup<ErrorQueueSpyServer>()
-                    .CustomEndpointName(ErrorSpyQueueName);
+                EndpointSetup<GatewayEndpoint>();
             }
 
             class ErrorMessageHandler : IHandleMessages<AnyMessage>
@@ -98,10 +76,7 @@
 
                 public Task Handle(AnyMessage errorMessage, IMessageHandlerContext context)
                 {
-                    if (errorMessage.Id == testContext.Id)
-                    {
-                        testContext.MessageMovedToErrorQueue = true;
-                    }
+                    testContext.MessageMovedToErrorQueue = true;
 
                     return Task.FromResult(0);
                 }

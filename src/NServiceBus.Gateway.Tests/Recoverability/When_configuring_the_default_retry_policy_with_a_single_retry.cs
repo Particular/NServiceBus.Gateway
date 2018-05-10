@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using Transport;
     using NUnit.Framework;
-    using Configuration.AdvanceExtensibility;
+    using Configuration.AdvancedExtensibility;
 
     [TestFixture]
     class When_configuring_the_default_retry_policy_with_a_single_retry

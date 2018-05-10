@@ -1,27 +1,24 @@
-﻿namespace NServiceBus.AcceptanceTests.Gateway
+﻿namespace NServiceBus.Gateway.AcceptanceTests
 {
-    using System;
     using System.Threading.Tasks;
-    using Config;
-    using EndpointTemplates;
     using AcceptanceTesting;
-    using Features;
     using NUnit.Framework;
-    using ScenarioDescriptors;
 
     public class When_sending_a_message_to_another_site : NServiceBusAcceptanceTest
     {
         [Test]
-        public Task Should_be_able_to_reply_to_the_message()
+        public async Task Should_be_able_to_reply_to_the_message()
         {
-            return Scenario.Define<Context>()
-                    .WithEndpoint<Headquarters>(b => b.When(async (bus,c) => await bus.SendToSites(new[] { "SiteA" }, new MyRequest())))
-                    .WithEndpoint<SiteA>()
-                    .Done(c => c.GotResponseBack)
-                    .Repeat(r => r.For(Transports.Default)
-                    )
-                    .Should(c => Assert.IsTrue(c.GotResponseBack))
-                    .Run();
+            var context = await Scenario.Define<Context>()
+                .WithEndpoint<Headquarters>(b => b.When(async (bus, c) => await bus.SendToSites(new[]
+                {
+                    "SiteA"
+                }, new MyRequest())))
+                .WithEndpoint<SiteA>()
+                .Done(c => c.GotResponseBack)
+                .Run();
+
+            Assert.IsTrue(context.GotResponseBack);
         }
 
         public class Context : ScenarioContext
@@ -33,33 +30,13 @@
         {
             public Headquarters()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<GatewayEndpoint>(c =>
                 {
-                    c.EnableFeature<Gateway>();
-                })
-                    .WithConfig<GatewayConfig>(c =>
-                        {
-                            c.Sites = new SiteCollection
-                                {
-                                    new SiteConfig
-                                        {
-                                            Key = "SiteA",
-                                            Address = "http://localhost:25999/SiteA/",
-                                            ChannelType = "http"
-                                        }
-                                };
+                    var gatewaySettings = c.Gateway();
 
-                            c.Channels = new ChannelCollection
-                                {
-                                    new ChannelConfig
-                                        {
-                                             Address = "http://localhost:25999/Headquarters/",
-                                            ChannelType = "http"
-                                        }
-                                };
-
-
-                        });
+                    gatewaySettings.AddReceiveChannel("http://localhost:25999/Headquarters/");
+                    gatewaySettings.AddSite("SiteA", "http://localhost:25999/SiteA/");
+                });
             }
 
             public class MyResponseHandler : IHandleMessages<MyResponse>
@@ -78,27 +55,14 @@
         {
             public SiteA()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<GatewayEndpoint>(c =>
                 {
-                    c.MakeInstanceUniquelyAddressable("1");
-                    c.EnableFeature<Gateway>();
-                })
-                        .WithConfig<GatewayConfig>(c =>
-                        {
-                            c.Channels = new ChannelCollection
-                                {
-                                    new ChannelConfig
-                                        {
-                                             Address = "http://localhost:25999/SiteA/",
-                                            ChannelType = "http"
-                                        }
-                                };
-                        });
+                    c.Gateway().AddReceiveChannel("http://localhost:25999/SiteA/");
+                });
             }
 
             public class MyRequestHandler : IHandleMessages<MyRequest>
             {
-
                 public Task Handle(MyRequest request, IMessageHandlerContext context)
                 {
                     return context.Reply(new MyResponse());
@@ -106,12 +70,10 @@
             }
         }
 
-        [Serializable]
         public class MyRequest : IMessage
         {
         }
 
-        [Serializable]
         public class MyResponse : IMessage
         {
         }

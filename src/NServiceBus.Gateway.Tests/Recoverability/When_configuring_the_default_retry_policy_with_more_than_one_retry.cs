@@ -2,7 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using Configuration.AdvanceExtensibility;
+    using Configuration.AdvancedExtensibility;
     using Transport;
     using NUnit.Framework;
 

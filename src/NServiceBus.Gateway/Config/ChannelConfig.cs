@@ -1,8 +1,9 @@
+#if NET452
 namespace NServiceBus.Config
 {
     using System;
     using System.Configuration;
-    using Gateway.Channels;
+    using Gateway;
 
     /// <summary>
     /// Used to configure <see cref="ReceiveChannel"/>.
@@ -15,14 +16,8 @@ namespace NServiceBus.Config
         [ConfigurationProperty("Default", IsRequired = false, DefaultValue = false, IsKey = false)]
         public bool Default
         {
-            get
-            {
-                return (bool) this["Default"];
-            }
-            set
-            {
-                this["Default"] = value;
-            }
+            get => (bool) this["Default"];
+            set => this["Default"] = value;
         }
 
         /// <summary>
@@ -31,34 +26,22 @@ namespace NServiceBus.Config
         [ConfigurationProperty("Address", IsRequired = true, IsKey = false)]
         public string Address
         {
-            get
-            {
-                return (string) this["Address"];
-            }
-            set
-            {
-                this["Address"] = value;
-            }
+            get => (string) this["Address"];
+            set => this["Address"] = value;
         }
 
         /// <summary>
         /// The number of worker threads that will be used for this channel
         /// </summary>
         [ObsoleteEx(
-            TreatAsErrorFromVersion = "6",
-            RemoveInVersion = "7",
+            TreatAsErrorFromVersion = "3",
+            RemoveInVersion = "4",
             Message = "NumberOfWorkerThreads has been removed. Please use the MaxConcurrency setting instead.")]
         [ConfigurationProperty("NumberOfWorkerThreads", IsRequired = false, DefaultValue = 1, IsKey = false)]
         public int NumberOfWorkerThreads
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
         }
 
         /// <summary>
@@ -67,14 +50,8 @@ namespace NServiceBus.Config
         [ConfigurationProperty("MaxConcurrency", IsRequired = false, DefaultValue = 1, IsKey = false)]
         public int MaxConcurrency
         {
-            get
-            {
-                return (int)this["MaxConcurrency"];
-            }
-            set
-            {
-                this["MaxConcurrency"] = value;
-            }
+            get => (int)this["MaxConcurrency"];
+            set => this["MaxConcurrency"] = value;
         }
 
         /// <summary>
@@ -83,14 +60,9 @@ namespace NServiceBus.Config
         [ConfigurationProperty("ChannelType", IsRequired = true, IsKey = false)]
         public string ChannelType
         {
-            get
-            {
-                return ((string) this["ChannelType"]).ToLower();
-            }
-            set
-            {
-                this["ChannelType"] = value;
-            }
+            get => ((string) this["ChannelType"]).ToLower();
+            set => this["ChannelType"] = value;
         }
     }
 }
+#endif

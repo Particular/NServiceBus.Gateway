@@ -22,7 +22,7 @@
                 OriginatingSite = originatingSite,
                 LegacyMode = false
             };
-            
+
             var context = new OutgoingPhysicalMessageContextFake(returnState);
 
             var behavior = new GatewayOutgoingBehavior();
@@ -41,7 +41,7 @@
             {
                 HttpFrom = originatingSite,
             };
-            
+
             var context = new OutgoingPhysicalMessageContextFake(returnState);
 
             var behavior = new GatewayOutgoingBehavior();
@@ -97,7 +97,7 @@
 
             var behavior = new GatewayOutgoingBehavior();
             await behavior.Invoke(context, () => Task.FromResult(0));
-            
+
             Assert.IsFalse(context.Headers.ContainsKey(Headers.OriginatingSite));
         }
 
@@ -109,7 +109,7 @@
                 [Headers.DestinationSites] = "something",
                 [Headers.CorrelationId] = Guid.NewGuid().ToString()
             };
-            
+
             var context = new OutgoingPhysicalMessageContextFake(new GatewayIncomingBehavior.ReturnState(), headers);
 
             var behavior = new GatewayOutgoingBehavior();

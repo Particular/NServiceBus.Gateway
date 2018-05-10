@@ -1,9 +1,6 @@
-﻿namespace NServiceBus.AcceptanceTests.Gateway
+﻿namespace NServiceBus.Gateway.AcceptanceTests
 {
-    using System;
     using System.Threading.Tasks;
-    using Config;
-    using EndpointTemplates;
     using AcceptanceTesting;
     using NUnit.Framework;
 
@@ -26,7 +23,7 @@
                 .Run();
 
             Assert.IsTrue(context.GotCallback);
-            Assert.AreEqual(1, context.Response);
+            Assert.AreEqual(1,context.Response);
         }
 
         public class Context : ScenarioContext
@@ -39,33 +36,16 @@
         {
             public SiteA()
             {
-                EndpointSetup<DefaultServerWithCallbacks>(c =>
+                EndpointSetup<GatewayEndpoint>(c =>
                 {
                     c.MakeInstanceUniquelyAddressable("1");
-                    c.EnableFeature<Features.Gateway>();
-                })
-                    .WithConfig<GatewayConfig>(c =>
-                    {
-                        c.Sites = new SiteCollection
-                        {
-                            new SiteConfig
-                            {
-                                Key = "SiteB",
-                                Address = "http://localhost:25699/SiteB/",
-                                ChannelType = "http"
-                            }
-                        };
+                    c.EnableCallbacks();
 
-                        c.Channels = new ChannelCollection
-                        {
-                            new ChannelConfig
-                            {
-                                Address = "http://localhost:25699/SiteA/",
-                                ChannelType = "http",
-                                Default = true
-                            }
-                        };
-                    });
+                    var gatewaySettings = c.Gateway();
+
+                    gatewaySettings.AddReceiveChannel("http://localhost:25699/SiteA/");
+                    gatewaySettings.AddSite("SiteB", "http://localhost:25699/SiteB/");
+                });
             }
         }
 
@@ -73,24 +53,11 @@
         {
             public SiteB()
             {
-                EndpointSetup<DefaultServerWithCallbacks>(c =>
+                EndpointSetup<GatewayEndpoint>(c =>
                 {
-                    c.MakeInstanceUniquelyAddressable("1");
-                    c.EnableFeature<Features.Gateway>();
-                })
-                    .WithConfig<GatewayConfig>(c =>
-                    {
-                        c.Channels = new ChannelCollection
-                        {
-                            new ChannelConfig
-                            {
-                                Address = "http://localhost:25699/SiteB/",
-                                ChannelType = "http",
-                                Default = true
-                            }
-                        };
-                    });
-
+                    c.EnableCallbacks(makesRequests: false);
+                    c.Gateway().AddReceiveChannel("http://localhost:25699/SiteB/");
+                });
             }
 
             public class MyRequestHandler : IHandleMessages<MyRequest>
@@ -102,7 +69,7 @@
             }
         }
 
-        [Serializable]
+
         public class MyRequest : ICommand
         {
         }

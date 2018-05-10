@@ -1,38 +1,13 @@
-﻿namespace NServiceBus.AcceptanceTests.Gateway
+﻿namespace NServiceBus.Gateway.AcceptanceTests
 {
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using EndpointTemplates;
-    using Config;
-    using Features;
+    using AcceptanceTesting.Customization;
     using NUnit.Framework;
 
     public class When_sending_fails_with_retries : NServiceBusAcceptanceTest
     {
-        [Test, Explicit]
-        public async Task Should_have_been_retried_using_defaults()
-        {
-            var context = await Scenario.Define<Context>(c => { c.Id = Guid.NewGuid(); })
-                .WithEndpoint<Headquarters>(b =>
-                {
-                    b.CustomConfig((c, ctx) => { c.Gateway().ChannelFactories(s => new FaultyChannelSender<Context>(ctx), s => new FakeChannelReceiver()); })
-                        .When((bus, c) => bus.SendToSites(new[]
-                        {
-                            "SiteA"
-                        }, new AnyMessage
-                        {
-                            Id = c.Id
-                        }));
-                })
-                .WithEndpoint<ErrorSpy>()
-                .Done(c => c.MessageMovedToErrorQueue)
-                .Run(TimeSpan.FromMinutes(11));
-
-            Assert.IsTrue(context.MessageMovedToErrorQueue, "Message was not sent to error queue");
-            Assert.AreEqual(4, context.NumberOfRetries, "Incorrect number of retries");
-        }
-
         [Test]
         public async Task Should_have_been_retried_number_of_times_specified()
         {
@@ -40,10 +15,10 @@
                 .WithEndpoint<Headquarters>(b =>
                 {
                     b.CustomConfig((c, ctx) =>
-                    {
-                        c.Gateway().Retries(2, TimeSpan.FromSeconds(1));
-                        c.Gateway().ChannelFactories(s => new FaultyChannelSender<Context>(ctx), s => new FakeChannelReceiver());
-                    })
+                        {
+                            c.Gateway().Retries(2, TimeSpan.FromSeconds(1));
+                            c.Gateway().ChannelFactories(s => new FaultyChannelSender<Context>(ctx), s => new FakeChannelReceiver());
+                        })
                         .When((bus, c) => bus.SendToSites(new[]
                         {
                             "SiteA"
@@ -67,10 +42,10 @@
                 .WithEndpoint<Headquarters>(b =>
                 {
                     b.CustomConfig((cfg, ctx) => cfg.Gateway().CustomRetryPolicy((msg, ex, currentRetry) =>
-                    {
-                        ctx.CustomRetryPolicyWasCalled = true;
-                        return TimeSpan.MinValue;
-                    }))
+                        {
+                            ctx.CustomRetryPolicyWasCalled = true;
+                            return TimeSpan.MinValue;
+                        }))
                         .When((bus, ctx) => bus.SendToSites(new[]
                         {
                             "SiteA"
@@ -86,8 +61,6 @@
             Assert.True(context.CustomRetryPolicyWasCalled, "Custom retry policy was not called");
         }
 
-        const string ErrorSpyQueueName = "gw_error_spy_queue";
-
         class Context : ScenarioContext, ICountNumberOfRetries
         {
             public Guid Id { get; set; }
@@ -100,33 +73,15 @@
         {
             public Headquarters()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<GatewayEndpoint>(c =>
                 {
-                    c.EnableFeature<Gateway>();
-                    c.EnableFeature<TimeoutManager>();
-                    c.SendFailedMessagesTo(ErrorSpyQueueName);
-                })
-                    .WithConfig<GatewayConfig>(c =>
-                    {
-                        c.Sites = new SiteCollection
-                        {
-                            new SiteConfig
-                            {
-                                Key = "SiteA",
-                                Address = "http://localhost:25999/SiteA/",
-                                ChannelType = "http"
-                            }
-                        };
+                    var gatewaySettings = c.Gateway();
 
-                        c.Channels = new ChannelCollection
-                        {
-                            new ChannelConfig
-                            {
-                                Address = "http://localhost:25999/Headquarters/",
-                                ChannelType = "http"
-                            }
-                        };
-                    });
+                    gatewaySettings.AddReceiveChannel("http://localhost:25999/Headquarters/");
+                    gatewaySettings.AddSite("SiteA", "http://localhost:25999/SiteA/");
+
+                    c.SendFailedMessagesTo(Conventions.EndpointNamingConvention(typeof(ErrorSpy)));
+                });
             }
         }
 
@@ -139,8 +94,7 @@
         {
             public ErrorSpy()
             {
-                EndpointSetup<ErrorQueueSpyServer>()
-                    .CustomEndpointName(ErrorSpyQueueName);
+                EndpointSetup<GatewayEndpoint>();
             }
 
             class ErrorMessageHandler : IHandleMessages<AnyMessage>
@@ -152,11 +106,7 @@
 
                 public Task Handle(AnyMessage errorMessage, IMessageHandlerContext context)
                 {
-                    if (errorMessage.Id == testContext.Id)
-                    {
-                        testContext.MessageMovedToErrorQueue = true;
-                    }
-
+                    testContext.MessageMovedToErrorQueue = true;
                     return Task.FromResult(0);
                 }
 

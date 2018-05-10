@@ -1,41 +1,45 @@
 ﻿namespace NServiceBus
 {
     using System;
-    using Configuration.AdvanceExtensibility;
+    using System.Collections.Generic;
+    using Configuration.AdvancedExtensibility;
     using Gateway;
+    using Gateway.Channels;
+    using Gateway.Routing;
+    using Settings;
     using Transport;
-
+#if NET452
+    using System.Configuration;
+    using System.Linq;
+    using Config;
+#endif
     /// <summary>
     /// Placeholder for the various settings and extension points related to gateway.
     /// </summary>
     public class GatewaySettings
     {
-        EndpointConfiguration config;
-
         internal GatewaySettings(EndpointConfiguration config)
         {
-            this.config = config;
+            settings = config.GetSettings();
         }
 
+
         /// <summary>
-        /// Register custom factories for creating channel receivers and channel senders. This allows for overriding the default Http implementation.
+        /// Register custom factories for creating channel receivers and channel senders. This allows for overriding the default
+        /// Http implementation.
         /// </summary>
         /// <param name="senderFactory">The sender factory to use. The factory takes a string with the channel type as parameter.</param>
-        /// <param name="receiverFactory">The receiver factory to use. The factory takes a string with the channel type as parameter.</param>
+        /// <param name="receiverFactory">
+        /// The receiver factory to use. The factory takes a string with the channel type as
+        /// parameter.
+        /// </param>
         public void ChannelFactories(Func<string, IChannelSender> senderFactory, Func<string, IChannelReceiver> receiverFactory)
         {
-            if (senderFactory == null)
-            {
-                throw new ArgumentNullException(nameof(senderFactory));
-            }
+            Guard.AgainstNull(nameof(senderFactory), senderFactory);
+            Guard.AgainstNull(nameof(receiverFactory), receiverFactory);
 
-            if (receiverFactory == null)
-            {
-                throw new ArgumentNullException(nameof(receiverFactory));
-            }
-
-            config.GetSettings().Set("GatewayChannelSenderFactory", senderFactory);
-            config.GetSettings().Set("GatewayChannelReceiverFactory", receiverFactory);
+            settings.Set("GatewayChannelSenderFactory", senderFactory);
+            settings.Set("GatewayChannelReceiverFactory", receiverFactory);
         }
 
 
@@ -46,26 +50,22 @@
         /// <param name="timeIncrease">The time to wait between each retry.</param>
         public void Retries(int numberOfRetries, TimeSpan timeIncrease)
         {
-            if (numberOfRetries < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(numberOfRetries), numberOfRetries, $"{nameof(numberOfRetries)} must be non-negative");
-            }
-
-            if (timeIncrease < TimeSpan.Zero)
-            {
-                throw new ArgumentOutOfRangeException(nameof(timeIncrease), timeIncrease, $"{nameof(timeIncrease)} must be non-negative");
-            }
+            Guard.AgainstNegative(nameof(numberOfRetries), numberOfRetries);
+            Guard.AgainstNegative(nameof(timeIncrease), timeIncrease);
 
             SetDefaultRetryPolicySettings(numberOfRetries, timeIncrease);
         }
 
         /// <summary>
-        /// Set a retry policy that returns a TimeSpan to delay between attempts based on the number of retries attempted. Return <see cref="TimeSpan.Zero" /> to abort retries.
+        /// Set a retry policy that returns a TimeSpan to delay between attempts based on the number of retries attempted. Return
+        /// <see cref="TimeSpan.Zero" /> to abort retries.
         /// </summary>
         /// <param name="customRetryPolicy">The custom retry policy to use.</param>
         public void CustomRetryPolicy(Func<IncomingMessage, Exception, int, TimeSpan> customRetryPolicy)
         {
-            config.GetSettings().Set("Gateway.Retries.RetryPolicy", customRetryPolicy);
+            Guard.AgainstNull(nameof(customRetryPolicy), customRetryPolicy);
+
+            settings.Set("Gateway.Retries.RetryPolicy", customRetryPolicy);
         }
 
         /// <summary>
@@ -76,9 +76,185 @@
             SetDefaultRetryPolicySettings(0, TimeSpan.MinValue);
         }
 
+        /// <summary>
+        /// The site key to use, this goes hand in hand with Bus.SendToSites(key, message).
+        /// </summary>
+        /// <param name="siteKey"></param>
+        /// <param name="address">The channel address.</param>
+        /// <param name="type">The channel type. Default is `http`.</param>
+        /// <param name="legacyMode">Pass `true` to set the forwarding mode for this site to legacy mode.</param>
+        public void AddSite(string siteKey, string address, string type = "http", bool legacyMode = false)
+        {
+            Guard.AgainstNullAndEmpty(nameof(siteKey), siteKey);
+            Guard.AgainstNullAndEmpty(nameof(address), address);
+            Guard.AgainstNullAndEmpty(nameof(type), type);
+
+            var site = new Site
+            {
+                Channel = new Channel
+                {
+                    Address = address,
+                    Type = type
+                },
+                Key = siteKey,
+                LegacyMode = legacyMode
+            };
+
+            if (settings.TryGet(out List<Site> sites))
+            {
+                sites.Add(site);
+            }
+
+            settings.Set<List<Site>>(new List<Site>
+            {
+                site
+            });
+        }
+
+        /// <summary>
+        /// Adds a receive channel that the gateway should listen to.
+        /// </summary>
+        /// <param name="address">The channel address.</param>
+        /// <param name="maxConcurrency">Maximum number of receive connections. Default is `1`.</param>
+        /// <param name="type">The channel type. Default is `http`.</param>
+        /// <param name="isDefault">True if this should be the default channel for send operations. Default is `false`.</param>
+        public void AddReceiveChannel(string address, string type = "http", int maxConcurrency = 1, bool isDefault = false)
+        {
+            Guard.AgainstNullAndEmpty(nameof(address), address);
+            Guard.AgainstNullAndEmpty(nameof(type), type);
+            Guard.AgainstNegativeAndZero(nameof(maxConcurrency), maxConcurrency);
+
+            var channel = new ReceiveChannel
+            {
+                Address = address,
+                MaxConcurrency = maxConcurrency,
+                Type = type,
+                Default = isDefault
+            };
+
+            if (settings.TryGet(out List<ReceiveChannel> channels))
+            {
+                channels.Add(channel);
+            }
+
+            settings.Set<List<ReceiveChannel>>(new List<ReceiveChannel>
+            {
+                channel
+            });
+        }
+
+        /// <summary>
+        /// Configures the transaction timeout to use when transmitting messages to remote sites. By default, the transaction timeout of the underlying transport is used.
+        /// </summary>
+        /// <param name="timeout">The new timeout value.</param>
+        public void TransactionTimeout(TimeSpan timeout)
+        {
+            Guard.AgainstNegativeAndZero(nameof(timeout), timeout);
+
+            settings.Set("Gateway.TransactionTimeout",timeout);
+        }
+
+        internal static TimeSpan? GetTransactionTimeout(ReadOnlySettings settings)
+        {
+            if (settings.TryGet("Gateway.TransactionTimeout", out TimeSpan? timeout))
+            {
+                return timeout;
+            }
+#if NETSTANDARD2_0
+            return null;
+#endif
+#if NET452
+            var configSection = GetConfigSection(settings);
+
+            if (configSection?.TransactionTimeout != null)
+            {
+                logger.WarnFormat("The ability to specify transaction timeout via the GatewayConfig config section will be removed in v4. Use the `EndpointConfiguration.Gateway().TransactionTimeout(...)` API instead.");
+            }
+            return configSection?.TransactionTimeout;
+#endif
+        }
+
+        internal static List<Site> GetConfiguredSites(ReadOnlySettings settings)
+        {
+            if (settings.TryGet(out List<Site> sites))
+            {
+                return sites;
+            }
+#if NETSTANDARD2_0
+            return new List<Site>();
+#endif
+#if NET452
+            var configSection = GetConfigSection(settings);
+
+            if (configSection == null)
+            {
+                return new List<Site>();
+            }
+
+            logger.WarnFormat("The ability to specify sites via the GatewayConfig config section will be removed in v4. Use the `EndpointConfiguration.Gateway().AddSite(...)` API instead.");
+
+            return configSection.Sites.Cast<SiteConfig>().Select(site => new Site
+            {
+                Key = site.Key,
+                Channel = new Channel
+                {
+                    Type = site.ChannelType,
+                    Address = site.Address
+                },
+                LegacyMode = site.LegacyMode
+            }).ToList();
+#endif
+        }
+
+        internal static List<ReceiveChannel> GetConfiguredChannels(ReadOnlySettings settings)
+        {
+            if (settings.TryGet(out List<ReceiveChannel> channels))
+            {
+                return channels;
+            }
+#if NETSTANDARD2_0
+            return new List<ReceiveChannel>();
+#endif
+#if NET452
+
+            var configSection = GetConfigSection(settings);
+
+            if (configSection == null)
+            {
+                return new List<ReceiveChannel>();
+            }
+
+            logger.WarnFormat("The ability to specify receive channels via the GatewayConfig config section will be removed in v4. Use the `EndpointConfiguration.Gateway().AddReceiveChannel(...)` API instead.");
+
+            return (from ChannelConfig channel in configSection.Channels
+                    select new ReceiveChannel
+                    {
+                        Address = channel.Address,
+                        Type = channel.ChannelType,
+                        MaxConcurrency = channel.MaxConcurrency,
+                        Default = channel.Default
+                    }).ToList();
+#endif
+        }
+#if NET452
+        static GatewayConfig GetConfigSection(ReadOnlySettings settings)
+        {
+
+            if (settings.TryGet(out GatewayConfig config))
+            {
+                return config;
+            }
+
+            return ConfigurationManager.GetSection(typeof(GatewayConfig).Name) as GatewayConfig;
+        }
+#endif
         void SetDefaultRetryPolicySettings(int numberOfRetries, TimeSpan timeIncrease)
         {
-            config.GetSettings().Set("Gateway.Retries.RetryPolicy", DefaultRetryPolicy.Build(numberOfRetries, timeIncrease));
+            settings.Set("Gateway.Retries.RetryPolicy", DefaultRetryPolicy.Build(numberOfRetries, timeIncrease));
         }
+
+        SettingsHolder settings;
+
+        static Logging.ILog logger = Logging.LogManager.GetLogger<TransportExtensions>();
     }
 }

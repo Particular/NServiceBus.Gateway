@@ -1,8 +1,8 @@
-namespace NServiceBus.AcceptanceTests.Gateway
+namespace NServiceBus.Gateway.AcceptanceTests
 {
     using System;
     using System.Threading.Tasks;
-    using NServiceBus.Gateway;
+    using Gateway;
 
     class FakeChannelReceiver : IChannelReceiver
     {
