@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net452;netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks>net452;netcoreapp2.1</TargetFrameworks>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
@@ -14,13 +14,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="[7.0.0, 8.0.0)" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="[7.1.1, 8.0.0)" />
     <PackageReference Include="NServiceBus.Callbacks" Version="[3.0.0, 4.0.0)" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" PrivateAssets="All" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.8.0-alpha1" PrivateAssets="All" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" PrivateAssets="All" />
     <PackageReference Include="Particular.Packaging" Version="0.1.0" PrivateAssets="All" />
   </ItemGroup>
 
