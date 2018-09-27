@@ -29,5 +29,28 @@
                 });
             }
         }
+
+        [Test]
+        public void should_not_throw_exception_if_wildcard_channel_is_not_default()
+        {
+            Assert.DoesNotThrowAsync(async () =>
+                await Scenario.Define<ScenarioContext>()
+                    .WithEndpoint<EndpointWithWildCardUriAndFullyQualifiedDefault>(e => e.When(b => Task.FromResult(0)))
+                    .Run());
+        }
+
+        class EndpointWithWildCardUriAndFullyQualifiedDefault : EndpointConfigurationBuilder
+        {
+            public EndpointWithWildCardUriAndFullyQualifiedDefault()
+            {
+                EndpointSetup<GatewayEndpoint>(c =>
+                {
+                    var gatewaySettings = c.Gateway();
+
+                    gatewaySettings.AddReceiveChannel("http://localhost:25699/", isDefault: true);
+                    gatewaySettings.AddReceiveChannel("http://+:25699/");
+                });
+            }
+        }
     }
 }

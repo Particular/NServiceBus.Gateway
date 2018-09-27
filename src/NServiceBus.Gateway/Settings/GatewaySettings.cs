@@ -135,6 +135,7 @@
             if (settings.TryGet(out List<ReceiveChannel> channels))
             {
                 channels.Add(channel);
+                return;
             }
 
             settings.Set<List<ReceiveChannel>>(new List<ReceiveChannel>
