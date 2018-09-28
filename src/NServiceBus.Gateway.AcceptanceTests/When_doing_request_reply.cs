@@ -43,8 +43,8 @@
 
                     var gatewaySettings = c.Gateway();
 
-                    gatewaySettings.AddReceiveChannel("http://localhost:25699/SiteA/");
-                    gatewaySettings.AddSite("SiteB", "http://localhost:25699/SiteB/");
+                    gatewaySettings.AddReceiveChannel("http://localhost:25700/SiteA/");
+                    gatewaySettings.AddSite("SiteB", "http://localhost:25700/SiteB/");
                 });
             }
         }
@@ -56,7 +56,7 @@
                 EndpointSetup<GatewayEndpoint>(c =>
                 {
                     c.EnableCallbacks(makesRequests: false);
-                    c.Gateway().AddReceiveChannel("http://localhost:25699/SiteB/");
+                    c.Gateway().AddReceiveChannel("http://localhost:25700/SiteB/");
                 });
             }
 
