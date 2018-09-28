@@ -11,19 +11,19 @@
         {
             var context = await Scenario.Define<Context>()
                 .WithEndpoint<SiteA>(
-                    b => b.When(async (bus, c) =>
-                    {
-                        var options = new SendOptions();
-                        options.RouteToSites("SiteB");
-                        c.Response = await bus.Request<int>(new MyRequest(), options);
-                        c.GotCallback = true;
-                    }))
+                    b => b.When(c => c.EndpointsStarted, async (bus, c) =>
+                       {
+                           var options = new SendOptions();
+                           options.RouteToSites("SiteB");
+                           c.Response = await bus.Request<int>(new MyRequest(), options);
+                           c.GotCallback = true;
+                       }))
                 .WithEndpoint<SiteB>()
                 .Done(c => c.GotCallback)
                 .Run();
 
             Assert.IsTrue(context.GotCallback);
-            Assert.AreEqual(1,context.Response);
+            Assert.AreEqual(1, context.Response);
         }
 
         public class Context : ScenarioContext
