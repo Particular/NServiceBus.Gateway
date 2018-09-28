@@ -15,7 +15,7 @@
         [SetUp]
         public void Init()
         {
-            hostname = Environment.GetEnvironmentVariable("COMPUTERNAME") ?? Environment.GetEnvironmentVariable("HOSTNAME");
+            hostname = Dns.GetHostName();
         }
 
         [Test]
