@@ -25,7 +25,7 @@
                 {
                     var gatewaySettings = c.Gateway();
 
-                    gatewaySettings.AddReceiveChannel("http://+:25699/");
+                    gatewaySettings.AddReceiveChannel("http://+:25699/WildcardA/");
                 });
             }
         }
@@ -47,8 +47,8 @@
                 {
                     var gatewaySettings = c.Gateway();
 
-                    gatewaySettings.AddReceiveChannel("http://localhost:25699/", isDefault: true);
-                    gatewaySettings.AddReceiveChannel("http://+:25699/");
+                    gatewaySettings.AddReceiveChannel("http://localhost:25699/WildcardB/", isDefault: true);
+                    gatewaySettings.AddReceiveChannel("http://+:25699/WildcardB/");
                 });
             }
         }
