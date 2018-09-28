@@ -7,7 +7,7 @@
     public class When_listening_on_wildcard_uri : NServiceBusAcceptanceTest
     {
         [Test]
-        public void should_throw_exception_if_wildcard_channel_is_used_for_replies()
+        public void Should_throw_exception_if_wildcard_channel_is_used_for_replies()
         {
             Assert.That(async () =>
             {
@@ -31,7 +31,7 @@
         }
 
         [Test]
-        public void should_not_throw_exception_if_wildcard_channel_is_not_default()
+        public void Should_not_throw_exception_if_wildcard_channel_is_not_default()
         {
             Assert.DoesNotThrowAsync(async () =>
                 await Scenario.Define<ScenarioContext>()
