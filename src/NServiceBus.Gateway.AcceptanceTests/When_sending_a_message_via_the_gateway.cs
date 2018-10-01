@@ -109,5 +109,9 @@
                 }
             }
         }
+
+        public class MyRequest : IMessage
+        {
+        }
     }
 }
