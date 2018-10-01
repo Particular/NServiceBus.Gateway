@@ -11,7 +11,7 @@
         {
             var context = await Scenario.Define<Context>()
                 .WithEndpoint<SiteA>(
-                    b => b.When(c => c.EndpointsStarted, async (bus, c) =>
+                    b => b.When(async (bus, c) =>
                        {
                            var options = new SendOptions();
                            options.RouteToSites("SiteB");
