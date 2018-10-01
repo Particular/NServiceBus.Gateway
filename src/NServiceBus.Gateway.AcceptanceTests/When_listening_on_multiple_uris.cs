@@ -159,5 +159,10 @@
         }
 
         static string hostname;
+
+
+        public class MyRequest : IMessage
+        {
+        }
     }
 }
