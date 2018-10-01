@@ -40,9 +40,4 @@
     <_PackageFiles Remove="**\InMemoryPersistenceConfiguration.cs" />
     <_PackageFiles Remove="**\InMemoryTestSuiteConstaints.cs" />
   </ItemGroup>
-
-  <ItemGroup>
-    <_PackageFiles Remove="MyRequest.cs" />
-  </ItemGroup>
-
 </Project>
