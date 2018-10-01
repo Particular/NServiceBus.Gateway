@@ -12,12 +12,12 @@
             var context = await Scenario.Define<Context>()
                 .WithEndpoint<SiteA>(
                     b => b.When(async (bus, c) =>
-                       {
-                           var options = new SendOptions();
-                           options.RouteToSites("SiteB");
-                           c.Response = await bus.Request<int>(new MyRequest(), options);
-                           c.GotCallback = true;
-                       }))
+                    {
+                        var options = new SendOptions();
+                        options.RouteToSites("SiteB");
+                        c.Response = await bus.Request<int>(new MyRequest(), options);
+                        c.GotCallback = true;
+                    }))
                 .WithEndpoint<SiteB>()
                 .Done(c => c.GotCallback)
                 .Run();
