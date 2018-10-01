@@ -12,77 +12,45 @@
 
     public class When_listening_on_multiple_uris : NServiceBusAcceptanceTest
     {
-        [SetUp]
-        public void Init()
-        {
-            hostname = Dns.GetHostName();
-        }
-
         [Test]
-        public async Task Should_process_message_on_first_uri()
+        public async Task Should_receive_on_all_uris()
         {
             var context = await Scenario.Define<Context>()
                 .WithEndpoint<Headquarters>(b => b.When(bus =>
                 {
-                    var webRequest = CreateWebRequest("http://localhost:25898/Headquarters/");
+                    var hostname = Dns.GetHostName();
 
-                    while (true)
-                    {
-                        try
-                        {
-                            using (var myWebResponse = (HttpWebResponse)webRequest.GetResponse())
-                            {
-                                if (myWebResponse.StatusCode == HttpStatusCode.OK)
-                                {
-                                    break;
-                                }
-                            }
-                        }
-                        catch (WebException)
-                        {
-                        }
-                    }
+                    SendMessage(DefaultReceiveURI);
+                    SendMessage($"http://{hostname}:25898/Headquarters/");
                     return Task.FromResult(0);
                 }))
-                .Done(c => c.GotMessage)
+                .Done(c => c.GotMessageOnDefaultChannel && c.GotMessageOnNonDefaultChannel)
                 .Run();
 
-            Assert.IsTrue(context.GotMessage);
-            Assert.AreEqual("http://localhost:25898/Headquarters/", context.SentToHeader);
-            context.GotMessage = false;
+            Assert.IsTrue(context.GotMessageOnDefaultChannel);
+            Assert.IsTrue(context.GotMessageOnNonDefaultChannel);
         }
 
-        [Test]
-        public async Task Should_process_message_on_second_uri()
+        void SendMessage(string url)
         {
-            var context = await Scenario.Define<Context>()
-                .WithEndpoint<Headquarters>(b => b.When(bus =>
-                {
-                    var webRequest = CreateWebRequest($"http://{hostname}:25898/Headquarters/");
+            var webRequest = CreateWebRequest(url);
 
-                    while (true)
+            while (true)
+            {
+                try
+                {
+                    using (var myWebResponse = (HttpWebResponse)webRequest.GetResponse())
                     {
-                        try
+                        if (myWebResponse.StatusCode == HttpStatusCode.OK)
                         {
-                            using (var myWebResponse = (HttpWebResponse)webRequest.GetResponse())
-                            {
-                                if (myWebResponse.StatusCode == HttpStatusCode.OK)
-                                {
-                                    break;
-                                }
-                            }
-                        }
-                        catch (WebException)
-                        {
+                            break;
                         }
                     }
-                    return Task.FromResult(0);
-                }))
-                .Done(c => c.GotMessage)
-                .Run();
-
-            Assert.IsTrue(context.GotMessage);
-            Assert.AreEqual($"http://{hostname}:25898/Headquarters/", context.SentToHeader);
+                }
+                catch (WebException)
+                {
+                }
+            }
         }
 
         static HttpWebRequest CreateWebRequest(string uri)
@@ -128,9 +96,8 @@
 
         public class Context : ScenarioContext
         {
-            public bool GotMessage { get; set; }
-
-            public string SentToHeader { get; set; }
+            public bool GotMessageOnDefaultChannel { get; set; }
+            public bool GotMessageOnNonDefaultChannel { get; set; }
         }
 
         public class Headquarters : EndpointConfigurationBuilder
@@ -139,30 +106,32 @@
             {
                 EndpointSetup<GatewayEndpoint>(c =>
                 {
-                    c.Gateway().AddReceiveChannel("http://localhost:25898/Headquarters/");
-                    c.Gateway().AddReceiveChannel($"http://{hostname}:25898/Headquarters/");
+                    c.Gateway().AddReceiveChannel(DefaultReceiveURI);
+                    c.Gateway().AddReceiveChannel($"http://{Dns.GetHostName()}:25898/Headquarters/");
                 })
                 .IncludeType<MyRequest>();
             }
 
-            public class MyResponseHandler : IHandleMessages<MyRequest>
+            public class MyRequestHandler : IHandleMessages<MyRequest>
             {
                 public Context Context { get; set; }
 
                 public Task Handle(MyRequest response, IMessageHandlerContext context)
                 {
-                    Context.GotMessage = true;
-                    Context.SentToHeader = context.MessageHeaders["SentToHeader"];
+                    if (context.MessageHeaders["SentToHeader"] == DefaultReceiveURI)
+                    {
+                        Context.GotMessageOnDefaultChannel = true;
+                    }
+                    else
+                    {
+                        Context.GotMessageOnNonDefaultChannel = true;
+                    }
+
                     return Task.FromResult(0);
                 }
             }
         }
 
-        static string hostname;
-
-
-        public class MyRequest : IMessage
-        {
-        }
+        static string DefaultReceiveURI = "http://localhost:25898/Headquarters/";
     }
 }
