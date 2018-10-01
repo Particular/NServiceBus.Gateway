@@ -124,23 +124,14 @@
             Guard.AgainstNullAndEmpty(nameof(type), type);
             Guard.AgainstNegativeAndZero(nameof(maxConcurrency), maxConcurrency);
 
-            var channel = new ReceiveChannel
+            var channels = settings.GetOrCreate<List<ReceiveChannel>>();
+
+            channels.Add(new ReceiveChannel
             {
                 Address = address,
                 MaxConcurrency = maxConcurrency,
                 Type = type,
                 Default = isDefault
-            };
-
-            if (settings.TryGet(out List<ReceiveChannel> channels))
-            {
-                channels.Add(channel);
-                return;
-            }
-
-            settings.Set<List<ReceiveChannel>>(new List<ReceiveChannel>
-            {
-                channel
             });
         }
 
