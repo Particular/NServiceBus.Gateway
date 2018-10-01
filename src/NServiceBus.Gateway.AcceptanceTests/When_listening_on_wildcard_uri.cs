@@ -47,7 +47,7 @@
                 {
                     var gatewaySettings = c.Gateway();
 
-                    gatewaySettings.AddReceiveChannel("http://+:25700/WildcardB/");
+                    gatewaySettings.AddReceiveChannel("http://+:25701/WildcardB/");
                     gatewaySettings.AddReceiveChannel("http://localhost:25700/WildcardB/", isDefault: true);
                 });
             }
