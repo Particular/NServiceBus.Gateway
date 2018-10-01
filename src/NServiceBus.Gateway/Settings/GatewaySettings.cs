@@ -89,7 +89,9 @@
             Guard.AgainstNullAndEmpty(nameof(address), address);
             Guard.AgainstNullAndEmpty(nameof(type), type);
 
-            var site = new Site
+            var sites = settings.GetOrCreate<List<Site>>();
+
+            sites.Add(new Site
             {
                 Channel = new Channel
                 {
@@ -98,16 +100,6 @@
                 },
                 Key = siteKey,
                 LegacyMode = legacyMode
-            };
-
-            if (settings.TryGet(out List<Site> sites))
-            {
-                sites.Add(site);
-            }
-
-            settings.Set<List<Site>>(new List<Site>
-            {
-                site
             });
         }
 
