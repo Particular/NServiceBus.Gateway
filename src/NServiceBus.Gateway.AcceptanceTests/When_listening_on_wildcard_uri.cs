@@ -25,7 +25,7 @@
                 {
                     var gatewaySettings = c.Gateway();
 
-                    gatewaySettings.AddReceiveChannel("http://+:25699/WildcardA/");
+                    gatewaySettings.AddReceiveChannel("http://+:25601/WildcardA/");
                 });
             }
         }
