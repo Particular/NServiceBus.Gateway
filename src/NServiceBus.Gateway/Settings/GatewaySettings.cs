@@ -89,7 +89,9 @@
             Guard.AgainstNullAndEmpty(nameof(address), address);
             Guard.AgainstNullAndEmpty(nameof(type), type);
 
-            var site = new Site
+            var sites = settings.GetOrCreate<List<Site>>();
+
+            sites.Add(new Site
             {
                 Channel = new Channel
                 {
@@ -98,16 +100,6 @@
                 },
                 Key = siteKey,
                 LegacyMode = legacyMode
-            };
-
-            if (settings.TryGet(out List<Site> sites))
-            {
-                sites.Add(site);
-            }
-
-            settings.Set<List<Site>>(new List<Site>
-            {
-                site
             });
         }
 
@@ -124,22 +116,14 @@
             Guard.AgainstNullAndEmpty(nameof(type), type);
             Guard.AgainstNegativeAndZero(nameof(maxConcurrency), maxConcurrency);
 
-            var channel = new ReceiveChannel
+            var channels = settings.GetOrCreate<List<ReceiveChannel>>();
+
+            channels.Add(new ReceiveChannel
             {
                 Address = address,
                 MaxConcurrency = maxConcurrency,
                 Type = type,
                 Default = isDefault
-            };
-
-            if (settings.TryGet(out List<ReceiveChannel> channels))
-            {
-                channels.Add(channel);
-            }
-
-            settings.Set<List<ReceiveChannel>>(new List<ReceiveChannel>
-            {
-                channel
             });
         }
 
