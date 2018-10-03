@@ -1,6 +1,5 @@
 ﻿namespace NServiceBus.Gateway.AcceptanceTests
 {
-    using System.Threading.Tasks;
     using AcceptanceTesting;
     using NUnit.Framework;
 
