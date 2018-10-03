@@ -41,4 +41,8 @@
     <_PackageFiles Remove="**\InMemoryTestSuiteConstaints.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <_PackageFiles Remove="When_sending_to_invalid_site.cs" />
+  </ItemGroup>
+
 </Project>
