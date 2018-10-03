@@ -12,7 +12,8 @@
             Assert.That(async () =>
             {
                 await Scenario.Define<ScenarioContext>()
-                    .WithEndpoint<EndpointWithWildCardUriAsDefault>(e => e.When(b => Task.FromResult(0)))
+                    .WithEndpoint<EndpointWithWildCardUriAsDefault>()
+                    .Done(c => c.EndpointsStarted)
                     .Run();
             }, Throws.Exception.With.Message.Contains("Please add an extra channel with a fully qualified non-wildcard uri in order for replies to be transmitted properly."));
         }
@@ -35,7 +36,8 @@
         {
             Assert.DoesNotThrowAsync(async () =>
                 await Scenario.Define<ScenarioContext>()
-                    .WithEndpoint<EndpointWithWildCardUriAndFullyQualifiedDefault>(e => e.When(b => Task.FromResult(0)))
+                    .WithEndpoint<EndpointWithWildCardUriAndFullyQualifiedDefault>()
+                    .Done(c => c.EndpointsStarted)
                     .Run());
         }
 

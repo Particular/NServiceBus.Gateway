@@ -12,7 +12,8 @@
             Assert.That(async () =>
             {
                 await Scenario.Define<Context>()
-                    .WithEndpoint<Endpoint>(e => e.When(b => Task.FromResult(0)))
+                    .WithEndpoint<Endpoint>()
+                    .Done(c => c.EndpointsStarted)
                     .Run();
             }, Throws.Exception.With.Message.Contains("please configure one"));
         }
