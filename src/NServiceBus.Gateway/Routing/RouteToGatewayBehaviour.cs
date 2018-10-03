@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
     using Gateway.Routing;
     using Pipeline;
@@ -24,10 +23,17 @@
                 {
                     var siteKeys = siteKeyHeader.Split(',');
 
-                    var unknownSites = siteKeys.Where(siteKey => !configuredSiteKeys.Contains(siteKey))
-                        .ToList();
+                    var unknownSites = new List<string>();
 
-                    if (unknownSites.Any())
+                    foreach (var siteKey in siteKeys)
+                    {
+                        if (!configuredSiteKeys.Contains(siteKey))
+                        {
+                            unknownSites.Add(siteKey);
+                        }
+                    }
+
+                    if (unknownSites.Count > 0)
                     {
                         throw new Exception($"Sites with keys `{string.Join(",", unknownSites)}` was not found in the list of configured sites. Please make sure to configure it or remove it from the call to `{nameof(SendOptionsExtensions.RouteToSites)}`");
                     }
