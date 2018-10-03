@@ -7,18 +7,18 @@
     public class When_sending_to_invalid_site : NServiceBusAcceptanceTest
     {
         [Test]
-        public void Should_throw()
+        public void Should_throw_on_send()
         {
             Assert.That(async () =>
             {
                 await Scenario.Define<ScenarioContext>()
                     .WithEndpoint<GatewayEndpoint>(b => b.When(async (bus, c) => await bus.SendToSites(new[]
                     {
-                        "SiteA","NonConfiguredSite"
+                        "SiteA", "NonConfiguredSite"
                     }, new MyMessage())))
                     .Done(c => false)
                     .Run(TimeSpan.FromSeconds(10));
-            }, Throws.Exception.With.Message.Contains("Make sure that you have configured the site `NonConfiguredSite` properly"));
+            }, Throws.Exception.With.Message.Contains("Sites with keys `NonConfiguredSite` was not found in the list of configured sites"));
         }
 
         class GatewayEndpoint : EndpointConfigurationBuilder
