@@ -27,8 +27,10 @@
                     var unknownSites = siteKeys.Where(siteKey => !configuredSiteKeys.Contains(siteKey))
                         .ToList();
 
-                    throw new Exception($"Sites with keys `{string.Join(",", unknownSites)}` was not found in the list of configured sites. Please make sure to configure it or remove it from the call to `{nameof(SendOptionsExtensions.RouteToSites)}`");
-
+                    if (unknownSites.Any())
+                    {
+                        throw new Exception($"Sites with keys `{string.Join(",", unknownSites)}` was not found in the list of configured sites. Please make sure to configure it or remove it from the call to `{nameof(SendOptionsExtensions.RouteToSites)}`");
+                    }
                 }
 
                 //Hack 133
@@ -43,7 +45,8 @@
             return next();
         }
 
-        string gatewayAddress;
         readonly IList<string> configuredSiteKeys;
+
+        string gatewayAddress;
     }
 }
