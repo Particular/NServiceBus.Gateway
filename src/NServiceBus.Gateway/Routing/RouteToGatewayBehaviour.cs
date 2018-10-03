@@ -51,8 +51,7 @@
             return next();
         }
 
-        readonly IList<string> configuredSiteKeys;
-
+        IList<string> configuredSiteKeys;
         string gatewayAddress;
     }
 }
