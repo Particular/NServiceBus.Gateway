@@ -9,7 +9,7 @@
 
     class RouteToGatewayBehavior : Behavior<IRoutingContext>
     {
-        public RouteToGatewayBehavior(string gatewayAddress, IList<string> configuredSiteKeys)
+        public RouteToGatewayBehavior(string gatewayAddress, List<string> configuredSiteKeys)
         {
             this.gatewayAddress = gatewayAddress;
             this.configuredSiteKeys = configuredSiteKeys;
@@ -51,7 +51,7 @@
             return next();
         }
 
-        IList<string> configuredSiteKeys;
+        List<string> configuredSiteKeys;
         string gatewayAddress;
     }
 }
