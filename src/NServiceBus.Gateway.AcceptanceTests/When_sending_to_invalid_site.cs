@@ -14,11 +14,11 @@
                 await Scenario.Define<ScenarioContext>()
                     .WithEndpoint<GatewayEndpoint>(b => b.When(async (bus, c) => await bus.SendToSites(new[]
                     {
-                        "SiteA", "NonConfiguredSite"
+                        "NonConfiguredSite1","SiteA", "NonConfiguredSite2",
                     }, new MyMessage())))
                     .Done(c => false)
                     .Run(TimeSpan.FromSeconds(10));
-            }, Throws.Exception.With.Message.Contains("Sites with keys `NonConfiguredSite` was not found in the list of configured sites"));
+            }, Throws.Exception.With.Message.Contains("The following sites have not been configured: NonConfiguredSite1, NonConfiguredSite2"));
         }
 
         class GatewayEndpoint : EndpointConfigurationBuilder

@@ -27,22 +27,24 @@
 
                     foreach (var siteKey in siteKeys)
                     {
-                        if (!configuredSiteKeys.Contains(siteKey))
+                        if (configuredSiteKeys.Contains(siteKey))
                         {
-                            if (unknownSites == null)
-                            {
-                                unknownSites = siteKey;
-                            }
-                            else
-                            {
-                                unknownSites += "," + siteKey;
-                            }
+                            continue;
+                        }
+
+                        if (unknownSites == null)
+                        {
+                            unknownSites = siteKey;
+                        }
+                        else
+                        {
+                            unknownSites += ", " + siteKey;
                         }
                     }
 
                     if (unknownSites != null)
                     {
-                        throw new Exception($"Sites with keys `{unknownSites}` was not found in the list of configured sites. Please make sure to configure it or remove it from the call to `{nameof(SendOptionsExtensions.RouteToSites)}`");
+                        throw new Exception($"The following sites have not been configured: {unknownSites}");
                     }
                 }
 
