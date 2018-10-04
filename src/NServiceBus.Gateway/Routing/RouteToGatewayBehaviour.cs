@@ -23,19 +23,26 @@
                 {
                     var siteKeys = siteKeyHeader.Split(',');
 
-                    var unknownSites = new List<string>();
+                    string unknownSites = null;
 
                     foreach (var siteKey in siteKeys)
                     {
                         if (!configuredSiteKeys.Contains(siteKey))
                         {
-                            unknownSites.Add(siteKey);
+                            if (unknownSites == null)
+                            {
+                                unknownSites = siteKey;
+                            }
+                            else
+                            {
+                                unknownSites += "," + siteKey;
+                            }
                         }
                     }
 
-                    if (unknownSites.Count > 0)
+                    if (unknownSites != null)
                     {
-                        throw new Exception($"Sites with keys `{string.Join(",", unknownSites)}` was not found in the list of configured sites. Please make sure to configure it or remove it from the call to `{nameof(SendOptionsExtensions.RouteToSites)}`");
+                        throw new Exception($"Sites with keys `{unknownSites}` was not found in the list of configured sites. Please make sure to configure it or remove it from the call to `{nameof(SendOptionsExtensions.RouteToSites)}`");
                     }
                 }
 
