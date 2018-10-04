@@ -4,7 +4,7 @@
     using AcceptanceTesting;
     using NUnit.Framework;
 
-    public class When_sending_to_invalid_site : NServiceBusAcceptanceTest
+    public class When_sending_to_unknown_site : NServiceBusAcceptanceTest
     {
         [Test]
         public void Should_throw_on_send()
