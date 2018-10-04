@@ -1,6 +1,5 @@
 ﻿namespace NServiceBus.AcceptanceTests.Gateway
 {
-    using System.Threading.Tasks;
     using AcceptanceTesting;
     using EndpointTemplates;
     using Features;
@@ -15,7 +14,8 @@
             Assert.That(async () =>
             {
                 await Scenario.Define<Context>()
-                    .WithEndpoint<Endpoint>(e => e.When(b => Task.FromResult(0)))
+                    .WithEndpoint<Endpoint>()
+                    .Done(c => c.EndpointsStarted)
                     .Run();
             }, Throws.Exception.InnerException.InnerException.With.Message.Contains("DisableFeature<Gateway>()"));
         }
