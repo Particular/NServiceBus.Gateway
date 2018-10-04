@@ -26,7 +26,15 @@ namespace NServiceBus.Gateway.Channels.Http
 
             listener = new HttpListener();
 
-            listener.Prefixes.Add(address);
+            try
+            {
+                listener.Prefixes.Add(address);
+            }
+            catch (Exception ex)
+            {
+                var message = $"Unable to listen on {address}";
+                throw new Exception(message, ex);
+            }
 
             try
             {
