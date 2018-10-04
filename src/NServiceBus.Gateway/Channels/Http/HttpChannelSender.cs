@@ -14,9 +14,8 @@ namespace NServiceBus.Gateway.Channels.Http
     {
         public async Task Send(string remoteUrl, IDictionary<string, string> headers, Stream data)
         {
-#pragma warning disable DE0003 // API is deprecated
             var request = WebRequest.Create(remoteUrl);
-#pragma warning restore DE0003 // API is deprecated
+
             request.Method = "POST";
             request.ContentType = "application/x-www-form-urlencoded";
             request.Headers = Encode(headers);

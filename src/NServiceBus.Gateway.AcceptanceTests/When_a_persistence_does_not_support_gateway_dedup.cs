@@ -1,6 +1,5 @@
 ﻿namespace NServiceBus.Gateway.AcceptanceTests
 {
-    using System.Threading.Tasks;
     using AcceptanceTesting;
     using NUnit.Framework;
 
@@ -12,7 +11,8 @@
             Assert.That(async () =>
             {
                 await Scenario.Define<Context>()
-                    .WithEndpoint<Endpoint>(e => e.When(b => Task.FromResult(0)))
+                    .WithEndpoint<Endpoint>()
+                    .Done(c => c.EndpointsStarted)
                     .Run();
             }, Throws.Exception.With.Message.Contains("please configure one"));
         }

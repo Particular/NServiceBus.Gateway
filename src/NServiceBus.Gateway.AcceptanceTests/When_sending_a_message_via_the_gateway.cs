@@ -18,9 +18,8 @@
             var context = await Scenario.Define<Context>()
                 .WithEndpoint<Headquarters>(b => b.When(bus =>
                 {
-#pragma warning disable DE0003 // API is deprecated
                     var webRequest = (HttpWebRequest)WebRequest.Create("http://localhost:25898/Headquarters/");
-#pragma warning restore DE0003 // API is deprecated
+
                     webRequest.Method = "POST";
                     webRequest.ContentType = "text/xml; charset=utf-8";
                  

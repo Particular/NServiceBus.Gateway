@@ -55,9 +55,8 @@
 
         static HttpWebRequest CreateWebRequest(string uri)
         {
-#pragma warning disable DE0003 // API is deprecated
             var webRequest = (HttpWebRequest)WebRequest.Create(uri);
-#pragma warning restore DE0003 // API is deprecated
+
             webRequest.Method = "POST";
             webRequest.ContentType = "text/xml; charset=utf-8";
            
