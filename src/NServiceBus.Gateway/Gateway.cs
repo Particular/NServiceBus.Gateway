@@ -23,10 +23,9 @@
     using NServiceBus.Gateway.Routing.Sites;
     using NServiceBus.Gateway.Sending;
     using Persistence;
-    using Routing;
     using Performance.TimeToBeReceived;
+    using Routing;
     using Transport;
-
 
     /// <summary>
     /// Used to configure the gateway.
@@ -44,7 +43,7 @@
         }
 
         /// <summary>
-        ///     Called when the features is activated
+        /// Called when the features is activated
         /// </summary>
         protected override void Setup(FeatureConfigurationContext context)
         {
@@ -78,7 +77,15 @@
                 (config, errorContext) => GatewayRecoverabilityPolicy.Invoke(errorContext, retryPolicy, config),
                 (builder, messageContext) => sender.SendToDestination(messageContext, builder.Build<IDispatchMessages>(), CreateForwarder(channelSenderFactory, builder.BuildAll<IDataBus>()?.FirstOrDefault())));
 
-            context.Pipeline.Register("RouteToGateway", new RouteToGatewayBehavior(gatewayInputAddress), "Reroutes gateway messages to the gateway");
+            var section = context.Settings.GetConfigSection<GatewayConfig>();
+            var configuredSitesKeys = new List<string>();
+
+            if (section != null)
+            {
+                configuredSitesKeys = section.SitesAsDictionary().Keys.ToList();
+            }
+            
+            context.Pipeline.Register("RouteToGateway", new RouteToGatewayBehavior(gatewayInputAddress, configuredSitesKeys), "Reroutes gateway messages to the gateway");
             context.Pipeline.Register("GatewayIncomingBehavior", new GatewayIncomingBehavior(), "Extracts gateway related information from the incoming message");
             context.Pipeline.Register("GatewayOutgoingBehavior", new GatewayOutgoingBehavior(), "Puts gateway related information on the headers of outgoing messages");
 
@@ -147,7 +154,6 @@
             return new ConventionBasedChannelManager { EndpointName = context.Settings.EndpointName() };
 
         }
-
 
         static ConfigurationBasedSiteRouter GetConfigurationBasedSiteRouter(FeatureConfigurationContext context)
         {
@@ -233,7 +239,6 @@
                 return dispatchMessages.Dispatch(transportOperations, new TransportTransaction(), new ContextBag());
             }
 
-            static ILog Logger = LogManager.GetLogger<GatewayReceiverStartupTask>();
             ICollection<SingleCallChannelReceiver> activeReceivers = new List<SingleCallChannelReceiver>();
             IManageReceiveChannels manageReceiveChannels;
             Func<string, IChannelReceiver> channelReceiverFactory;
@@ -242,6 +247,8 @@
             IDeduplicateMessages deduplicator;
             IDataBus databus;
             string replyToAddress;
+
+            static ILog Logger = LogManager.GetLogger<GatewayReceiverStartupTask>();
         }
     }
 }

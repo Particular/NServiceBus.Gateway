@@ -102,7 +102,7 @@
     <Compile Include="Recoverability\DefaultRetryPolicy.cs" />
     <Compile Include="Recoverability\GatewayRecoverabilityPolicy.cs" />
     <Compile Include="Routing\RouteThroughGateway.cs" />
-    <Compile Include="Routing\RouteToGatewayBehaviour.cs" />
+    <Compile Include="Routing\RouteToGatewayBehavior.cs" />
     <Compile Include="Routing\Endpoints\EndpointRouter.cs" />
     <Compile Include="Routing\Site.cs" />
     <Compile Include="Routing\Sites\ConfigurationBasedSiteRouter.cs" />
