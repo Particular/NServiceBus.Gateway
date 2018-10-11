@@ -41,6 +41,7 @@
 
         Dictionary<string,string> MapToHeaders(TransportMessage from)
         {
+            // ReSharper disable once UseObjectOrCollectionInitializer
             var to = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);
 
             to[NServiceBus + Id] = from.Id;
@@ -118,6 +119,7 @@
 
             if (IsMsmqTransport)
             {
+                // ReSharper disable once NotAccessedVariable
                 Guid correlationId;
 
                 if (Guid.TryParse(message.CorrelationId, out correlationId))
