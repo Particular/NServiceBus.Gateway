@@ -101,6 +101,9 @@ The error message from running the above command is:
         {
             using (var windowsIdentity = WindowsIdentity.GetCurrent())
             {
+                // SEE https://youtrack.jetbrains.com/issue/RSRP-465918
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                // ReSharper disable HeuristicUnreachableCode
                 if (windowsIdentity == null)
                 {
                     return false;
