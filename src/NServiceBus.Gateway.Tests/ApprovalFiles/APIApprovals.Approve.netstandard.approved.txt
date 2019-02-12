@@ -1,0 +1,101 @@
+[assembly: System.CLSCompliantAttribute(true)]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute(@"NServiceBus.Gateway.Tests, PublicKey=0024000004800000940000000602000000240000525341310004000001000100dde965e6172e019ac82c2639ffe494dd2e7dd16347c34762a05732b492e110f2e4e2e1b5ef2d85c848ccfb671ee20a47c8d1376276708dc30a90ff1121b647ba3b7259a6bc383b2034938ef0e275b58b920375ac605076178123693c6c4f1331661a62eba28c249386855637780e3ff5f23a6d854700eaa6803ef48907513b92")]
+[assembly: System.Runtime.InteropServices.ComVisibleAttribute(false)]
+[assembly: System.Runtime.Versioning.TargetFrameworkAttribute(".NETStandard,Version=v2.0", FrameworkDisplayName="")]
+namespace NServiceBus.Features
+{
+    [System.ObsoleteAttribute("Use `EndpointConfiguration.Gateway() to enable the gateway. Will be removed in ve" +
+        "rsion 4.0.0.", true)]
+    public class Gateway : NServiceBus.Features.Feature
+    {
+        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
+    }
+}
+namespace NServiceBus.Gateway
+{
+    public enum CallType
+    {
+        SingleCallSubmit = 0,
+        SingleCallDatabusProperty = 1,
+    }
+    public class DataReceivedOnChannelArgs : System.EventArgs
+    {
+        public DataReceivedOnChannelArgs() { }
+        public System.IO.Stream Data { get; set; }
+        public System.Collections.Generic.IDictionary<string, string> Headers { get; set; }
+    }
+    public interface IChannelReceiver
+    {
+        void Start(string address, int maxConcurrency, System.Func<NServiceBus.Gateway.DataReceivedOnChannelArgs, System.Threading.Tasks.Task> dataReceivedOnChannel);
+        System.Threading.Tasks.Task Stop();
+    }
+    public interface IChannelSender
+    {
+        System.Threading.Tasks.Task Send(string remoteAddress, System.Collections.Generic.IDictionary<string, string> headers, System.IO.Stream data);
+    }
+    public class ReceiveChannel : NServiceBus.Gateway.Channels.Channel
+    {
+        public ReceiveChannel() { }
+        public bool Default { get; set; }
+        public int MaxConcurrency { get; set; }
+        public override string ToString() { }
+    }
+}
+namespace NServiceBus.Gateway.Channels
+{
+    public class Channel : System.IEquatable<NServiceBus.Gateway.Channels.Channel>
+    {
+        public Channel() { }
+        public string Address { get; set; }
+        public string Type { get; set; }
+        public bool Equals(NServiceBus.Gateway.Channels.Channel other) { }
+        public override bool Equals(object obj) { }
+        public override int GetHashCode() { }
+        public static bool ==(NServiceBus.Gateway.Channels.Channel left, NServiceBus.Gateway.Channels.Channel right) { }
+        public static bool !=(NServiceBus.Gateway.Channels.Channel left, NServiceBus.Gateway.Channels.Channel right) { }
+        public override string ToString() { }
+    }
+    [System.AttributeUsageAttribute(System.AttributeTargets.Class | System.AttributeTargets.All, AllowMultiple=true)]
+    public sealed class ChannelTypeAttribute : System.Attribute
+    {
+        public ChannelTypeAttribute(string type) { }
+        public string Type { get; set; }
+    }
+}
+namespace NServiceBus.Gateway.Routing
+{
+    public class Site
+    {
+        public Site() { }
+        public NServiceBus.Gateway.Channels.Channel Channel { get; set; }
+        public string Key { get; set; }
+        public bool LegacyMode { get; set; }
+    }
+}
+namespace NServiceBus
+{
+    public class static GatewayExtensions
+    {
+        public static NServiceBus.GatewaySettings Gateway(this NServiceBus.EndpointConfiguration config) { }
+    }
+    public class GatewaySettings
+    {
+        public void AddReceiveChannel(string address, string type = "http", int maxConcurrency = 1, bool isDefault = False) { }
+        public void AddSite(string siteKey, string address, string type = "http", bool legacyMode = False) { }
+        public void ChannelFactories(System.Func<string, NServiceBus.Gateway.IChannelSender> senderFactory, System.Func<string, NServiceBus.Gateway.IChannelReceiver> receiverFactory) { }
+        public void CustomRetryPolicy(System.Func<NServiceBus.Transport.IncomingMessage, System.Exception, int, System.TimeSpan> customRetryPolicy) { }
+        public void DisableRetries() { }
+        public void Retries(int numberOfRetries, System.TimeSpan timeIncrease) { }
+        public void TransactionTimeout(System.TimeSpan timeout) { }
+    }
+    public class static MessageHandlerContextExtensions
+    {
+        public static System.Threading.Tasks.Task SendToSites(this NServiceBus.IMessageHandlerContext context, System.Collections.Generic.IEnumerable<string> siteKeys, object message) { }
+        public static System.Threading.Tasks.Task SendToSites(this NServiceBus.IMessageSession context, System.Collections.Generic.IEnumerable<string> siteKeys, object message) { }
+    }
+    public class static SendOptionsExtensions
+    {
+        public static string[] GetSitesRoutingTo(this NServiceBus.SendOptions options) { }
+        public static void RouteToSites(this NServiceBus.SendOptions options, params string[] siteKeys) { }
+    }
+}
