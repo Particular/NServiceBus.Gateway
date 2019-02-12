@@ -8,11 +8,17 @@
     [TestFixture]
     public class APIApprovals
     {
+
         [Test]
         public void Approve()
         {
-            var publicApi = ApiGenerator.GeneratePublicApi(typeof(GatewaySettings).Assembly, excludeAttributes: new[] { "System.Runtime.Versioning.TargetFrameworkAttribute" });
-            Approver.Verify(publicApi);
+#if NETFRAMEWORK
+            var targetFramework = "netframework";
+#else
+            var targetFramework = "netstandard";
+#endif
+            var publicApi = ApiGenerator.GeneratePublicApi(typeof(GatewaySettings).Assembly);
+            Approver.Verify(publicApi, scenario: targetFramework);
         }
     }
 }
