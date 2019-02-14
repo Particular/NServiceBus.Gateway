@@ -30,16 +30,28 @@ namespace NServiceBus.Config
             "version 4.0.0.", true)]
         public int NumberOfWorkerThreads { get; set; }
     }
+    [System.ObsoleteAttribute("Configuring the gateway via configuration section is discouraged. Use `EndpointCo" +
+        "nfiguration.Gateway()` instead. Will be treated as an error from version 4.0.0. " +
+        "Will be removed in version 5.0.0.", false)]
     public class GatewayConfig : System.Configuration.ConfigurationSection
     {
         public GatewayConfig() { }
         [System.Configuration.ConfigurationCollectionAttribute(typeof(NServiceBus.Config.ChannelCollection), AddItemName="Channel")]
         [System.Configuration.ConfigurationPropertyAttribute("Channels", IsRequired=true)]
+        [System.ObsoleteAttribute("Configuring the gateway via configuration section is discouraged. Use `EndpointCo" +
+            "nfiguration.Gateway().AddChannel` instead. Will be treated as an error from vers" +
+            "ion 4.0.0. Will be removed in version 5.0.0.", false)]
         public NServiceBus.Config.ChannelCollection Channels { get; set; }
         [System.Configuration.ConfigurationCollectionAttribute(typeof(NServiceBus.Config.SiteCollection), AddItemName="Site")]
         [System.Configuration.ConfigurationPropertyAttribute("Sites", IsRequired=true)]
+        [System.ObsoleteAttribute("Configuring the gateway via configuration section is discouraged. Use `EndpointCo" +
+            "nfiguration.Gateway().AddSite` instead. Will be treated as an error from version" +
+            " 4.0.0. Will be removed in version 5.0.0.", false)]
         public NServiceBus.Config.SiteCollection Sites { get; set; }
         [System.Configuration.ConfigurationPropertyAttribute("TransactionTimeout", DefaultValue="00:00:00", IsRequired=false)]
+        [System.ObsoleteAttribute("Configuring the gateway via configuration section is discouraged. Use `EndpointCo" +
+            "nfiguration.Gateway().TransactionTimeout` instead. Will be treated as an error f" +
+            "rom version 4.0.0. Will be removed in version 5.0.0.", false)]
         public System.TimeSpan TransactionTimeout { get; set; }
     }
     public class SiteCollection : System.Configuration.ConfigurationElementCollection
