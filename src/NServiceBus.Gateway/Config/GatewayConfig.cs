@@ -7,12 +7,23 @@ namespace NServiceBus.Config
     /// <summary>
     /// Config section for the gateway
     /// </summary>
+    [ObsoleteEx(
+        Message = "Configuring the gateway via configuration section is discouraged.",
+        ReplacementTypeOrMember = "EndpointConfiguration.Gateway()",
+        TreatAsErrorFromVersion = "4",
+        RemoveInVersion = "5")]
     public class GatewayConfig : ConfigurationSection
     {
         /// <summary>
         /// Property for getting/setting the period of time when the outgoing gateway transaction times out.
         /// Defaults to the TransactionTimeout of the main transport.
         /// </summary>
+        ///
+        [ObsoleteEx(
+            Message = "Configuring the gateway via configuration section is discouraged.",
+            ReplacementTypeOrMember = "EndpointConfiguration.Gateway().TransactionTimeout",
+            TreatAsErrorFromVersion = "4",
+            RemoveInVersion = "5")]
         [ConfigurationProperty("TransactionTimeout", IsRequired = false, DefaultValue = "00:00:00")]
         public TimeSpan TransactionTimeout
         {
@@ -23,6 +34,11 @@ namespace NServiceBus.Config
         /// <summary>
         /// Collection of sites
         /// </summary>
+        [ObsoleteEx(
+            Message = "Configuring the gateway via configuration section is discouraged.",
+            ReplacementTypeOrMember = "EndpointConfiguration.Gateway().AddSite",
+            TreatAsErrorFromVersion = "4",
+            RemoveInVersion = "5")]
         [ConfigurationProperty("Sites", IsRequired = true)]
         [ConfigurationCollection(typeof(SiteCollection), AddItemName = "Site")]
         public SiteCollection Sites
@@ -34,6 +50,11 @@ namespace NServiceBus.Config
         /// <summary>
         /// Collection of channels
         /// </summary>
+        [ObsoleteEx(
+            Message = "Configuring the gateway via configuration section is discouraged.",
+            ReplacementTypeOrMember = "EndpointConfiguration.Gateway().AddChannel",
+            TreatAsErrorFromVersion = "4",
+            RemoveInVersion = "5")]
         [ConfigurationProperty("Channels", IsRequired = true)]
         [ConfigurationCollection(typeof(ChannelCollection), AddItemName = "Channel")]
         public ChannelCollection Channels
