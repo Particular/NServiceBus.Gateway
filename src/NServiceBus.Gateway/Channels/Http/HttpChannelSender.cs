@@ -29,11 +29,20 @@ namespace NServiceBus.Gateway.Channels.Http
 
             HttpStatusCode statusCode;
 
-            //todo make the receiver send the md5 back so that we can double check that the transmission went ok
-            using (var response = (HttpWebResponse) await request.GetResponseAsync().ConfigureAwait(false))
+            try
             {
-                statusCode = response.StatusCode;
+                //todo make the receiver send the md5 back so that we can double check that the transmission went ok
+                using (var response = (HttpWebResponse)await request.GetResponseAsync().ConfigureAwait(false))
+                {
+                    statusCode = response.StatusCode;
+                }
             }
+            catch (WebException ex)
+            {
+                ex.Response?.Dispose();
+                throw;
+            }
+
 
             Logger.Debug("Got HTTP response with status code " + statusCode);
 
