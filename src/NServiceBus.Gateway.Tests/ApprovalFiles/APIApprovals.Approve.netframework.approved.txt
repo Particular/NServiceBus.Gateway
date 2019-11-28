@@ -162,6 +162,12 @@ namespace NServiceBus
         public void Retries(int numberOfRetries, System.TimeSpan timeIncrease) { }
         public void TransactionTimeout(System.TimeSpan timeout) { }
     }
+    public interface IGatewayDeduplicationStorage
+    {
+        bool SupportsDistributedTransactions { get; }
+        System.Threading.Tasks.Task<bool> IsDuplicate(string messageId, NServiceBus.Extensibility.ContextBag context);
+        System.Threading.Tasks.Task MarkAsDispatched(string messageId, NServiceBus.Extensibility.ContextBag context);
+    }
     public class static MessageHandlerContextExtensions
     {
         public static System.Threading.Tasks.Task SendToSites(this NServiceBus.IMessageHandlerContext context, System.Collections.Generic.IEnumerable<string> siteKeys, object message) { }
