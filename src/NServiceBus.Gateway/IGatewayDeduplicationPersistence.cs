@@ -18,7 +18,7 @@
         /// Returns if the message is a duplicate.
         /// </summary>
         /// <returns>
-        /// <code>true</code> if the message has been receied successfully before and is considered a duplicate. <code>false</code> otherwise.
+        /// <code>true</code> if the message has been received successfully before and is considered a duplicate. <code>false</code> otherwise.
         /// </returns>
         Task<bool> IsDuplicate(string messageId, ContextBag context);
 
