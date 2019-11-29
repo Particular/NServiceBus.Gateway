@@ -1,4 +1,4 @@
-﻿namespace NServiceBus
+﻿namespace NServiceBus.Gateway
 {
     using System.Threading.Tasks;
     using System.Transactions;
