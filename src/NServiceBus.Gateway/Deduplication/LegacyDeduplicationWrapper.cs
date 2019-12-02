@@ -1,13 +1,12 @@
-﻿namespace NServiceBus.Gateway.Deduplication
+﻿namespace NServiceBus.Gateway
 {
     using System;
     using System.Threading.Tasks;
+    using Deduplication;
     using Extensibility;
 
     class LegacyDeduplicationWrapper : IGatewayDeduplicationStorage
     {
-        IDeduplicateMessages legacyPersister;
-
         public LegacyDeduplicationWrapper(IDeduplicateMessages legacyPersister)
         {
             this.legacyPersister = legacyPersister;
@@ -26,5 +25,7 @@
         {
             return Task.FromResult(0);
         }
+
+        IDeduplicateMessages legacyPersister;
     }
 }
