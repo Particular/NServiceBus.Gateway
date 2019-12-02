@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net452;netcoreapp2.1</TargetFrameworks>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>NServiceBus.Gateway.PersistenceTests.Sources</PackageId>
+    <Description>Tests for gateway deduplication storage seam implementations</Description>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="[7.2.0, 8.0.0)" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" PrivateAssets="All" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.12.0" PrivateAssets="All" />
+    <PackageReference Include="NUnit" Version="3.12.0" />
+    <PackageReference Include="Particular.Packaging" Version="0.3.0" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NServiceBus.Gateway\NServiceBus.Gateway.csproj" />
+  </ItemGroup>
+
+  <!-- Workaround for https://github.com/dotnet/sdk/issues/1479 -->
+  <ItemGroup>
+    <_PackageFiles Include="**\*.cs">
+      <BuildAction>Compile</BuildAction>
+      <PackagePath>content\App_Packages\NSB.TransportTests\;contentFiles\cs\any\NSB.TransportTests\</PackagePath>
+    </_PackageFiles>
+    <_PackageFiles Remove="**\obj\**\*.cs" />
+    <!--TODO exclude local inmemory configuration from being shipped-->
+    <!--<_PackageFiles Remove="ConfigureLearningTransportInfrastructure.cs" />-->
+  </ItemGroup>
+  <!-- End Workaround -->
+
+</Project>
