@@ -89,7 +89,15 @@
             context.Pipeline.Register("GatewayIncomingBehavior", new GatewayIncomingBehavior(), "Extracts gateway related information from the incoming message");
             context.Pipeline.Register("GatewayOutgoingBehavior", new GatewayOutgoingBehavior(), "Puts gateway related information on the headers of outgoing messages");
 
-            context.RegisterStartupTask(b => new GatewayReceiverStartupTask(channelManager, channelReceiverFactory, GetEndpointRouter(context), b.Build<IDispatchMessages>(), b.Build<IDeduplicateMessages>(), b.BuildAll<IDataBus>()?.FirstOrDefault(), gatewayInputAddress));
+            context.RegisterStartupTask(b => new GatewayReceiverStartupTask(
+                channelManager, 
+                channelReceiverFactory, 
+                GetEndpointRouter(context),
+                b.Build<IDispatchMessages>(), 
+                new LegacyDeduplicationWrapper(b.Build<IDeduplicateMessages>()), 
+                b.BuildAll<IDataBus>()?.FirstOrDefault(), 
+                gatewayInputAddress,
+                context.Settings.Get<TransportInfrastructure>().TransactionMode));
         }
 
         static void RegisterChannels(FeatureConfigurationContext context, IManageReceiveChannels channelManager, out Func<string, IChannelSender> channelSenderFactory, out Func<string, IChannelReceiver> channelReceiverFactory)
@@ -158,22 +166,26 @@
 
         class GatewayReceiverStartupTask : FeatureStartupTask
         {
-            public GatewayReceiverStartupTask(IManageReceiveChannels channelManager, Func<string, IChannelReceiver> channelReceiverFactory, EndpointRouter endpointRouter, IDispatchMessages dispatcher, IDeduplicateMessages deduplicator, IDataBus databus, string replyToAddress)
+            public GatewayReceiverStartupTask(IManageReceiveChannels channelManager, Func<string, IChannelReceiver> channelReceiverFactory, EndpointRouter endpointRouter, IDispatchMessages dispatcher, IGatewayDeduplicationStorage deduplicationStorage, IDataBus databus, string replyToAddress, TransportTransactionMode transportTransactionMode)
             {
                 dispatchMessages = dispatcher;
-                this.deduplicator = deduplicator;
+                this.deduplicationStorage = deduplicationStorage;
                 this.databus = databus;
                 this.endpointRouter = endpointRouter;
                 manageReceiveChannels = channelManager;
                 this.channelReceiverFactory = channelReceiverFactory;
                 this.replyToAddress = replyToAddress;
+                this.transportTransactionMode = transportTransactionMode;
             }
 
             protected override Task OnStart(IMessageSession context)
             {
+                // only use transaction scope if both transport and persistence are able to enlist with the transaction scope.
+                // If one of them cannot enlist, use no transaction scope as partial rollbacks of the deduplication process can cause incorrect side effects.
+                var useTransactionScope = deduplicationStorage.SupportsDistributedTransactions && transportTransactionMode == TransportTransactionMode.TransactionScope;
                 foreach (var receiveChannel in manageReceiveChannels.GetReceiveChannels())
                 {
-                    var receiver = new SingleCallChannelReceiver(channelReceiverFactory, deduplicator, databus);
+                    var receiver = new SingleCallChannelReceiver(channelReceiverFactory, deduplicationStorage, databus, useTransactionScope);
 
                     receiver.Start(receiveChannel, receiveChannel.MaxConcurrency, MessageReceivedOnChannel);
                     activeReceivers.Add(receiver);
@@ -232,9 +244,10 @@
             Func<string, IChannelReceiver> channelReceiverFactory;
             EndpointRouter endpointRouter;
             IDispatchMessages dispatchMessages;
-            IDeduplicateMessages deduplicator;
+            IGatewayDeduplicationStorage deduplicationStorage;
             IDataBus databus;
             string replyToAddress;
+            readonly TransportTransactionMode transportTransactionMode;
 
             static ILog Logger = LogManager.GetLogger<GatewayReceiverStartupTask>();
         }

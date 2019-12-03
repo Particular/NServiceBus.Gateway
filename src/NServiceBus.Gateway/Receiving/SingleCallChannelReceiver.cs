@@ -6,7 +6,6 @@
     using System.Threading.Tasks;
     using Channels;
     using DataBus;
-    using Deduplication;
     using Extensibility;
     using HeaderManagement;
     using Logging;
@@ -16,11 +15,12 @@
 
     class SingleCallChannelReceiver
     {
-        public SingleCallChannelReceiver(Func<string, IChannelReceiver> channelFactory, IDeduplicateMessages deduplicator, IDataBus databus)
+        public SingleCallChannelReceiver(Func<string, IChannelReceiver> channelFactory, IGatewayDeduplicationStorage deduplicationStorage, IDataBus databus, bool useTransactionScope)
         {
             this.channelFactory = channelFactory;
-            this.deduplicator = deduplicator;
+            this.deduplicationStorage = deduplicationStorage;
             this.databus = databus;
+            this.useTransactionScope = useTransactionScope;
             headerManager = new DataBusHeaderManager();
         }
 
@@ -44,20 +44,35 @@
 
                 Logger.DebugFormat("Received message of type {0} for client id: {1}", callInfo.Type, callInfo.ClientId);
 
-                using (var scope = GatewayTransaction.Scope())
+                if (useTransactionScope)
                 {
-                    switch (callInfo.Type)
+                    
+                    using (var scope = GatewayTransaction.Scope())
                     {
-                        case CallType.SingleCallDatabusProperty:
-                            await HandleDatabusProperty(callInfo).ConfigureAwait(false);
-                            break;
-                        case CallType.SingleCallSubmit:
-                            await HandleSubmit(callInfo).ConfigureAwait(false);
-                            break;
-                        default:
-                            throw new Exception("Unknown call type: " + callInfo.Type);
+                        await Receive(callInfo).ConfigureAwait(false);
+                        scope.Complete();
                     }
-                    scope.Complete();
+                }
+                else
+                {
+                    // create no transaction scope to avoid that only the persistence or the transport enlist with a transaction.
+                    // this would cause issues when commiting the transaction fails after the persistence or transport operation has succeeded.
+                    await Receive(callInfo).ConfigureAwait(false);
+                }
+            }
+
+            async Task Receive(CallInfo callInfo)
+            {
+                switch (callInfo.Type)
+                {
+                    case CallType.SingleCallDatabusProperty:
+                        await HandleDatabusProperty(callInfo).ConfigureAwait(false);
+                        break;
+                    case CallType.SingleCallSubmit:
+                        await HandleSubmit(callInfo).ConfigureAwait(false);
+                        break;
+                    default:
+                        throw new Exception("Unknown call type: " + callInfo.Type);
                 }
             }
         }
@@ -93,13 +108,25 @@
                 await stream.ReadAsync(body, 0, body.Length).ConfigureAwait(false);
                 args.Body = body;
 
-                if (await deduplicator.DeduplicateMessage(callInfo.ClientId, DateTime.UtcNow, new ContextBag()).ConfigureAwait(false))
+                var context = new ContextBag();
+                if (await deduplicationStorage.IsDuplicate(callInfo.ClientId, context).ConfigureAwait(false))
                 {
-                    await messageReceivedHandler(args).ConfigureAwait(false);
+                    Logger.InfoFormat("Message with id: {0} is already on the bus, dropping the request", callInfo.ClientId);
                 }
                 else
                 {
-                    Logger.InfoFormat("Message with id: {0} is already on the bus, dropping the request", callInfo.ClientId);
+                    await messageReceivedHandler(args).ConfigureAwait(false);
+                    try
+                    {
+                        await deduplicationStorage.MarkAsDispatched(callInfo.ClientId, context).ConfigureAwait(false);
+                    }
+                    catch (Exception e) when(!useTransactionScope)
+                    {
+                        // swallow exception in non-dtc modes.
+                        // When using no transactions, the message has been sent to the transport already. Throwing would cause the operation to be retried and a guaranteed duplicate to be created. By swallowing the exception, the duplicate is only created if the same message is sent to the gateway for another reason.
+                        // When using distributed transactions, throw so that both persistence and transport can rollback atomically.
+                        Logger.Warn($"Failed to mark message with id '{callInfo.ClientId}' as dispatched. This message won't be deduplicated.'", e);
+                    }
                 }
             }
         }
@@ -199,8 +226,9 @@
         static ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
 
         Func<string, IChannelReceiver> channelFactory;
-        IDeduplicateMessages deduplicator;
+        IGatewayDeduplicationStorage deduplicationStorage;
         IDataBus databus;
+        readonly bool useTransactionScope;
         DataBusHeaderManager headerManager;
         IChannelReceiver channelReceiver;
 
