@@ -89,12 +89,14 @@
             context.Pipeline.Register("GatewayIncomingBehavior", new GatewayIncomingBehavior(), "Extracts gateway related information from the incoming message");
             context.Pipeline.Register("GatewayOutgoingBehavior", new GatewayOutgoingBehavior(), "Puts gateway related information on the headers of outgoing messages");
 
+            var storageConfiguration = context.Settings.Get<IGatewayDeduplicationConfiguration>();
+
             context.RegisterStartupTask(b => new GatewayReceiverStartupTask(
                 channelManager, 
                 channelReceiverFactory, 
                 GetEndpointRouter(context),
                 b.Build<IDispatchMessages>(), 
-                new LegacyDeduplicationWrapper(b.Build<IDeduplicateMessages>()), 
+                storageConfiguration.CreateStorage(b),
                 b.BuildAll<IDataBus>()?.FirstOrDefault(), 
                 gatewayInputAddress,
                 context.Settings.Get<TransportInfrastructure>().TransactionMode));

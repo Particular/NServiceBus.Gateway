@@ -161,6 +161,7 @@ namespace NServiceBus
     public class static GatewayExtensions
     {
         public static NServiceBus.GatewaySettings Gateway(this NServiceBus.EndpointConfiguration config) { }
+        public static NServiceBus.GatewaySettings Gateway(this NServiceBus.EndpointConfiguration config, NServiceBus.Gateway.IGatewayDeduplicationConfiguration storageConfiguration) { }
     }
     public class GatewaySettings
     {
