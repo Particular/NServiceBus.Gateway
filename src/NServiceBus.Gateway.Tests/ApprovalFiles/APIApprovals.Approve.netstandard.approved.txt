@@ -33,6 +33,10 @@ namespace NServiceBus.Gateway
     {
         System.Threading.Tasks.Task Send(string remoteAddress, System.Collections.Generic.IDictionary<string, string> headers, System.IO.Stream data);
     }
+    public interface IGatewayDeduplicationConfiguration
+    {
+        NServiceBus.Gateway.IGatewayDeduplicationStorage CreateStorage(NServiceBus.ObjectBuilder.IBuilder builder);
+    }
     public interface IGatewayDeduplicationStorage
     {
         bool SupportsDistributedTransactions { get; }
