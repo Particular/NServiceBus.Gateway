@@ -3,9 +3,9 @@
     using Deduplication;
     using ObjectBuilder;
 
-    class LegacyDeduplicationStorageConfiguration : IGatewayDeduplicationConfiguration
+    class LegacyDeduplicationStorageConfiguration : GatewayDeduplicationConfiguration
     {
-        public IGatewayDeduplicationStorage CreateStorage(IBuilder builder)
+        public override IGatewayDeduplicationStorage CreateStorage(IBuilder builder)
         {
             return new LegacyDeduplicationWrapper(builder.Build<IDeduplicateMessages>());
         }

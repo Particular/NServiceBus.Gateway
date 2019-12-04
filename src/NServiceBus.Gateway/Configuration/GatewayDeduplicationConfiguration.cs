@@ -5,12 +5,11 @@
     /// <summary>
     /// Configures the deduplication storage.
     /// </summary>
-    public interface IGatewayDeduplicationConfiguration
+    public abstract class GatewayDeduplicationConfiguration
     {
         /// <summary>
         /// Creates an instance of the deduplication storage.
         /// </summary>
-        /// <param name="builder"></param>
-        IGatewayDeduplicationStorage CreateStorage(IBuilder builder);
+        public abstract IGatewayDeduplicationStorage CreateStorage(IBuilder builder);
     }
 }

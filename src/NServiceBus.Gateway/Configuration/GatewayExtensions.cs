@@ -22,14 +22,14 @@
         /// </summary>
         /// <param name="config">The <see cref="EndpointConfiguration"/> instance to apply the settings to.</param>
         /// <param name="storageConfiguration">the storage configuration for the gateway's deduplication mechanism</param>
-        public static GatewaySettings Gateway(this EndpointConfiguration config, IGatewayDeduplicationConfiguration storageConfiguration)
+        public static GatewaySettings Gateway(this EndpointConfiguration config, GatewayDeduplicationConfiguration storageConfiguration)
         {
             Guard.AgainstNull(nameof(config), config);
             Guard.AgainstNull(nameof(storageConfiguration), storageConfiguration);
 
             config.EnableFeature<Features.Gateway>();
 
-            config.GetSettings().Set<IGatewayDeduplicationConfiguration>(storageConfiguration);
+            config.GetSettings().Set<GatewayDeduplicationConfiguration>(storageConfiguration);
 
             return new GatewaySettings(config);
         }
