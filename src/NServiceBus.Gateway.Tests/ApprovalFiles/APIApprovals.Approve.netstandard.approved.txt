@@ -44,6 +44,12 @@ namespace NServiceBus.Gateway
         System.Threading.Tasks.Task<bool> IsDuplicate(string messageId, NServiceBus.Extensibility.ContextBag context);
         System.Threading.Tasks.Task MarkAsDispatched(string messageId, NServiceBus.Extensibility.ContextBag context);
     }
+    public class InMemoryDeduplicationConfiguration : NServiceBus.Gateway.GatewayDeduplicationConfiguration
+    {
+        public InMemoryDeduplicationConfiguration() { }
+        public int CacheSize { get; set; }
+        public override NServiceBus.Gateway.IGatewayDeduplicationStorage CreateStorage(NServiceBus.ObjectBuilder.IBuilder builder) { }
+    }
     public class ReceiveChannel : NServiceBus.Gateway.Channels.Channel
     {
         public ReceiveChannel() { }
