@@ -11,7 +11,6 @@
     using NServiceBus.Gateway;
     using NServiceBus.Gateway.Channels;
     using NServiceBus.Gateway.Channels.Http;
-    using NServiceBus.Gateway.Deduplication;
     using NServiceBus.Gateway.HeaderManagement;
     using NServiceBus.Gateway.Installer;
     using NServiceBus.Gateway.Notifications;
