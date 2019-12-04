@@ -61,13 +61,11 @@
         public async Task Throws_exception_when_message_concurrently_marked_as_dispatched()
         {
             var messageId = Guid.NewGuid().ToString("D");
+            Exception exception = null;
 
             using (var scope = new TransactionScope(TransactionScopeOption.RequiresNew, TransactionScopeAsyncFlowOption.Enabled))
             {
-                var context = new ContextBag();
-                Assert.IsFalse(await storage.IsDuplicate(messageId, context));
-
-                await storage.MarkAsDispatched(messageId, context);
+                await storage.MarkAsDispatched(messageId, new ContextBag());
 
                 using (var concurrentScope = new TransactionScope(TransactionScopeOption.RequiresNew, TransactionScopeAsyncFlowOption.Enabled))
                 {
@@ -75,8 +73,17 @@
                     concurrentScope.Complete();
                 }
 
-                scope.Complete();
+                try
+                {
+                    scope.Complete();
+                }
+                catch (Exception e)
+                {
+                    exception = e;
+                }
             }
+
+            Assert.NotNull(exception);
         }
     }
 }
