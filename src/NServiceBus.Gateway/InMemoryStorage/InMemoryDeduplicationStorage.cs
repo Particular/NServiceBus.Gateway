@@ -10,7 +10,7 @@
         readonly LinkedList<string> clientIdList = new LinkedList<string>();
         readonly Dictionary<string, LinkedListNode<string>> clientIdSet = new Dictionary<string, LinkedListNode<string>>();
 
-        public InMemoryDeduplicationStorage(int cacheSize = 10000)
+        public InMemoryDeduplicationStorage(int cacheSize)
         {
             this.cacheSize = cacheSize;
         }
