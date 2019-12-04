@@ -33,8 +33,7 @@
       <PackagePath>content\App_Packages\NSB.TransportTests\;contentFiles\cs\any\NSB.TransportTests\</PackagePath>
     </_PackageFiles>
     <_PackageFiles Remove="**\obj\**\*.cs" />
-    <!--TODO exclude local inmemory configuration from being shipped-->
-    <!--<_PackageFiles Remove="ConfigureLearningTransportInfrastructure.cs" />-->
+    <_PackageFiles Remove="InMemoryDeduplicationStorageConfiguration.cs" />
   </ItemGroup>
   <!-- End Workaround -->
 
