@@ -24,6 +24,11 @@ namespace NServiceBus.Gateway
         public System.IO.Stream Data { get; set; }
         public System.Collections.Generic.IDictionary<string, string> Headers { get; set; }
     }
+    public abstract class GatewayDeduplicationConfiguration
+    {
+        protected GatewayDeduplicationConfiguration() { }
+        public abstract NServiceBus.Gateway.IGatewayDeduplicationStorage CreateStorage(NServiceBus.ObjectBuilder.IBuilder builder);
+    }
     public interface IChannelReceiver
     {
         void Start(string address, int maxConcurrency, System.Func<NServiceBus.Gateway.DataReceivedOnChannelArgs, System.Threading.Tasks.Task> dataReceivedOnChannel);
@@ -83,6 +88,7 @@ namespace NServiceBus
     public class static GatewayExtensions
     {
         public static NServiceBus.GatewaySettings Gateway(this NServiceBus.EndpointConfiguration config) { }
+        public static NServiceBus.GatewaySettings Gateway(this NServiceBus.EndpointConfiguration config, NServiceBus.Gateway.GatewayDeduplicationConfiguration storageConfiguration) { }
     }
     public class GatewaySettings
     {
