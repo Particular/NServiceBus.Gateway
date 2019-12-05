@@ -1,33 +1,33 @@
 ﻿namespace NServiceBus.Gateway
 {
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Extensibility;
 
     class InMemoryDeduplicationStorage : IGatewayDeduplicationStorage
     {
-        readonly int cacheSize;
-        readonly LinkedList<string> clientIdList = new LinkedList<string>();
-        readonly Dictionary<string, LinkedListNode<string>> clientIdSet = new Dictionary<string, LinkedListNode<string>>();
-
-        public InMemoryDeduplicationStorage(int cacheSize)
+        class InMemoryDeduplicationSession : IDuplicationCheckSession
         {
-            this.cacheSize = cacheSize;
-        }
+            readonly string messageId;
+            readonly Dictionary<string, LinkedListNode<string>> clientIdSet;
+            readonly LinkedList<string> clientIdList;
+            readonly object lockObj;
+            readonly int cacheSize;
 
-        public bool SupportsDistributedTransactions { get; } = false;
 
-        public Task<bool> IsDuplicate(string messageId, ContextBag context)
-        {
-            lock (clientIdSet)
+            public InMemoryDeduplicationSession(string messageId, Dictionary<string, LinkedListNode<string>> clientIdSet, LinkedList<string> clientIdList, object lockObj, int cacheSize)
             {
-                return Task.FromResult(clientIdSet.ContainsKey(messageId));
+                this.messageId = messageId;
+                this.clientIdSet = clientIdSet;
+                this.clientIdList = clientIdList;
+                this.lockObj = lockObj;
+                this.cacheSize = cacheSize;
             }
-        }
 
-        public Task MarkAsDispatched(string messageId, ContextBag context)
-        {
-            lock (clientIdSet)
+            public bool IsDuplicate => clientIdSet.ContainsKey(messageId);
+
+            public Task MarkAsDispatched()
             {
                 if (clientIdSet.TryGetValue(messageId, out var existingNode)) // O(1)
                 {
@@ -50,6 +50,29 @@
 
                 return Task.FromResult(0);
             }
+
+            public void Dispose()
+            {
+                Monitor.Exit(lockObj);
+            }
+        }
+
+        readonly int cacheSize;
+        readonly LinkedList<string> clientIdList = new LinkedList<string>();
+        readonly Dictionary<string, LinkedListNode<string>> clientIdSet = new Dictionary<string, LinkedListNode<string>>();
+        readonly object lockObj = new object();
+
+        public InMemoryDeduplicationStorage(int cacheSize)
+        {
+            this.cacheSize = cacheSize;
+        }
+
+        public bool SupportsDistributedTransactions { get; } = false;
+
+        public Task<IDuplicationCheckSession> IsDuplicate(string messageId, ContextBag context)
+        {
+            Monitor.Enter(clientIdSet);
+            return Task.FromResult<IDuplicationCheckSession>(new InMemoryDeduplicationSession(messageId, clientIdSet, clientIdList, lockObj, cacheSize));
         }
     }   
 }

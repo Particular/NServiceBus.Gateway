@@ -109,23 +109,27 @@
                 args.Body = body;
 
                 var context = new ContextBag();
-                if (await deduplicationStorage.IsDuplicate(callInfo.ClientId, context).ConfigureAwait(false))
+
+                using (var duplicationCheck = await deduplicationStorage.IsDuplicate(callInfo.ClientId, context).ConfigureAwait(false))
                 {
-                    Logger.InfoFormat("Message with id: {0} is already on the bus, dropping the request", callInfo.ClientId);
-                }
-                else
-                {
-                    await messageReceivedHandler(args).ConfigureAwait(false);
-                    try
+                    if (duplicationCheck.IsDuplicate)
                     {
-                        await deduplicationStorage.MarkAsDispatched(callInfo.ClientId, context).ConfigureAwait(false);
+                        Logger.InfoFormat("Message with id: {0} is already on the bus, dropping the request", callInfo.ClientId);
                     }
-                    catch (Exception e) when(!useTransactionScope)
+                    else
                     {
-                        // swallow exception in non-dtc modes.
-                        // When using no transactions, the message has been sent to the transport already. Throwing would cause the operation to be retried and a guaranteed duplicate to be created. By swallowing the exception, the duplicate is only created if the same message is sent to the gateway for another reason.
-                        // When using distributed transactions, throw so that both persistence and transport can rollback atomically.
-                        Logger.Warn($"Failed to mark message with id '{callInfo.ClientId}' as dispatched. This message won't be deduplicated.'", e);
+                        await messageReceivedHandler(args).ConfigureAwait(false);
+                        try
+                        {
+                            await duplicationCheck.MarkAsDispatched().ConfigureAwait(false);
+                        }
+                        catch (Exception e) when (!useTransactionScope)
+                        {
+                            // swallow exception in non-dtc modes.
+                            // When using no transactions, the message has been sent to the transport already. Throwing would cause the operation to be retried and a guaranteed duplicate to be created. By swallowing the exception, the duplicate is only created if the same message is sent to the gateway for another reason.
+                            // When using distributed transactions, throw so that both persistence and transport can rollback atomically.
+                            Logger.Warn($"Failed to mark message with id '{callInfo.ClientId}' as dispatched. This message won't be deduplicated.'", e);
+                        }
                     }
                 }
             }
