@@ -1,6 +1,5 @@
 ﻿namespace NServiceBus.Gateway
 {
-    using System;
     using System.Threading.Tasks;
     using System.Transactions;
     using Extensibility;
@@ -21,22 +20,6 @@
         /// <returns>
         /// <code>true</code> if the message has been received successfully before and is considered a duplicate. <code>false</code> otherwise.
         /// </returns>
-        Task<IDuplicationCheckSession> IsDuplicate(string messageId, ContextBag context);
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public interface IDuplicationCheckSession : IDisposable
-    {
-        /// <summary>
-        /// Returns if the message is a duplicate.
-        /// </summary>
-        bool IsDuplicate { get; }
-
-        /// <summary>
-        /// Marks the message as successfully dispatched. Marking a message as dispatched will consider it a duplicate when invoking <see cref="IGatewayDeduplicationStorage.IsDuplicate"/>.
-        /// </summary>
-        Task MarkAsDispatched();
+        Task<IDuplicationCheckSession> CheckForDuplicate(string messageId, ContextBag context);
     }
 }

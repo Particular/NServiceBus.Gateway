@@ -12,34 +12,34 @@
         {
             var storage = new InMemoryDeduplicationStorage(2);
 
-            using (var s1 = await storage.IsDuplicate("A", new ContextBag()))
+            using (var s1 = await storage.CheckForDuplicate("A", new ContextBag()))
             {
                 await s1.MarkAsDispatched();
             }
-            using (var s1 = await storage.IsDuplicate("A", new ContextBag()))
+            using (var s1 = await storage.CheckForDuplicate("A", new ContextBag()))
             {
                 Assert.IsTrue(s1.IsDuplicate);
             }
 
-            using (var s1 = await storage.IsDuplicate("B", new ContextBag()))
+            using (var s1 = await storage.CheckForDuplicate("B", new ContextBag()))
             {
                 await s1.MarkAsDispatched();
             }
-            using (var s1 = await storage.IsDuplicate("B", new ContextBag()))
+            using (var s1 = await storage.CheckForDuplicate("B", new ContextBag()))
             {
                 Assert.IsTrue(s1.IsDuplicate);
             }
 
-            using (var s1 = await storage.IsDuplicate("C", new ContextBag()))
+            using (var s1 = await storage.CheckForDuplicate("C", new ContextBag()))
             {
                 await s1.MarkAsDispatched();
             }
-            using (var s1 = await storage.IsDuplicate("C", new ContextBag()))
+            using (var s1 = await storage.CheckForDuplicate("C", new ContextBag()))
             {
                 Assert.IsTrue(s1.IsDuplicate);
             }
 
-            using (var s1 = await storage.IsDuplicate("A", new ContextBag()))
+            using (var s1 = await storage.CheckForDuplicate("A", new ContextBag()))
             {
                 Assert.IsFalse(s1.IsDuplicate);
             }

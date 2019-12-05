@@ -110,7 +110,7 @@
 
                 var context = new ContextBag();
 
-                using (var duplicationCheck = await deduplicationStorage.IsDuplicate(callInfo.ClientId, context).ConfigureAwait(false))
+                using (var duplicationCheck = await deduplicationStorage.CheckForDuplicate(callInfo.ClientId, context).ConfigureAwait(false))
                 {
                     if (duplicationCheck.IsDuplicate)
                     {

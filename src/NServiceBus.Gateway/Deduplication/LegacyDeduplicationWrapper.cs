@@ -14,7 +14,7 @@
 
         public bool SupportsDistributedTransactions { get; } = true;
 
-        public async Task<IDuplicationCheckSession> IsDuplicate(string messageId, ContextBag context)
+        public async Task<IDuplicationCheckSession> CheckForDuplicate(string messageId, ContextBag context)
         {
             var isNewMessage = await legacyPersister.DeduplicateMessage(messageId, DateTime.UtcNow, context)
                 .ConfigureAwait(false);

@@ -1,5 +1,6 @@
 ﻿namespace NServiceBus.Gateway
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -70,7 +71,7 @@
 
         public bool SupportsDistributedTransactions { get; } = false;
 
-        public Task<IDuplicationCheckSession> IsDuplicate(string messageId, ContextBag context)
+        public Task<IDuplicationCheckSession> CheckForDuplicate(string messageId, ContextBag context)
         {
             Monitor.Enter(clientIdSet);
             return Task.FromResult<IDuplicationCheckSession>(new InMemoryDeduplicationSession(messageId, clientIdSet, clientIdList, lockObj, cacheSize));
