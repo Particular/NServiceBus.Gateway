@@ -54,6 +54,7 @@
             public void Dispose()
             {
                 Monitor.Exit(lockObj);
+                GC.SuppressFinalize(this);                
             }
         }
 
