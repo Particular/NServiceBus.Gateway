@@ -1,7 +1,6 @@
 ﻿namespace NServiceBus.Gateway
 {
     using System.Collections.Generic;
-    using System.Threading;
     using System.Threading.Tasks;
     using Extensibility;
 
@@ -16,13 +15,12 @@
 
         public Task<IDuplicationCheckSession> CheckForDuplicate(string messageId, ContextBag context)
         {
-            Monitor.Enter(lockObj);
-            return Task.FromResult<IDuplicationCheckSession>(new InMemoryDeduplicationSession(messageId, clientIdSet, clientIdList, lockObj, cacheSize));
+            return Task.FromResult<IDuplicationCheckSession>(
+                new InMemoryDeduplicationSession(messageId, clientIdSet, clientIdList, cacheSize));
         }
 
         readonly int cacheSize;
         readonly LinkedList<string> clientIdList = new LinkedList<string>();
         readonly Dictionary<string, LinkedListNode<string>> clientIdSet = new Dictionary<string, LinkedListNode<string>>();
-        readonly object lockObj = new object();
     }
 }
