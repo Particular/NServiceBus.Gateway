@@ -4,7 +4,7 @@
     using System.Threading.Tasks;
 
     /// <summary>
-    /// 
+    /// Indicates whether a message is a duplicate or allows to mark it as dispatched.
     /// </summary>
     public interface IDuplicationCheckSession : IDisposable
     {
