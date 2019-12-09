@@ -112,11 +112,15 @@ namespace NServiceBus.Gateway
     {
         System.Threading.Tasks.Task Send(string remoteAddress, System.Collections.Generic.IDictionary<string, string> headers, System.IO.Stream data);
     }
+    public interface IDuplicationCheckSession : System.IDisposable
+    {
+        bool IsDuplicate { get; }
+        System.Threading.Tasks.Task MarkAsDispatched();
+    }
     public interface IGatewayDeduplicationStorage
     {
         bool SupportsDistributedTransactions { get; }
-        System.Threading.Tasks.Task<bool> IsDuplicate(string messageId, NServiceBus.Extensibility.ContextBag context);
-        System.Threading.Tasks.Task MarkAsDispatched(string messageId, NServiceBus.Extensibility.ContextBag context);
+        System.Threading.Tasks.Task<NServiceBus.Gateway.IDuplicationCheckSession> CheckForDuplicate(string messageId, NServiceBus.Extensibility.ContextBag context);
     }
     public class InMemoryDeduplicationConfiguration : NServiceBus.Gateway.GatewayDeduplicationConfiguration
     {
