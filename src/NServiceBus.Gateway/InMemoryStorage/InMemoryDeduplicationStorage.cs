@@ -16,7 +16,7 @@
 
         public Task<IDuplicationCheckSession> CheckForDuplicate(string messageId, ContextBag context)
         {
-            Monitor.Enter(clientIdSet);
+            Monitor.Enter(lockObj);
             return Task.FromResult<IDuplicationCheckSession>(new InMemoryDeduplicationSession(messageId, clientIdSet, clientIdList, lockObj, cacheSize));
         }
 
