@@ -18,14 +18,14 @@
         {
             var isNewMessage = await legacyPersister.DeduplicateMessage(messageId, DateTime.UtcNow, context)
                 .ConfigureAwait(false);
-            return new DummyLegacySession(!isNewMessage);
+            return new LegayDuplicationCheckSession(!isNewMessage);
         }
 
         IDeduplicateMessages legacyPersister;
 
-        class DummyLegacySession : IDuplicationCheckSession
+        class LegayDuplicationCheckSession : IDuplicationCheckSession
         {
-            public DummyLegacySession(bool isDuplicate)
+            public LegayDuplicationCheckSession(bool isDuplicate)
             {
                 IsDuplicate = isDuplicate;
             }
