@@ -13,9 +13,9 @@
 
         public bool SupportsDistributedTransactions { get; } = false;
 
-        public Task<IDuplicationCheckSession> CheckForDuplicate(string messageId, ContextBag context)
+        public Task<IDeduplicationSession> CheckForDuplicate(string messageId, ContextBag context)
         {
-            return Task.FromResult<IDuplicationCheckSession>(
+            return Task.FromResult<IDeduplicationSession>(
                 new InMemoryDeduplicationSession(messageId, clientIdSet, clientIdList, cacheSize));
         }
 

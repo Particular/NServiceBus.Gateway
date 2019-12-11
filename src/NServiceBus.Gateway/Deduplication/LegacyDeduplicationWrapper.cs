@@ -14,18 +14,18 @@
 
         public bool SupportsDistributedTransactions { get; } = true;
 
-        public async Task<IDuplicationCheckSession> CheckForDuplicate(string messageId, ContextBag context)
+        public async Task<IDeduplicationSession> CheckForDuplicate(string messageId, ContextBag context)
         {
             var isNewMessage = await legacyPersister.DeduplicateMessage(messageId, DateTime.UtcNow, context)
                 .ConfigureAwait(false);
-            return new LegacyDuplicationCheckSession(!isNewMessage);
+            return new LegacyDeduplicationSession(!isNewMessage);
         }
 
         IDeduplicateMessages legacyPersister;
 
-        class LegacyDuplicationCheckSession : IDuplicationCheckSession
+        class LegacyDeduplicationSession : IDeduplicationSession
         {
-            public LegacyDuplicationCheckSession(bool isDuplicate)
+            public LegacyDeduplicationSession(bool isDuplicate)
             {
                 IsDuplicate = isDuplicate;
             }

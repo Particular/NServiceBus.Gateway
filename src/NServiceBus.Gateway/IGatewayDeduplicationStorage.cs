@@ -20,6 +20,6 @@
         /// <returns>
         /// <code>true</code> if the message has been received successfully before and is considered a duplicate. <code>false</code> otherwise.
         /// </returns>
-        Task<IDuplicationCheckSession> CheckForDuplicate(string messageId, ContextBag context);
+        Task<IDeduplicationSession> CheckForDuplicate(string messageId, ContextBag context);
     }
 }

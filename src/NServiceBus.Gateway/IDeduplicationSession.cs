@@ -6,7 +6,7 @@
     /// <summary>
     /// Indicates whether a message is a duplicate or allows to mark it as dispatched.
     /// </summary>
-    public interface IDuplicationCheckSession : IDisposable
+    public interface IDeduplicationSession : IDisposable
     {
         /// <summary>
         /// Returns if the message is a duplicate.

@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
-    class InMemoryDeduplicationSession : IDuplicationCheckSession
+    class InMemoryDeduplicationSession : IDeduplicationSession
     {
         public InMemoryDeduplicationSession(string messageId, Dictionary<string, LinkedListNode<string>> clientIdSet, LinkedList<string> clientIdList, int cacheSize)
         {
