@@ -32,7 +32,7 @@
         }
 
         public Task Stop()
-        { 
+        {
             return channelReceiver?.Stop();
         }
 
@@ -46,7 +46,6 @@
 
                 if (useTransactionScope)
                 {
-                    
                     using (var scope = GatewayTransaction.Scope())
                     {
                         await Receive(callInfo).ConfigureAwait(false);
@@ -88,10 +87,10 @@
                 {
                     await Hasher.Verify(stream, callInfo.Md5).ConfigureAwait(false);
                 }
-                
+
                 var headers = headerManager.ReassembleDataBusProperties(callInfo.ClientId, callInfo.Headers);
                 var args = CreateMessageReceivedArgsWithDefaultValues(callInfo.TimeToBeReceived, headers[NServiceBus + Id]);
-                
+
                 var isGatewayMessage = IsGatewayMessage(headers);
                 if (isGatewayMessage)
                 {
@@ -103,29 +102,33 @@
                 {
                     args.Headers = MapCustomMessageHeaders(headers);
                 }
-          
+
                 var body = new byte[stream.Length];
                 await stream.ReadAsync(body, 0, body.Length).ConfigureAwait(false);
                 args.Body = body;
 
                 var context = new ContextBag();
-                if (await deduplicationStorage.IsDuplicate(callInfo.ClientId, context).ConfigureAwait(false))
+
+                using (var duplicationCheck = await deduplicationStorage.CheckForDuplicate(callInfo.ClientId, context).ConfigureAwait(false))
                 {
-                    Logger.InfoFormat("Message with id: {0} is already on the bus, dropping the request", callInfo.ClientId);
-                }
-                else
-                {
-                    await messageReceivedHandler(args).ConfigureAwait(false);
-                    try
+                    if (duplicationCheck.IsDuplicate)
                     {
-                        await deduplicationStorage.MarkAsDispatched(callInfo.ClientId, context).ConfigureAwait(false);
+                        Logger.InfoFormat("Message with id: {0} has already been dispatched, ignoring incoming gateway message.", callInfo.ClientId);
                     }
-                    catch (Exception e) when(!useTransactionScope)
+                    else
                     {
-                        // swallow exception in non-dtc modes.
-                        // When using no transactions, the message has been sent to the transport already. Throwing would cause the operation to be retried and a guaranteed duplicate to be created. By swallowing the exception, the duplicate is only created if the same message is sent to the gateway for another reason.
-                        // When using distributed transactions, throw so that both persistence and transport can rollback atomically.
-                        Logger.Warn($"Failed to mark message with id '{callInfo.ClientId}' as dispatched. This message won't be deduplicated.'", e);
+                        await messageReceivedHandler(args).ConfigureAwait(false);
+                        try
+                        {
+                            await duplicationCheck.MarkAsDispatched().ConfigureAwait(false);
+                        }
+                        catch (Exception e) when (!useTransactionScope)
+                        {
+                            // swallow exception in non-dtc modes.
+                            // When using no transactions, the message has been sent to the transport already. Throwing would cause the operation to be retried and a guaranteed duplicate to be created. By swallowing the exception, the duplicate is only created if the same message is sent to the gateway for another reason.
+                            // When using distributed transactions, throw so that both persistence and transport can rollback atomically.
+                            Logger.Warn($"Failed to mark message with id '{callInfo.ClientId}' as dispatched. This message might not be deduplicated.'", e);
+                        }
                     }
                 }
             }
@@ -171,7 +174,7 @@
         static Dictionary<string, string> MapCustomMessageHeaders(IDictionary<string, string> receivedHeaders)
         {
             var headers = new Dictionary<string, string>();
-            
+
             foreach (var header in receivedHeaders)
             {
                 headers[header.Key] = header.Value;
@@ -222,7 +225,7 @@
             var specificDataBusHeaderToUpdate = callInfo.ReadDataBus();
             headerManager.InsertHeader(callInfo.ClientId, specificDataBusHeaderToUpdate, newDatabusKey);
         }
-        
+
         static ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
 
         Func<string, IChannelReceiver> channelFactory;

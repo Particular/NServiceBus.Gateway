@@ -15,16 +15,11 @@
         bool SupportsDistributedTransactions { get; }
 
         /// <summary>
-        /// Returns if the message is a duplicate.
+        /// Returns a session that provides duplicate detection for the given message id.
         /// </summary>
         /// <returns>
-        /// <code>true</code> if the message has been received successfully before and is considered a duplicate. <code>false</code> otherwise.
+        /// A <see cref="IDeduplicationSession"/>
         /// </returns>
-        Task<bool> IsDuplicate(string messageId, ContextBag context);
-
-        /// <summary>
-        /// Marks the message as successfully dispatched. Marking a message as dispatched will consider it a duplicate when invoking <see cref="IsDuplicate"/>.
-        /// </summary>
-        Task MarkAsDispatched(string messageId, ContextBag context);
+        Task<IDeduplicationSession> CheckForDuplicate(string messageId, ContextBag context);
     }
 }
