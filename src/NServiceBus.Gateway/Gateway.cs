@@ -47,17 +47,9 @@
         /// </summary>
         protected override void Setup(FeatureConfigurationContext context)
         {
-            if (context.Settings.TryGet("ResultingSupportedStorages", out List<Type> supportedStorages))
-            {
-                if (!supportedStorages.Contains(typeof(StorageType.GatewayDeduplication)))
-                {
-                    throw new Exception("The selected persistence doesn't have support for gateway deduplication storage. Please configure one that supports gateway deduplication storage.");
-                }
-            }
-            else
-            {
-                throw new Exception("No persistence configured, please configure one that supports gateway deduplication storage.");
-            }
+            var storageConfiguration = context.Settings.Get<GatewayDeduplicationConfiguration>();
+            storageConfiguration.Setup(context.Settings);
+
 
             ConfigureTransaction(context);
 
@@ -87,8 +79,6 @@
             context.Pipeline.Register("RouteToGateway", new RouteToGatewayBehavior(gatewayInputAddress, configuredSitesKeys), "Reroutes gateway messages to the gateway");
             context.Pipeline.Register("GatewayIncomingBehavior", new GatewayIncomingBehavior(), "Extracts gateway related information from the incoming message");
             context.Pipeline.Register("GatewayOutgoingBehavior", new GatewayOutgoingBehavior(), "Puts gateway related information on the headers of outgoing messages");
-
-            var storageConfiguration = context.Settings.Get<GatewayDeduplicationConfiguration>();
 
             context.RegisterStartupTask(b => new GatewayReceiverStartupTask(
                 channelManager, 
