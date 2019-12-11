@@ -4,6 +4,7 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.Customization;
+    using Configuration.AdvancedExtensibility;
     using NUnit.Framework;
 
     public class When_sending_fails_without_retries : NServiceBusAcceptanceTest
@@ -14,7 +15,11 @@
             var context = await Scenario.Define<Context>(c => { c.Id = Guid.NewGuid(); })
                 .WithEndpoint<Headquarters>(b =>
                 {
-                    b.CustomConfig((c, ctx) => { c.Gateway().ChannelFactories(s => new FaultyChannelSender<Context>(ctx), s => new FakeChannelReceiver()); })
+                    b.CustomConfig((c, ctx) =>
+                        {
+                            var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
+                            gatewaySettings.ChannelFactories(s => new FaultyChannelSender<Context>(ctx), s => new FakeChannelReceiver());
+                        })
                         .When((bus, ctx) => bus.SendToSites(new[]
                         {
                             "SiteA"
@@ -46,8 +51,7 @@
                 {
                     c.SendFailedMessagesTo(Conventions.EndpointNamingConvention(typeof(ErrorSpy)));
 
-                    var gatewaySettings = c.Gateway();
-                    
+                    var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
                     gatewaySettings.AddReceiveChannel("http://localhost:25999/Headquarters/");
                     gatewaySettings.AddSite("SiteA","http://localhost:25999/SiteA/");
                     gatewaySettings.DisableRetries();

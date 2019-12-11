@@ -2,6 +2,7 @@
 {
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using Configuration.AdvancedExtensibility;
     using NUnit.Framework;
 
     public class When_doing_request_response_with_databus_between_sites : NServiceBusAcceptanceTest
@@ -57,8 +58,7 @@
                     c.MakeInstanceUniquelyAddressable("1");
                     c.EnableCallbacks();
 
-                    var gatewaySettings = c.Gateway();
-
+                    var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
                     gatewaySettings.AddReceiveChannel("http://localhost:25899/SiteA/");
                     gatewaySettings.AddSite("SiteB", "http://localhost:25899/SiteB/");
                 });
@@ -89,7 +89,8 @@
                 {
                     c.UseDataBus<FileShareDataBus>().BasePath(@".\databus\siteB");
                     c.EnableCallbacks(makesRequests: false);
-                    c.Gateway().AddReceiveChannel("http://localhost:25899/SiteB/");
+                    var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
+                    gatewaySettings.AddReceiveChannel("http://localhost:25899/SiteB/");
                 });
             }
 

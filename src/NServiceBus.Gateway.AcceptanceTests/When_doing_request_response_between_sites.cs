@@ -2,6 +2,7 @@
 {
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using Configuration.AdvancedExtensibility;
     using NUnit.Framework;
 
     public class When_doing_request_response_between_sites : NServiceBusAcceptanceTest
@@ -41,7 +42,7 @@
                     c.MakeInstanceUniquelyAddressable("1");
                     c.EnableCallbacks();
 
-                    var gatewaySettings = c.Gateway();
+                    var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
 
                     gatewaySettings.AddReceiveChannel("http://localhost:25799/SiteA/");
                     gatewaySettings.AddSite("SiteB", "http://localhost:25799/SiteB/");
@@ -56,7 +57,9 @@
                 EndpointSetup<GatewayEndpoint>(c =>
                 {
                     c.EnableCallbacks(makesRequests: false);
-                    c.Gateway().AddReceiveChannel("http://localhost:25799/SiteB/");
+
+                    var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
+                    gatewaySettings.AddReceiveChannel("http://localhost:25799/SiteB/");
                 });
             }
 

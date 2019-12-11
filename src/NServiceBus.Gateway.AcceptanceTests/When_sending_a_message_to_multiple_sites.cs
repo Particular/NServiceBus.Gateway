@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using Configuration.AdvancedExtensibility;
     using NUnit.Framework;
 
     public class When_sending_a_message_to_multiple_sites : NServiceBusAcceptanceTest
@@ -37,8 +38,7 @@
             {
                 EndpointSetup<GatewayEndpoint>(c =>
                 {
-                    var gatewaySettings = c.Gateway();
-
+                    var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
                     gatewaySettings.AddReceiveChannel("http://localhost:26000/Headquarters/");
                     gatewaySettings.AddSite("SiteA", "http://localhost:26000/SiteA/");
                     gatewaySettings.AddSite("SiteB", "http://localhost:26000/SiteB/");
@@ -73,7 +73,8 @@
             {
                 EndpointSetup<GatewayEndpoint>(c =>
                 {
-                    c.Gateway().AddReceiveChannel("http://localhost:26000/SiteA/");
+                    var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
+                    gatewaySettings.AddReceiveChannel("http://localhost:26000/SiteA/");
                 });
             }
 
@@ -92,7 +93,8 @@
             {
                 EndpointSetup<GatewayEndpoint>(c =>
                 {
-                    c.Gateway().AddReceiveChannel("http://localhost:26000/SiteB/");
+                    var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
+                    gatewaySettings.AddReceiveChannel("http://localhost:26000/SiteB/");
                 });
             }
 

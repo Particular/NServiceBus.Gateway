@@ -4,6 +4,7 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTesting.Customization;
+    using Configuration.AdvancedExtensibility;
     using NUnit.Framework;
 
     public class When_sending_fails_with_retries : NServiceBusAcceptanceTest
@@ -16,8 +17,9 @@
                 {
                     b.CustomConfig((c, ctx) =>
                         {
-                            c.Gateway().Retries(2, TimeSpan.FromSeconds(1));
-                            c.Gateway().ChannelFactories(s => new FaultyChannelSender<Context>(ctx), s => new FakeChannelReceiver());
+                            var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
+                            gatewaySettings.Retries(2, TimeSpan.FromSeconds(1));
+                            gatewaySettings.ChannelFactories(s => new FaultyChannelSender<Context>(ctx), s => new FakeChannelReceiver());
                         })
                         .When((bus, c) => bus.SendToSites(new[]
                         {
@@ -41,11 +43,15 @@
             var context = await Scenario.Define<Context>(c => { c.Id = Guid.NewGuid(); })
                 .WithEndpoint<Headquarters>(b =>
                 {
-                    b.CustomConfig((cfg, ctx) => cfg.Gateway().CustomRetryPolicy((msg, ex, currentRetry) =>
+                    b.CustomConfig((cfg, ctx) =>
                         {
-                            ctx.CustomRetryPolicyWasCalled = true;
-                            return TimeSpan.MinValue;
-                        }))
+                            var gatewaySettings = cfg.GetSettings().Get<GatewaySettings>();
+                            gatewaySettings.CustomRetryPolicy((msg, ex, currentRetry) =>
+                            {
+                                ctx.CustomRetryPolicyWasCalled = true;
+                                return TimeSpan.MinValue;
+                            });
+                        })
                         .When((bus, ctx) => bus.SendToSites(new[]
                         {
                             "SiteA"
@@ -75,8 +81,7 @@
             {
                 EndpointSetup<GatewayEndpoint>(c =>
                 {
-                    var gatewaySettings = c.Gateway();
-
+                    var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
                     gatewaySettings.AddReceiveChannel("http://localhost:25999/Headquarters/");
                     gatewaySettings.AddSite("SiteA", "http://localhost:25999/SiteA/");
 

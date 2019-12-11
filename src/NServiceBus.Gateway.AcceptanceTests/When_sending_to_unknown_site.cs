@@ -2,6 +2,7 @@
 {
     using System;
     using AcceptanceTesting;
+    using Configuration.AdvancedExtensibility;
     using NUnit.Framework;
 
     public class When_sending_to_unknown_site : NServiceBusAcceptanceTest
@@ -27,8 +28,7 @@
             {
                 EndpointSetup<AcceptanceTests.GatewayEndpoint>(c =>
                 {
-                    var gatewaySettings = c.Gateway();
-
+                    var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
                     gatewaySettings.AddReceiveChannel("http://localhost:25605/Gateway/");
                     gatewaySettings.AddSite("SiteA", "http://sitea.com");
                 });

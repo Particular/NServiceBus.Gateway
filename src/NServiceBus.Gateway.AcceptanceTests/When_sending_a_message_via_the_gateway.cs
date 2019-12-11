@@ -8,6 +8,7 @@
     using System.Threading.Tasks;
     using System.Web;
     using AcceptanceTesting;
+    using Configuration.AdvancedExtensibility;
     using NUnit.Framework;
 
     public class When_sending_a_message_via_the_gateway : NServiceBusAcceptanceTest
@@ -90,7 +91,8 @@
             {
                 EndpointSetup<GatewayEndpoint>(c =>
                 {
-                    c.Gateway().AddReceiveChannel("http://localhost:25898/Headquarters/");
+                    var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
+                    gatewaySettings.AddReceiveChannel("http://localhost:25898/Headquarters/");
                 })
                 .IncludeType<MyRequest>();
             }
