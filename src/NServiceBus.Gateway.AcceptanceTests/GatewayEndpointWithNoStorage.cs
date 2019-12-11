@@ -9,7 +9,7 @@
 
     public class GatewayEndpointWithNoStorage : IEndpointSetupTemplate
     {
-        public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizationConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
+        public virtual Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizationConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
             var endpointConfiguration = new EndpointConfiguration(endpointCustomizationConfiguration.EndpointName);
 
@@ -26,22 +26,11 @@
             endpointConfiguration.UseTransport<LearningTransport>()
                 .StorageDirectory(storageDir);
 
-            if (ConfigureStorage)
-            {
-                var persistenceConfiguration = GatewayTestSuiteConstraints.Current.CreatePersistenceConfiguration();
-
-                await persistenceConfiguration.Configure(endpointCustomizationConfiguration.EndpointName, endpointConfiguration, runDescriptor.Settings).ConfigureAwait(false);
-
-                runDescriptor.OnTestCompleted(_ => persistenceConfiguration.Cleanup());
-            }
-
             endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 
             configurationBuilderCustomization(endpointConfiguration);
 
-            return endpointConfiguration;
+            return Task.FromResult(endpointConfiguration);
         }
-
-        protected bool ConfigureStorage;
     }
 }
