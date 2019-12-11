@@ -24,21 +24,30 @@
 
             using (var scope = new TransactionScope(TransactionScopeOption.RequiresNew, TransactionScopeAsyncFlowOption.Enabled))
             {
-                var context = new ContextBag();
-                Assert.IsFalse(await storage.IsDuplicate(messageId, context));
-
-                await storage.MarkAsDispatched(messageId, context);
+                using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
+                {
+                    Assert.IsFalse(session.IsDuplicate);
+                    await session.MarkAsDispatched();
+                }
 
                 using (var concurrentScope = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    Assert.IsFalse(await storage.IsDuplicate(messageId, context), "concurrent readers should not see uncommitted data");
+                    using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
+                    {
+                        Assert.IsFalse(session.IsDuplicate, "concurrent readers should not see uncommitted data");
+                        await session.MarkAsDispatched();
+                    }
+
                     concurrentScope.Complete();
                 }
 
                 scope.Complete();
             }
 
-            Assert.IsTrue(await storage.IsDuplicate(messageId, new ContextBag()));
+            using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
+            {
+                Assert.IsTrue(session.IsDuplicate);
+            }
         }
 
         [Test]
@@ -48,13 +57,19 @@
 
             using (var _ = new TransactionScope(TransactionScopeOption.RequiresNew, TransactionScopeAsyncFlowOption.Enabled))
             {
-                var context = new ContextBag();
-                Assert.IsFalse(await storage.IsDuplicate(messageId, context));
+                using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
+                {
+                    Assert.IsFalse(session.IsDuplicate);
+                    await session.MarkAsDispatched();
+                }
 
-                await storage.MarkAsDispatched(messageId, context);
+                // no commit
             }
 
-            Assert.IsFalse(await storage.IsDuplicate(messageId, new ContextBag()));
+            using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
+            {
+                Assert.IsFalse(session.IsDuplicate);
+            }
         }
 
         [Test]
@@ -65,11 +80,19 @@
 
             using (var scope = new TransactionScope(TransactionScopeOption.RequiresNew, TransactionScopeAsyncFlowOption.Enabled))
             {
-                await storage.MarkAsDispatched(messageId, new ContextBag());
+                using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
+                {
+                    Assert.IsFalse(session.IsDuplicate);
+                    await session.MarkAsDispatched();
+                }
 
                 using (var concurrentScope = new TransactionScope(TransactionScopeOption.RequiresNew, TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    await storage.MarkAsDispatched(messageId, new ContextBag());
+                    using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
+                    {
+                        Assert.IsFalse(session.IsDuplicate);
+                        await session.MarkAsDispatched();
+                    }
                     concurrentScope.Complete();
                 }
 

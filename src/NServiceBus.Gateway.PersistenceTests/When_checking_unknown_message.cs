@@ -10,19 +10,26 @@
         [Test]
         public async Task IsDuplicate_returns_false()
         {
-            var isDuplicate = await storage.IsDuplicate(Guid.NewGuid().ToString("N"), new ContextBag());
-
-            Assert.IsFalse(isDuplicate);
+            using (var session = await storage.CheckForDuplicate(Guid.NewGuid().ToString(), new ContextBag()))
+            {
+                Assert.IsFalse(session.IsDuplicate);
+            }
         }
 
         [Test]
         public async Task IsDuplicate_returns_false_when_checking_multiple_times()
         {
-            var messageId = Guid.NewGuid().ToString("N");
+            var messageId = Guid.NewGuid().ToString();
 
-            Assert.IsFalse(await storage.IsDuplicate(messageId, new ContextBag()));
-            Assert.IsFalse(await storage.IsDuplicate(messageId, new ContextBag()));
-            Assert.IsFalse(await storage.IsDuplicate(messageId, new ContextBag()));
+            using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
+            {
+                Assert.IsFalse(session.IsDuplicate);
+            }
+
+            using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
+            {
+                Assert.IsFalse(session.IsDuplicate);
+            }
         }
     }
 }

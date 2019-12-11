@@ -11,23 +11,33 @@
         [Test]
         public async Task IsDuplicate_returns_true()
         {
-            var messageId = Guid.NewGuid().ToString("N");
+            var messageId = Guid.NewGuid().ToString();
 
-            await storage.MarkAsDispatched(messageId, new ContextBag());
-            var isDuplicate = await storage.IsDuplicate(messageId, new ContextBag());
+            using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
+            {
+                await session.MarkAsDispatched();
+            }
 
-            Assert.IsTrue(isDuplicate);
+            using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
+            {
+                Assert.IsTrue(session.IsDuplicate);
+            }
         }
 
         [Test]
         public async Task MarkAsDispatched_can_be_called_multiple_times()
         {
-            var messageId = Guid.NewGuid().ToString("N");
+            var messageId = Guid.NewGuid().ToString();
 
-            await storage.MarkAsDispatched(messageId, new ContextBag());
-            await storage.MarkAsDispatched(messageId, new ContextBag());
+            using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
+            {
+                await session.MarkAsDispatched();
+            }
 
-            Assert.IsTrue(await storage.IsDuplicate(messageId, new ContextBag()));
+            using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
+            {
+                await session.MarkAsDispatched();
+            }
         }
     }
 }
