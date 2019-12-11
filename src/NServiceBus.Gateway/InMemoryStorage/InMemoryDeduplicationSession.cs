@@ -17,7 +17,7 @@
         {
             get
             {
-                lock (lockObj)
+                lock (clientIdSet)
                 {
                     return clientIdSet.ContainsKey(messageId);
                 }
@@ -26,7 +26,7 @@
 
         public Task MarkAsDispatched()
         {
-            lock (lockObj)
+            lock (clientIdSet)
             {
                 if (clientIdSet.TryGetValue(messageId, out var existingNode)) // O(1)
                 {
@@ -59,7 +59,5 @@
         readonly Dictionary<string, LinkedListNode<string>> clientIdSet;
         readonly LinkedList<string> clientIdList;
         readonly int cacheSize;
-
-        static readonly object lockObj = new object();
     }
 }
