@@ -32,7 +32,7 @@
         }
 
         public Task Stop()
-        { 
+        {
             return channelReceiver?.Stop();
         }
 
@@ -46,7 +46,6 @@
 
                 if (useTransactionScope)
                 {
-                    
                     using (var scope = GatewayTransaction.Scope())
                     {
                         await Receive(callInfo).ConfigureAwait(false);
@@ -88,10 +87,10 @@
                 {
                     await Hasher.Verify(stream, callInfo.Md5).ConfigureAwait(false);
                 }
-                
+
                 var headers = headerManager.ReassembleDataBusProperties(callInfo.ClientId, callInfo.Headers);
                 var args = CreateMessageReceivedArgsWithDefaultValues(callInfo.TimeToBeReceived, headers[NServiceBus + Id]);
-                
+
                 var isGatewayMessage = IsGatewayMessage(headers);
                 if (isGatewayMessage)
                 {
@@ -103,7 +102,7 @@
                 {
                     args.Headers = MapCustomMessageHeaders(headers);
                 }
-          
+
                 var body = new byte[stream.Length];
                 await stream.ReadAsync(body, 0, body.Length).ConfigureAwait(false);
                 args.Body = body;
@@ -175,7 +174,7 @@
         static Dictionary<string, string> MapCustomMessageHeaders(IDictionary<string, string> receivedHeaders)
         {
             var headers = new Dictionary<string, string>();
-            
+
             foreach (var header in receivedHeaders)
             {
                 headers[header.Key] = header.Value;
@@ -226,7 +225,7 @@
             var specificDataBusHeaderToUpdate = callInfo.ReadDataBus();
             headerManager.InsertHeader(callInfo.ClientId, specificDataBusHeaderToUpdate, newDatabusKey);
         }
-        
+
         static ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
 
         Func<string, IChannelReceiver> channelFactory;

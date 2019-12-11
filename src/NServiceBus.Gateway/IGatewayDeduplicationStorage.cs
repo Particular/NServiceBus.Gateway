@@ -15,10 +15,10 @@
         bool SupportsDistributedTransactions { get; }
 
         /// <summary>
-        /// Returns if the message is a duplicate.
+        /// Returns a session that provides duplicate detection for the given message id.
         /// </summary>
         /// <returns>
-        /// <code>true</code> if the message has been received successfully before and is considered a duplicate. <code>false</code> otherwise.
+        /// A <see cref="IDeduplicationSession"/>
         /// </returns>
         Task<IDeduplicationSession> CheckForDuplicate(string messageId, ContextBag context);
     }
