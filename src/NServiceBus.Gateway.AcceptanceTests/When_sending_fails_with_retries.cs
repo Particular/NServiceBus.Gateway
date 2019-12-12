@@ -99,7 +99,7 @@
         {
             public ErrorSpy()
             {
-                EndpointSetup<GatewayEndpoint>();
+                EndpointSetup<GatewayEndpointWithNoStorage>();
             }
 
             class ErrorMessageHandler : IHandleMessages<AnyMessage>
