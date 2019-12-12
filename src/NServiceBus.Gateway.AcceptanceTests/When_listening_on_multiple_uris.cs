@@ -8,6 +8,7 @@
     using System.Threading.Tasks;
     using System.Web;
     using AcceptanceTesting;
+    using Configuration.AdvancedExtensibility;
     using NUnit.Framework;
 
     public class When_listening_on_multiple_uris : NServiceBusAcceptanceTest
@@ -104,8 +105,9 @@
             {
                 EndpointSetup<GatewayEndpoint>(c =>
                 {
-                    c.Gateway().AddReceiveChannel(DefaultReceiveURI);
-                    c.Gateway().AddReceiveChannel($"http://{Dns.GetHostName()}:25898/Headquarters/");
+                    var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
+                    gatewaySettings.AddReceiveChannel(DefaultReceiveURI);
+                    gatewaySettings.AddReceiveChannel($"http://{Dns.GetHostName()}:25898/Headquarters/");
                 })
                 .IncludeType<MyRequest>();
             }

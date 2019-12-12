@@ -1,6 +1,7 @@
 ﻿namespace NServiceBus.Gateway.AcceptanceTests
 {
     using AcceptanceTesting;
+    using Configuration.AdvancedExtensibility;
     using NUnit.Framework;
 
     public class When_listening_on_wildcard_uri : NServiceBusAcceptanceTest
@@ -23,8 +24,7 @@
             {
                 EndpointSetup<GatewayEndpoint>(c =>
                 {
-                    var gatewaySettings = c.Gateway();
-
+                    var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
                     gatewaySettings.AddReceiveChannel("http://+:25601/WildcardA/");
                 });
             }
@@ -46,8 +46,7 @@
             {
                 EndpointSetup<GatewayEndpoint>(c =>
                 {
-                    var gatewaySettings = c.Gateway();
-
+                    var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
                     gatewaySettings.AddReceiveChannel("http://+:25701/WildcardB/");
                     gatewaySettings.AddReceiveChannel("http://localhost:25700/WildcardB/", isDefault: true);
                 });

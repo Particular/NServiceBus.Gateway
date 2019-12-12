@@ -102,6 +102,7 @@ namespace NServiceBus.Gateway
     {
         protected GatewayDeduplicationConfiguration() { }
         public abstract NServiceBus.Gateway.IGatewayDeduplicationStorage CreateStorage(NServiceBus.ObjectBuilder.IBuilder builder);
+        public virtual void Setup(NServiceBus.Settings.ReadOnlySettings settings) { }
     }
     public interface IChannelReceiver
     {
