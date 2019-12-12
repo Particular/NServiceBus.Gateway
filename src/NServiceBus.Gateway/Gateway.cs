@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using ConsistencyGuarantees;
     using DeliveryConstraints;
     using Extensibility;
     using Logging;
@@ -81,14 +82,28 @@
             context.Pipeline.Register("GatewayOutgoingBehavior", new GatewayOutgoingBehavior(), "Puts gateway related information on the headers of outgoing messages");
 
             context.RegisterStartupTask(b => new GatewayReceiverStartupTask(
-                channelManager, 
-                channelReceiverFactory, 
+                channelManager,
+                channelReceiverFactory,
                 GetEndpointRouter(context),
-                b.Build<IDispatchMessages>(), 
+                b.Build<IDispatchMessages>(),
                 storageConfiguration.CreateStorage(b),
-                b.BuildAll<IDataBus>()?.FirstOrDefault(), 
+                b.BuildAll<IDataBus>()?.FirstOrDefault(),
                 gatewayInputAddress,
-                context.Settings.Get<TransportInfrastructure>().TransactionMode));
+                GetTransportTransactionMode(context)));
+        }
+
+        static TransportTransactionMode GetTransportTransactionMode(FeatureConfigurationContext context)
+        {
+            try
+            {
+                return context.Settings.GetRequiredTransactionModeForReceives();
+            }
+            catch (Exception)
+            {
+                // GetRequiredTransactionModeForReceives throws on read-only endpoints.
+                // Use the transport's default mode in that case:
+                return context.Settings.Get<TransportInfrastructure>().TransactionMode;
+            }
         }
 
         static void RegisterChannels(FeatureConfigurationContext context, IManageReceiveChannels channelManager, out Func<string, IChannelSender> channelSenderFactory, out Func<string, IChannelReceiver> channelReceiverFactory)
@@ -128,7 +143,7 @@
 
         static EndpointRouter GetEndpointRouter(FeatureConfigurationContext context)
         {
-            return new EndpointRouter { MainInputAddress = context.Settings.EndpointName() };
+            return new EndpointRouter {MainInputAddress = context.Settings.EndpointName()};
         }
 
         static void ConfigureTransaction(FeatureConfigurationContext context)
@@ -230,6 +245,8 @@
                 return dispatchMessages.Dispatch(transportOperations, new TransportTransaction(), new ContextBag());
             }
 
+            readonly TransportTransactionMode transportTransactionMode;
+
             ICollection<SingleCallChannelReceiver> activeReceivers = new List<SingleCallChannelReceiver>();
             IManageReceiveChannels manageReceiveChannels;
             Func<string, IChannelReceiver> channelReceiverFactory;
@@ -238,7 +255,6 @@
             IGatewayDeduplicationStorage deduplicationStorage;
             IDataBus databus;
             string replyToAddress;
-            readonly TransportTransactionMode transportTransactionMode;
 
             static ILog Logger = LogManager.GetLogger<GatewayReceiverStartupTask>();
         }
