@@ -34,6 +34,12 @@ namespace NServiceBus.Installation
                 return Task.FromResult(0);
             }
 
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+            {
+                logger.InfoFormat("Installer does not support platform {0}. Ensure that the process has required permissions to use listen to configured urls.", Environment.OSVersion.Platform.ToString("G"));
+                return Task.FromResult(0);
+            }
+
             if (Environment.OSVersion.Version.Major <= 5)
             {
                 logger.InfoFormat(
