@@ -5,7 +5,7 @@
     using Extensibility;
     using NUnit.Framework;
 
-    class When_checking_unknown_message : NServiceBusGatewayDeduplicationStorageTest
+    public class When_checking_unknown_message : NServiceBusGatewayDeduplicationStorageTest
     {
         [Test]
         public async Task IsDuplicate_returns_false()
