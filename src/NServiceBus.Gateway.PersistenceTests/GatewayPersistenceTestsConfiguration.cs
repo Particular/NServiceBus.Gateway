@@ -1,6 +1,6 @@
 ﻿using NServiceBus.Gateway;
 
-interface IGatewayPersistenceTestsConfiguration
+public interface IGatewayPersistenceTestsConfiguration
 {
     IGatewayDeduplicationStorage CreateStorage();
 }

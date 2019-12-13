@@ -6,7 +6,7 @@
     using Extensibility;
     using NUnit.Framework;
 
-    class When_supporting_distributed_transactions : NServiceBusGatewayDeduplicationStorageTest
+    public class When_supporting_distributed_transactions : NServiceBusGatewayDeduplicationStorageTest
     {
         [SetUp]
         public void IgnoreNonDTCStorages()
@@ -51,7 +51,7 @@
         }
 
         [Test]
-        public async Task Does_not_mark_messages_as_dispatched_when_aborted()
+        public async Task Does_not_mark_messages_as_dispatched_when_rolled_back()
         {
             var messageId = Guid.NewGuid().ToString("D");
 

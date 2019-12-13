@@ -3,7 +3,7 @@
     using NUnit.Framework;
 
     [TestFixture]
-    abstract class NServiceBusGatewayDeduplicationStorageTest
+    public abstract class NServiceBusGatewayDeduplicationStorageTest
     {
         protected IGatewayDeduplicationStorage storage;
 
