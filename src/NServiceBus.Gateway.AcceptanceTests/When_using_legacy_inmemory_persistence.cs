@@ -31,7 +31,8 @@
                     c.UsePersistence<InMemoryPersistence, StorageType.GatewayDeduplication>();
                     
                     // legacy configuration API (not passing a storage as parameter):
-                    c.Gateway();
+                    var gatewayConfiguration = c.Gateway();
+                    gatewayConfiguration.AddReceiveChannel("http://localhost:25999/SiteA/");
                 });
             }
         }
