@@ -26,7 +26,7 @@
 
             if (settings.IsFeatureEnabled(typeof(InMemoryGatewayPersistence)))
             {
-                log.Warn($"Endpoint is configured to use the legacy in-memory gateway deduplication storage. This storage is going to be obsoleted in future versions of NServiceBus. Use the gateway's built-in in-memory storage instead: endpointConfiguration.UseGateway(new {nameof(InMemoryDeduplicationConfiguration)}());'");
+                log.Warn($"Endpoint is configured to use the legacy in-memory gateway deduplication storage. This storage is going to be obsoleted in future versions of NServiceBus. Use the gateway's built-in in-memory storage instead: 'endpointConfiguration.UseGateway(new {nameof(InMemoryDeduplicationConfiguration)}());'");
             }
 
             base.Setup(settings);
