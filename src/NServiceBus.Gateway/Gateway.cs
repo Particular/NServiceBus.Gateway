@@ -189,6 +189,14 @@
                 // only use transaction scope if both transport and persistence are able to enlist with the transaction scope.
                 // If one of them cannot enlist, use no transaction scope as partial rollbacks of the deduplication process can cause incorrect side effects.
                 var useTransactionScope = deduplicationStorage.SupportsDistributedTransactions && transportTransactionMode == TransportTransactionMode.TransactionScope;
+
+                if (deduplicationStorage is LegacyDeduplicationWrapper)
+                {
+                    // the legacy deduplication storage requires the storage to support TransactionScope.
+                    // This is critical when using the gateway with a non-transactional transport as a dispatch failure must undo any potential persistence changes.
+                    useTransactionScope = true;
+                }
+
                 foreach (var receiveChannel in manageReceiveChannels.GetReceiveChannels())
                 {
                     var receiver = new SingleCallChannelReceiver(channelReceiverFactory, deduplicationStorage, databus, useTransactionScope);
