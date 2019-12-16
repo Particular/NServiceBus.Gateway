@@ -186,15 +186,20 @@
 
             protected override Task OnStart(IMessageSession context)
             {
-                // only use transaction scope if both transport and persistence are able to enlist with the transaction scope.
-                // If one of them cannot enlist, use no transaction scope as partial rollbacks of the deduplication process can cause incorrect side effects.
-                var useTransactionScope = deduplicationStorage.SupportsDistributedTransactions && transportTransactionMode == TransportTransactionMode.TransactionScope;
-
+                bool useTransactionScope;
                 if (deduplicationStorage is LegacyDeduplicationWrapper)
                 {
                     // the legacy deduplication storage requires the storage to support TransactionScope.
                     // This is critical when using the gateway with a non-transactional transport as a dispatch failure must undo any potential persistence changes.
                     useTransactionScope = true;
+                    Logger.Debug("Using TransactionScope for legacy storage compatibility.");
+                }
+                else
+                {
+                    // only use transaction scope if both transport and persistence are able to enlist with the transaction scope.
+                    // If one of them cannot enlist, use no transaction scope as partial rollbacks of the deduplication process can cause incorrect side effects.
+                    useTransactionScope = deduplicationStorage.SupportsDistributedTransactions && transportTransactionMode == TransportTransactionMode.TransactionScope;
+                    Logger.DebugFormat("Using TransactionScope: {0} (based on storage TransactionScope support: {1} and transport transaction mode: {2}).", useTransactionScope, deduplicationStorage.SupportsDistributedTransactions, transportTransactionMode);
                 }
 
                 foreach (var receiveChannel in manageReceiveChannels.GetReceiveChannels())
