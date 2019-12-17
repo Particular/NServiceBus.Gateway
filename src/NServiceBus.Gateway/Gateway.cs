@@ -28,8 +28,8 @@
     /// Used to configure the gateway.
     /// </summary>
     [ObsoleteEx(
-        RemoveInVersion = "4.0",
-        TreatAsErrorFromVersion = "4.0",
+        TreatAsErrorFromVersion = "4",
+        RemoveInVersion = "5",
         Message = "Use `EndpointConfiguration.Gateway() to enable the gateway.")]
     public class Gateway : Feature
     {
