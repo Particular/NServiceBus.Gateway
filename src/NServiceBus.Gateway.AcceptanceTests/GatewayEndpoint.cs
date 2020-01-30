@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting.Support;
+    using NServiceBus.Configuration.AdvancedExtensibility;
 
     public class GatewayEndpoint : GatewayEndpointWithNoStorage
     {
@@ -10,11 +11,15 @@
         {
             return base.GetConfiguration(runDescriptor, endpointCustomizationConfiguration, configuration =>
             {
-                GatewayTestSuiteConstraints.Current.ConfigureDeduplicationStorage(
-                    endpointCustomizationConfiguration.CustomEndpointName, 
-                    configuration, 
+                var deduplicationConfiguration = GatewayTestSuiteConstraints.Current.ConfigureDeduplicationStorage(
+                    endpointCustomizationConfiguration.CustomEndpointName,
+                    configuration,
                     runDescriptor.Settings)
                     .GetAwaiter().GetResult();
+
+                var gatewaySettings = configuration.Gateway(deduplicationConfiguration);
+
+                configuration.GetSettings().Set(gatewaySettings);
 
                 runDescriptor.OnTestCompleted(_ => GatewayTestSuiteConstraints.Current.Cleanup());
 

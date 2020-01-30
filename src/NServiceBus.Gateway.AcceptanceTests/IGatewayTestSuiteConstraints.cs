@@ -5,7 +5,7 @@
 
     public interface IGatewayTestSuiteConstraints
     {
-        Task ConfigureDeduplicationStorage(string endpointName, EndpointConfiguration configuration, RunSettings settings);
+        Task<GatewayDeduplicationConfiguration> ConfigureDeduplicationStorage(string endpointName, EndpointConfiguration configuration, RunSettings settings);
 
         Task Cleanup();
     }
