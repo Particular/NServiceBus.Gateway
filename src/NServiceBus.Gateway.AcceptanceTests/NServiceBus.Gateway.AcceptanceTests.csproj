@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="[7.0.0, 8.0.0)" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="[7.2.3, 8.0.0)" />
     <PackageReference Include="NServiceBus.Callbacks" Version="[3.0.0, 4.0.0)" />
   </ItemGroup>
 
@@ -27,7 +27,6 @@
   <PropertyGroup>
     <PackageId>NServiceBus.Gateway.AcceptanceTests.Sources</PackageId>
     <Description>Acceptance tests for NServiceBus gateway functionality</Description>
-    <IsPackable>true</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
 
