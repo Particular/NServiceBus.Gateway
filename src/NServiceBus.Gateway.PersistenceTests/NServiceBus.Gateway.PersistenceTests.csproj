@@ -7,24 +7,23 @@
     <AssemblyOriginatorKeyFile>$(SolutionDir)NServiceBus.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <PackageId>NServiceBus.Gateway.PersistenceTests.Sources</PackageId>
-    <Description>Tests for gateway deduplication storage seam implementations</Description>
-    <IsPackable>true</IsPackable>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
-  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NServiceBus.Gateway\NServiceBus.Gateway.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" PrivateAssets="All" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.16.1" PrivateAssets="All" />
-    <PackageReference Include="NUnit" Version="3.12.0" />
-    <PackageReference Include="NServiceBus" Version="7.2.3" />
+    <PackageReference Include="NUnit" Version="[3.12.0, 4.0.0)" />
+    <PackageReference Include="NServiceBus" Version="[7.2.3, 8.0.0)" />
     <PackageReference Include="Particular.Packaging" Version="0.5.0" PrivateAssets="All" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\NServiceBus.Gateway\NServiceBus.Gateway.csproj" />
-  </ItemGroup>
+  <PropertyGroup>
+    <PackageId>NServiceBus.Gateway.PersistenceTests.Sources</PackageId>
+    <Description>Tests for gateway deduplication storage seam implementations</Description>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+  </PropertyGroup>
 
   <!-- Workaround for https://github.com/dotnet/sdk/issues/1479 -->
   <ItemGroup>
