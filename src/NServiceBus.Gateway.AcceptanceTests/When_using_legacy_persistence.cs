@@ -51,8 +51,12 @@
                 EndpointSetup<GatewayEndpointWithNoStorage>((configuration, runDescriptor) =>
                 {
                     var testContext = runDescriptor.ScenarioContext as Context;
+#pragma warning disable CS0618 // Type or member is obsolete
                     configuration.RegisterComponents(r => r.RegisterSingleton(typeof(IDeduplicateMessages), new FakeDeduplicationStorage(testContext)));
+#pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning disable CS0618 // Type or member is obsolete
                     configuration.UsePersistence<FakeDeduplicationPersistence, StorageType.GatewayDeduplication>();
+#pragma warning restore CS0618 // Type or member is obsolete
                     var gatewaySettings = configuration.Gateway();
                     gatewaySettings.AddReceiveChannel("http://localhost:25999/SiteA/");
                 });
@@ -83,11 +87,15 @@
         {
             public FakeDeduplicationPersistence()
             {
+#pragma warning disable CS0618 // Type or member is obsolete
                 Supports<StorageType.GatewayDeduplication>(_ => {});
+#pragma warning restore CS0618 // Type or member is obsolete
             }
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         class FakeDeduplicationStorage : IDeduplicateMessages
+#pragma warning restore CS0618 // Type or member is obsolete
         {
             Context testContext;
 
