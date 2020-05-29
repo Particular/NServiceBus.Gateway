@@ -28,8 +28,10 @@
             {
                 EndpointSetup<GatewayEndpointWithNoStorage>(c =>
                 {
+#pragma warning disable CS0618 // Type or member is obsolete
                     c.UsePersistence<InMemoryPersistence, StorageType.GatewayDeduplication>();
-                    
+#pragma warning restore CS0618 // Type or member is obsolete
+
                     // legacy configuration API (not passing a storage as parameter):
                     var gatewayConfiguration = c.Gateway();
                     gatewayConfiguration.AddReceiveChannel("http://localhost:25999/SiteA/");
