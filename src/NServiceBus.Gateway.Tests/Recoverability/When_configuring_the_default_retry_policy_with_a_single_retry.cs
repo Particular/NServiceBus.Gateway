@@ -18,7 +18,7 @@
             NumberOfRetries = 1;
 
             var config = new EndpointConfiguration("fake-endpoint");
-            config.Gateway().Retries(NumberOfRetries, TimeIncrease);
+            config.Gateway(new InMemoryDeduplicationConfiguration()).Retries(NumberOfRetries, TimeIncrease);
 
             RetryPolicy = config.GetSettings().Get<Func<IncomingMessage, Exception, int, TimeSpan>>("Gateway.Retries.RetryPolicy");
         }

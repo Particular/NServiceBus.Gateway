@@ -47,17 +47,22 @@
 
             public class MyResponseHandler : IHandleMessages<MyResponse>
             {
-                public Context Context { get; set; }
+                Context testContext;
+
+                public MyResponseHandler(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(MyResponse response, IMessageHandlerContext context)
                 {
                     switch (response.Message)
                     {
                         case "SiteA":
-                            Context.GotResponseBackFromSiteA = true;
+                            testContext.GotResponseBackFromSiteA = true;
                             break;
                         case "SiteB":
-                            Context.GotResponseBackFromSiteB = true;
+                            testContext.GotResponseBackFromSiteB = true;
                             break;
                         default:
                             throw new Exception($"Got a response from an unknown site, {response.Message}");

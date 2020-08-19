@@ -1,4 +1,4 @@
-#if NET452
+#if NET472
 namespace NServiceBus.Config
 {
     using System.Configuration;

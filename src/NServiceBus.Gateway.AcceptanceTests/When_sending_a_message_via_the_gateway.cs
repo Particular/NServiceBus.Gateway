@@ -23,7 +23,7 @@
 
                     webRequest.Method = "POST";
                     webRequest.ContentType = "text/xml; charset=utf-8";
-                 
+
                     webRequest.Headers.Add("Content-Encoding", "utf-8");
                     webRequest.Headers.Add("NServiceBus.CallType", "SingleCallSubmit");
                     webRequest.Headers.Add("NServiceBus.AutoAck", "true");
@@ -99,12 +99,17 @@
 
             public class MyResponseHandler : IHandleMessages<MyRequest>
             {
-                public Context Context { get; set; }
+                Context testContext;
+
+                public MyResponseHandler(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(MyRequest response, IMessageHandlerContext context)
                 {
-                    Context.MySpecialHeader = context.MessageHeaders["MySpecialHeader"];
-                    Context.GotMessage = true;
+                    testContext.MySpecialHeader = context.MessageHeaders["MySpecialHeader"];
+                    testContext.GotMessage = true;
                     return Task.FromResult(0);
                 }
             }

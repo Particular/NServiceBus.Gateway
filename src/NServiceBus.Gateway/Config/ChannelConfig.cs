@@ -1,7 +1,6 @@
-#if NET452
+#if NET472
 namespace NServiceBus.Config
 {
-    using System;
     using System.Configuration;
     using Gateway;
 
@@ -28,20 +27,6 @@ namespace NServiceBus.Config
         {
             get => (string) this["Address"];
             set => this["Address"] = value;
-        }
-
-        /// <summary>
-        /// The number of worker threads that will be used for this channel
-        /// </summary>
-        [ObsoleteEx(
-            TreatAsErrorFromVersion = "3",
-            RemoveInVersion = "4",
-            Message = "NumberOfWorkerThreads has been removed. Please use the MaxConcurrency setting instead.")]
-        [ConfigurationProperty("NumberOfWorkerThreads", IsRequired = false, DefaultValue = 1, IsKey = false)]
-        public int NumberOfWorkerThreads
-        {
-            get => throw new NotImplementedException();
-            set => throw new NotImplementedException();
         }
 
         /// <summary>

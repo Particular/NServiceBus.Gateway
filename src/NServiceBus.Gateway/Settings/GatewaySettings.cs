@@ -8,7 +8,7 @@
     using Gateway.Routing;
     using Settings;
     using Transport;
-#if NET452
+#if NET472
     using System.Configuration;
     using System.Linq;
     using Config;
@@ -147,7 +147,7 @@
 #if NETSTANDARD2_0
             return null;
 #endif
-#if NET452
+#if NET472
             var configSection = GetConfigSection(settings);
 
             if (configSection?.TransactionTimeout != null)
@@ -167,7 +167,7 @@
 #if NETSTANDARD2_0
             return new List<Site>();
 #endif
-#if NET452
+#if NET472
             var configSection = GetConfigSection(settings);
 
             if (configSection == null)
@@ -199,7 +199,7 @@
 #if NETSTANDARD2_0
             return new List<ReceiveChannel>();
 #endif
-#if NET452
+#if NET472
 
             var configSection = GetConfigSection(settings);
 
@@ -220,7 +220,7 @@
                     }).ToList();
 #endif
         }
-#if NET452
+#if NET472
         static GatewayConfig GetConfigSection(ReadOnlySettings settings)
         {
 

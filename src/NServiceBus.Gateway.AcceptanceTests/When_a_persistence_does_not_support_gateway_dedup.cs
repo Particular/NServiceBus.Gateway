@@ -23,7 +23,7 @@
             {
                 EndpointSetup<GatewayEndpointWithNoStorage>(c =>
                 {
-                    c.Gateway().AddReceiveChannel("http://localhost:25898/SomeSite/");
+                    c.Gateway(new InMemoryDeduplicationConfiguration()).AddReceiveChannel("http://localhost:25898/SomeSite/");
                 });
             }
         }

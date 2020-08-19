@@ -6,7 +6,6 @@ namespace NServiceBus.Gateway.Tests
     using Extensibility;
     using HeaderManagement;
     using Pipeline;
-    using ObjectBuilder;
     using Transport;
 
     class IncomingPhysicalMessageContextFake : IIncomingPhysicalMessageContext
@@ -24,7 +23,7 @@ namespace NServiceBus.Gateway.Tests
         }
 
         public ContextBag Extensions { get; }
-        public IBuilder Builder { get; }
+        public IServiceProvider Builder { get; }
         public Task Send(object message, SendOptions options)
         {
             throw new NotImplementedException();

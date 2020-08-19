@@ -1,5 +1,6 @@
 ﻿namespace NServiceBus
 {
+    using System;
     using Configuration.AdvancedExtensibility;
     using Gateway;
 
@@ -12,9 +13,10 @@
         /// Allows the user to control how the gateway behaves.
         /// </summary>
         /// <param name="config">The <see cref="EndpointConfiguration"/> instance to apply the settings to.</param>
+        [ObsoleteEx(Message = "Gateway with no configuration is not supported.", ReplacementTypeOrMember = "Gateway(GatewayDeduplicationConfiguration)", TreatAsErrorFromVersion = "4.0.0", RemoveInVersion = "5.0.0")]
         public static GatewaySettings Gateway(this EndpointConfiguration config)
         {
-            return config.Gateway(new LegacyDeduplicationStorageConfiguration());
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -27,9 +29,7 @@
             Guard.AgainstNull(nameof(config), config);
             Guard.AgainstNull(nameof(storageConfiguration), storageConfiguration);
 
-            config.EnableFeature<Features.Gateway>();
-
-            config.GetSettings().Set<GatewayDeduplicationConfiguration>(storageConfiguration);
+            config.GetSettings().Set(storageConfiguration);
 
             return new GatewaySettings(config);
         }

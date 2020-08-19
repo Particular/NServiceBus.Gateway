@@ -74,7 +74,7 @@
             }
 
             fromHeaders.ToList()
-                .ForEach(header => to[NServiceBus + Headers.HeaderName + "." + header.Key] = header.Value);
+                .ForEach(header => to[NServiceBus + GatewayHeaders.CoreLegacyHeaderName + "." + header.Key] = header.Value);
 
             return to;
         }
