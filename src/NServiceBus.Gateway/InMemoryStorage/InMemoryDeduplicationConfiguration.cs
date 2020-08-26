@@ -1,6 +1,6 @@
 ﻿namespace NServiceBus.Gateway
 {
-    using ObjectBuilder;
+    using System;
 
     /// <summary>
     /// Configuration class for the in-memory gateway deduplication storage.
@@ -23,7 +23,7 @@
         }
 
         /// <inheritdoc />
-        public override IGatewayDeduplicationStorage CreateStorage(IBuilder builder)
+        public override IGatewayDeduplicationStorage CreateStorage(IServiceProvider builder)
         {
             return new InMemoryDeduplicationStorage(CacheSize);
         }

@@ -41,11 +41,16 @@
 
             public class MyResponseHandler : IHandleMessages<MyResponse>
             {
-                public Context Context { get; set; }
+                Context testContext;
+
+                public MyResponseHandler(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(MyResponse response, IMessageHandlerContext context)
                 {
-                    Context.GotResponseBack = true;
+                    testContext.GotResponseBack = true;
                     return Task.FromResult(0);
                 }
             }

@@ -66,15 +66,20 @@
 
             public class MyResponseHandler : IHandleMessages<MyResponse>
             {
-                public Context Context { get; set; }
+                Context testContext;
+
+                public MyResponseHandler(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(MyResponse response, IMessageHandlerContext context)
                 {
-                    Context.GotResponseBack = true;
-                    Context.SiteAReceivedPayloadInResponse = response.OriginalPayload.Value;
+                    testContext.GotResponseBack = true;
+                    testContext.SiteAReceivedPayloadInResponse = response.OriginalPayload.Value;
 
                     // Inspect the headers to find the originating site address
-                    Context.OriginatingSiteForResponse = context.MessageHeaders[Headers.OriginatingSite];
+                    testContext.OriginatingSiteForResponse = context.MessageHeaders[Headers.OriginatingSite];
 
                     return Task.FromResult(0);
                 }
@@ -96,18 +101,23 @@
 
             public class MyRequestHandler : IHandleMessages<MyRequest>
             {
-                public Context Context { get; set; }
+                Context testContext;
+
+                public MyRequestHandler(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public async Task Handle(MyRequest request, IMessageHandlerContext context)
                 {
-                    Context.SiteBReceivedPayload = request.Payload.Value;
+                    testContext.SiteBReceivedPayload = request.Payload.Value;
                     await context.Reply(new MyResponse
                     {
                         OriginalPayload = request.Payload
                     });
 
                     // Inspect the headers to find the originating site address
-                    Context.OriginatingSiteForRequest = context.MessageHeaders[Headers.OriginatingSite];
+                    testContext.OriginatingSiteForRequest = context.MessageHeaders[Headers.OriginatingSite];
                 }
             }
         }

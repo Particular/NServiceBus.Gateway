@@ -8,11 +8,7 @@
     using Gateway.Routing;
     using Settings;
     using Transport;
-#if NET452
-    using System.Configuration;
-    using System.Linq;
-    using Config;
-#endif
+
     /// <summary>
     /// Placeholder for the various settings and extension points related to gateway.
     /// </summary>
@@ -140,98 +136,19 @@
 
         internal static TimeSpan? GetTransactionTimeout(ReadOnlySettings settings)
         {
-            if (settings.TryGet("Gateway.TransactionTimeout", out TimeSpan? timeout))
-            {
-                return timeout;
-            }
-#if NETSTANDARD2_0
-            return null;
-#endif
-#if NET452
-            var configSection = GetConfigSection(settings);
-
-            if (configSection?.TransactionTimeout != null)
-            {
-                logger.WarnFormat("The ability to specify transaction timeout via the GatewayConfig config section will be removed in v4. Use the `EndpointConfiguration.Gateway().TransactionTimeout(...)` API instead.");
-            }
-            return configSection?.TransactionTimeout;
-#endif
+            return settings.TryGet("Gateway.TransactionTimeout", out TimeSpan? timeout) ? timeout : null;
         }
 
         internal static List<Site> GetConfiguredSites(ReadOnlySettings settings)
         {
-            if (settings.TryGet(out List<Site> sites))
-            {
-                return sites;
-            }
-#if NETSTANDARD2_0
-            return new List<Site>();
-#endif
-#if NET452
-            var configSection = GetConfigSection(settings);
-
-            if (configSection == null)
-            {
-                return new List<Site>();
-            }
-
-            logger.WarnFormat("The ability to specify sites via the GatewayConfig config section will be removed in v4. Use the `EndpointConfiguration.Gateway().AddSite(...)` API instead.");
-
-            return configSection.Sites.Cast<SiteConfig>().Select(site => new Site
-            {
-                Key = site.Key,
-                Channel = new Channel
-                {
-                    Type = site.ChannelType,
-                    Address = site.Address
-                },
-                LegacyMode = site.LegacyMode
-            }).ToList();
-#endif
+            return settings.TryGet(out List<Site> sites) ? sites : new List<Site>();
         }
 
         internal static List<ReceiveChannel> GetConfiguredChannels(ReadOnlySettings settings)
         {
-            if (settings.TryGet(out List<ReceiveChannel> channels))
-            {
-                return channels;
-            }
-#if NETSTANDARD2_0
-            return new List<ReceiveChannel>();
-#endif
-#if NET452
-
-            var configSection = GetConfigSection(settings);
-
-            if (configSection == null)
-            {
-                return new List<ReceiveChannel>();
-            }
-
-            logger.WarnFormat("The ability to specify receive channels via the GatewayConfig config section will be removed in v4. Use the `EndpointConfiguration.Gateway().AddReceiveChannel(...)` API instead.");
-
-            return (from ChannelConfig channel in configSection.Channels
-                    select new ReceiveChannel
-                    {
-                        Address = channel.Address,
-                        Type = channel.ChannelType,
-                        MaxConcurrency = channel.MaxConcurrency,
-                        Default = channel.Default
-                    }).ToList();
-#endif
+            return settings.TryGet(out List<ReceiveChannel> channels) ? channels : new List<ReceiveChannel>();
         }
-#if NET452
-        static GatewayConfig GetConfigSection(ReadOnlySettings settings)
-        {
 
-            if (settings.TryGet(out GatewayConfig config))
-            {
-                return config;
-            }
-
-            return ConfigurationManager.GetSection(typeof(GatewayConfig).Name) as GatewayConfig;
-        }
-#endif
         void SetDefaultRetryPolicySettings(int numberOfRetries, TimeSpan timeIncrease)
         {
             settings.Set("Gateway.Retries.RetryPolicy", DefaultRetryPolicy.Build(numberOfRetries, timeIncrease));

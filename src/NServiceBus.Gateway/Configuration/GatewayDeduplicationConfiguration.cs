@@ -1,6 +1,6 @@
 ﻿namespace NServiceBus.Gateway
 {
-    using ObjectBuilder;
+    using System;
     using Settings;
 
     /// <summary>
@@ -18,6 +18,6 @@
         /// <summary>
         /// Creates an instance of the deduplication storage.
         /// </summary>
-        public abstract IGatewayDeduplicationStorage CreateStorage(IBuilder builder);
+        public abstract IGatewayDeduplicationStorage CreateStorage(IServiceProvider builder);
     }
 }

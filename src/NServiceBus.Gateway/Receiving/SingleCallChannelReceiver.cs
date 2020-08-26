@@ -197,9 +197,9 @@
 
             foreach (var pair in from)
             {
-                if (pair.Key.Contains(NServiceBus + Headers.HeaderName))
+                if (pair.Key.Contains(NServiceBus + GatewayHeaders.CoreLegacyHeaderName))
                 {
-                    result.Add(pair.Key.Replace(NServiceBus + Headers.HeaderName + ".", string.Empty), pair.Value);
+                    result.Add(pair.Key.Replace(NServiceBus + GatewayHeaders.CoreLegacyHeaderName + ".", string.Empty), pair.Value);
                 }
             }
 

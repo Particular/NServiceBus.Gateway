@@ -60,7 +60,7 @@
 
             webRequest.Method = "POST";
             webRequest.ContentType = "text/xml; charset=utf-8";
-           
+
             webRequest.Headers.Add("Content-Encoding", "utf-8");
             webRequest.Headers.Add("NServiceBus.CallType", "SingleCallSubmit");
             webRequest.Headers.Add("NServiceBus.AutoAck", "true");
@@ -114,17 +114,22 @@
 
             public class MyRequestHandler : IHandleMessages<MyRequest>
             {
-                public Context Context { get; set; }
+                Context testContext;
+
+                public MyRequestHandler(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(MyRequest response, IMessageHandlerContext context)
                 {
                     if (context.MessageHeaders["SentToHeader"] == DefaultReceiveURI)
                     {
-                        Context.GotMessageOnDefaultChannel = true;
+                        testContext.GotMessageOnDefaultChannel = true;
                     }
                     else
                     {
-                        Context.GotMessageOnNonDefaultChannel = true;
+                        testContext.GotMessageOnNonDefaultChannel = true;
                     }
 
                     return Task.FromResult(0);

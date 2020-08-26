@@ -8,6 +8,7 @@
     using DeliveryConstraints;
     using Extensibility;
     using Logging;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.DataBus;
     using NServiceBus.Gateway;
     using NServiceBus.Gateway.Channels;
@@ -27,11 +28,7 @@
     /// <summary>
     /// Used to configure the gateway.
     /// </summary>
-    [ObsoleteEx(
-        RemoveInVersion = "4.0",
-        TreatAsErrorFromVersion = "3.0",
-        Message = "Use `EndpointConfiguration.Gateway() to enable the gateway.")]
-    public class Gateway : Feature
+    class Gateway : Feature
     {
         internal Gateway()
         {
@@ -40,7 +37,7 @@
 
             // since the installers are registered even if the feature isn't enabled we need to make
             // this a no-op if the installer runs without the feature enabled
-            Defaults(c => c.Set<InstallerSettings>(new InstallerSettings()));
+            Defaults(c => c.Set(new InstallerSettings()));
         }
 
         /// <summary>
@@ -71,7 +68,7 @@
 
             context.AddSatelliteReceiver("Gateway", gatewayInputAddress, PushRuntimeSettings.Default,
                 (config, errorContext) => GatewayRecoverabilityPolicy.Invoke(errorContext, retryPolicy, config),
-                (builder, messageContext) => sender.SendToDestination(messageContext, builder.Build<IDispatchMessages>(), CreateForwarder(channelSenderFactory, builder.BuildAll<IDataBus>()?.FirstOrDefault())));
+                (builder, messageContext) => sender.SendToDestination(messageContext, builder.GetRequiredService<IDispatchMessages>(), CreateForwarder(channelSenderFactory, builder.GetServices<IDataBus>()?.FirstOrDefault())));
 
             var configuredSitesKeys = GatewaySettings.GetConfiguredSites(context.Settings)
                 .Select(s => s.Key)
@@ -85,9 +82,9 @@
                 channelManager,
                 channelReceiverFactory,
                 GetEndpointRouter(context),
-                b.Build<IDispatchMessages>(),
+                b.GetRequiredService<IDispatchMessages>(),
                 storageConfiguration.CreateStorage(b),
-                b.BuildAll<IDataBus>()?.FirstOrDefault(),
+                b.GetServices<IDataBus>()?.FirstOrDefault(),
                 gatewayInputAddress,
                 GetTransportTransactionMode(context)));
         }
@@ -186,21 +183,10 @@
 
             protected override Task OnStart(IMessageSession context)
             {
-                bool useTransactionScope;
-                if (deduplicationStorage is LegacyDeduplicationWrapper)
-                {
-                    // the legacy deduplication storage requires the storage to support TransactionScope.
-                    // This is critical when using the gateway with a non-transactional transport as a dispatch failure must undo any potential persistence changes.
-                    useTransactionScope = true;
-                    Logger.Debug("Using TransactionScope for legacy storage compatibility.");
-                }
-                else
-                {
-                    // only use transaction scope if both transport and persistence are able to enlist with the transaction scope.
-                    // If one of them cannot enlist, use no transaction scope as partial rollbacks of the deduplication process can cause incorrect side effects.
-                    useTransactionScope = deduplicationStorage.SupportsDistributedTransactions && transportTransactionMode == TransportTransactionMode.TransactionScope;
-                    Logger.DebugFormat("Using TransactionScope: {0} (based on storage TransactionScope support: {1} and transport transaction mode: {2}).", useTransactionScope, deduplicationStorage.SupportsDistributedTransactions, transportTransactionMode);
-                }
+                // only use transaction scope if both transport and persistence are able to enlist with the transaction scope.
+                // If one of them cannot enlist, use no transaction scope as partial rollbacks of the deduplication process can cause incorrect side effects.
+                var useTransactionScope = deduplicationStorage.SupportsDistributedTransactions && transportTransactionMode == TransportTransactionMode.TransactionScope;
+                Logger.DebugFormat("Using TransactionScope: {0} (based on storage TransactionScope support: {1} and transport transaction mode: {2}).", useTransactionScope, deduplicationStorage.SupportsDistributedTransactions, transportTransactionMode);
 
                 foreach (var receiveChannel in manageReceiveChannels.GetReceiveChannels())
                 {
