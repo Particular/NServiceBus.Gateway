@@ -29,6 +29,8 @@
             Guard.AgainstNull(nameof(config), config);
             Guard.AgainstNull(nameof(storageConfiguration), storageConfiguration);
 
+            config.EnableFeature<Features.Gateway>();
+
             config.GetSettings().Set(storageConfiguration);
 
             return new GatewaySettings(config);
