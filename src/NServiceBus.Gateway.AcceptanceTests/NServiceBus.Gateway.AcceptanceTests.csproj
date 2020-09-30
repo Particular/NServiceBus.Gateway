@@ -21,6 +21,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" PrivateAssets="All" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" PrivateAssets="All" />
+    <PackageReference Include="Particular.CodeRules" Version="0.7.0" PrivateAssets="All" />
     <PackageReference Include="Particular.Packaging" Version="0.9.0" PrivateAssets="All" />
   </ItemGroup>
 
@@ -38,6 +39,10 @@
     <_PackageFiles Remove="**\obj\**\*.cs" />
     <_PackageFiles Remove="**\InMemoryPersistenceConfiguration.cs" />
     <_PackageFiles Remove="**\InMemoryTestSuiteConstaints.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\TestSuppressions.cs" Link="TestSuppressions.cs" />
   </ItemGroup>
 
 </Project>

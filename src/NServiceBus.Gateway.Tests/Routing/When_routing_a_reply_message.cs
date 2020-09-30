@@ -13,12 +13,12 @@ namespace NServiceBus.Gateway.Tests.Routing
         public void Should_return_the_correct_site_based_on_the_originating_site_header()
         {
             var defaultChannel = new Channel
-                                     {
-                                         Type = "http",
-                                         Address = "http://x.y"
-                                     };
+            {
+                Type = "http",
+                Address = "http://x.y"
+            };
 
-            var headers = new Dictionary<string, string>{{Headers.OriginatingSite, defaultChannel.ToString()}};
+            var headers = new Dictionary<string, string> { { Headers.OriginatingSite, defaultChannel.ToString() } };
 
             Assert.AreEqual(defaultChannel, OriginatingSiteHeaderRouter.GetDestinationSitesFor(headers).First().Channel);
         }

@@ -5,7 +5,7 @@ namespace NServiceBus.Gateway.Notifications
 
     class MessageNotifier
     {
-        public event EventHandler<MessageReceivedOnChannelArgs> MessageForwarded = delegate { };
+        public event EventHandler<MessageReceivedOnChannelArgs> MessageForwarded = (sender, e) => { };
 
         public void RaiseMessageForwarded(string from, string to, byte[] messageBody, Dictionary<string, string> headers)
         {

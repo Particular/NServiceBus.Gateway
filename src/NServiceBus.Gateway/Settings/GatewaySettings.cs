@@ -75,7 +75,7 @@
         /// <summary>
         /// The site key to use, this goes hand in hand with Bus.SendToSites(key, message).
         /// </summary>
-        /// <param name="siteKey"></param>
+        /// <param name="siteKey">The site key.</param>
         /// <param name="address">The channel address.</param>
         /// <param name="type">The channel type. Default is `http`.</param>
         /// <param name="legacyMode">Pass `true` to set the forwarding mode for this site to legacy mode.</param>
@@ -103,8 +103,8 @@
         /// Adds a receive channel that the gateway should listen to.
         /// </summary>
         /// <param name="address">The channel address.</param>
-        /// <param name="maxConcurrency">Maximum number of receive connections. Default is `1`.</param>
         /// <param name="type">The channel type. Default is `http`.</param>
+        /// <param name="maxConcurrency">Maximum number of receive connections. Default is `1`.</param>
         /// <param name="isDefault">True if this should be the default channel for send operations. Default is `false`.</param>
         public void AddReceiveChannel(string address, string type = "http", int maxConcurrency = 1, bool isDefault = false)
         {

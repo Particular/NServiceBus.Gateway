@@ -18,7 +18,7 @@ namespace NServiceBus.Gateway.AcceptanceTests
         {
             if (headers.ContainsKey(FullRetriesHeaderKey))
             {
-                testContext.NumberOfRetries = Int32.Parse(headers[FullRetriesHeaderKey]);
+                testContext.NumberOfRetries = int.Parse(headers[FullRetriesHeaderKey]);
             }
             throw new SimulatedException($"Simulated error when sending to site at {remoteAddress}");
         }

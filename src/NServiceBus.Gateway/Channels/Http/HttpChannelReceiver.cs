@@ -56,7 +56,6 @@ namespace NServiceBus.Gateway.Channels.Http
             cancellationTokenSource?.Cancel();
             listener?.Close();
 
-            // ReSharper disable once MethodSupportsCancellation
             var timeoutTask = Task.Delay(TimeSpan.FromSeconds(30));
             var allTasks = runningReceiveTasks.Values.Concat(new[]
             {

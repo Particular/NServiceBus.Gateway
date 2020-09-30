@@ -20,7 +20,6 @@ namespace NServiceBus.Gateway
         /// <summary>
         /// <inheritdoc cref="ToString"/>
         /// </summary>
-        /// <returns></returns>
         public override string ToString()
         {
             return $"{base.ToString()}MaxConcurrency={MaxConcurrency}Default={Default}";
