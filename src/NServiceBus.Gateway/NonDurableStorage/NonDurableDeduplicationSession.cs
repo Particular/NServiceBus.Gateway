@@ -3,9 +3,9 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
-    class InMemoryDeduplicationSession : IDeduplicationSession
+    class NonDurableDeduplicationSession : IDeduplicationSession
     {
-        public InMemoryDeduplicationSession(string messageId, Dictionary<string, LinkedListNode<string>> clientIdSet, LinkedList<string> clientIdList, int cacheSize)
+        public NonDurableDeduplicationSession(string messageId, Dictionary<string, LinkedListNode<string>> clientIdSet, LinkedList<string> clientIdList, int cacheSize)
         {
             this.messageId = messageId;
             this.clientIdSet = clientIdSet;

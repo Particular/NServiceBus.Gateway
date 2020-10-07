@@ -1,16 +1,16 @@
-﻿namespace NServiceBus.Gateway.Tests.InMemoryStorage
+﻿namespace NServiceBus.Gateway.Tests.NonDurableStorage
 {
     using System.Threading.Tasks;
     using Extensibility;
     using NUnit.Framework;
 
     [TestFixture]
-    class InMemoryDeduplicationStorageTests
+    class NonDurableDeduplicationStorageTests
     {
         [Test]
         public async Task Should_remove_oldest_entries_when_LRU_reaches_limit()
         {
-            var storage = new InMemoryDeduplicationStorage(2);
+            var storage = new NonDurableDeduplicationStorage(2);
 
             using (var s1 = await storage.CheckForDuplicate("A", new ContextBag()))
             {

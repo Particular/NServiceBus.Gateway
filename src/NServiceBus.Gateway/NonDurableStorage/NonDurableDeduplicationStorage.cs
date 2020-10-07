@@ -4,9 +4,9 @@
     using System.Threading.Tasks;
     using Extensibility;
 
-    class InMemoryDeduplicationStorage : IGatewayDeduplicationStorage
+    class NonDurableDeduplicationStorage : IGatewayDeduplicationStorage
     {
-        public InMemoryDeduplicationStorage(int cacheSize)
+        public NonDurableDeduplicationStorage(int cacheSize)
         {
             this.cacheSize = cacheSize;
         }
@@ -16,7 +16,7 @@
         public Task<IDeduplicationSession> CheckForDuplicate(string messageId, ContextBag context)
         {
             return Task.FromResult<IDeduplicationSession>(
-                new InMemoryDeduplicationSession(messageId, clientIdSet, clientIdList, cacheSize));
+                new NonDurableDeduplicationSession(messageId, clientIdSet, clientIdList, cacheSize));
         }
 
         readonly int cacheSize;
