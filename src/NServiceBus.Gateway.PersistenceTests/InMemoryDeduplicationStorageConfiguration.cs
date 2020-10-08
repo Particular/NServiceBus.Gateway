@@ -4,6 +4,6 @@ partial class GatewayPersistenceTestsConfiguration
 {
     public IGatewayDeduplicationStorage CreateStorage()
     {
-        return new InMemoryDeduplicationStorage(100);
+        return new NonDurableDeduplicationStorage(100);
     }
 }

@@ -33,7 +33,7 @@
       <PackagePath>content\App_Packages\NSB.TransportTests\;contentFiles\cs\any\NSB.TransportTests\</PackagePath>
     </_PackageFiles>
     <_PackageFiles Remove="**\obj\**\*.cs" />
-    <_PackageFiles Remove="InMemoryDeduplicationStorageConfiguration.cs" />
+    <_PackageFiles Remove="NonDurableDeduplicationStorageConfiguration.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\TestSuppressions.cs" Link="TestSuppressions.cs" />

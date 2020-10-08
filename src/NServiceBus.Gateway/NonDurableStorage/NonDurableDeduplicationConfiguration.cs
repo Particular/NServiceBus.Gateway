@@ -5,7 +5,7 @@
     /// <summary>
     /// Configuration class for the in-memory gateway deduplication storage.
     /// </summary>
-    public class InMemoryDeduplicationConfiguration : GatewayDeduplicationConfiguration
+    public class NonDurableDeduplicationConfiguration : GatewayDeduplicationConfiguration
     {
         int cacheSize = 10000;
 
@@ -25,7 +25,7 @@
         /// <inheritdoc />
         public override IGatewayDeduplicationStorage CreateStorage(IServiceProvider builder)
         {
-            return new InMemoryDeduplicationStorage(CacheSize);
+            return new NonDurableDeduplicationStorage(CacheSize);
         }
     }
 }

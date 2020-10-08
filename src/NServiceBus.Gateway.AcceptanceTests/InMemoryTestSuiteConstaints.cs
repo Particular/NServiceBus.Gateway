@@ -8,7 +8,7 @@
     {
         public Task<GatewayDeduplicationConfiguration> ConfigureDeduplicationStorage(string endpointName, EndpointConfiguration configuration, RunSettings settings)
         {
-            return Task.FromResult<GatewayDeduplicationConfiguration>(new InMemoryDeduplicationConfiguration());
+            return Task.FromResult<GatewayDeduplicationConfiguration>(new NonDurableDeduplicationConfiguration());
         }
 
         public Task Cleanup()
