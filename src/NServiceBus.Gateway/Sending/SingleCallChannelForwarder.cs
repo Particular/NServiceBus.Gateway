@@ -44,18 +44,6 @@
                 [NServiceBus + CorrelationId] = fromHeaders[Headers.CorrelationId]
             };
 
-            if (fromHeaders.ContainsKey(Headers.NonDurableMessage))
-            {
-                var recoverable = true;
-                bool nonDurable;
-                if (bool.TryParse(fromHeaders[Headers.NonDurableMessage], out nonDurable))
-                {
-                    recoverable = !nonDurable;
-                }
-
-                to.Add(NServiceBus + Recoverable, recoverable.ToString());
-            }
-
             if (fromHeaders.ContainsKey(Headers.TimeToBeReceived))
             {
                 to.Add(NServiceBus + TimeToBeReceived, fromHeaders[Headers.TimeToBeReceived]);

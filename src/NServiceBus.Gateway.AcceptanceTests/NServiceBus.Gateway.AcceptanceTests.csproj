@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="[8.0.0-alpha.561, 9.0.0)" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="8.0.0-alpha.627" />
     <PackageReference Include="NServiceBus.Callbacks" Version="[4.0.0-alpha.91, 5.0.0)" />
   </ItemGroup>
 
