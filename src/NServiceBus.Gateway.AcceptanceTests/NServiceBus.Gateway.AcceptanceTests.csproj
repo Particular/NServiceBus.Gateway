@@ -37,7 +37,6 @@
       <PackagePath>content\App_Packages\NSB.Gateway.AcceptanceTests\;contentFiles\cs\any\NSB.Gateway.AcceptanceTests\</PackagePath>
     </_PackageFiles>
     <_PackageFiles Remove="**\obj\**\*.cs" />
-    <_PackageFiles Remove="**\NonDurablePersistenceConfiguration.cs" />
     <_PackageFiles Remove="**\NonDurableTestSuiteConstaints.cs" />
   </ItemGroup>
 
