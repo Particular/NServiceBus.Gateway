@@ -235,11 +235,6 @@
                     new DiscardIfNotReceivedBefore(timeToBeReceived)
                 };
 
-                if (!recoverable)
-                {
-                    deliveryConstraints.Add(new NonDurableDelivery());
-                }
-
                 var transportOperations = new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag(destination), DispatchConsistency.Default, deliveryConstraints));
                 return dispatchMessages.Dispatch(transportOperations, new TransportTransaction(), new ContextBag());
             }
