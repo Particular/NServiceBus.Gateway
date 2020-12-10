@@ -12,13 +12,11 @@
         [Test]
         public void Approve()
         {
-#if NETFRAMEWORK
-            var targetFramework = "netframework";
-#else
-            var targetFramework = "netstandard";
-#endif
-            var publicApi = ApiGenerator.GeneratePublicApi(typeof(GatewaySettings).Assembly);
-            Approver.Verify(publicApi, scenario: targetFramework);
+            var publicApi = typeof(GatewaySettings).Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            {
+                ExcludeAttributes = new[] { "System.Runtime.Versioning.TargetFrameworkAttribute", "System.Reflection.AssemblyMetadataAttribute" }
+            });
+            Approver.Verify(publicApi);
         }
     }
 }
