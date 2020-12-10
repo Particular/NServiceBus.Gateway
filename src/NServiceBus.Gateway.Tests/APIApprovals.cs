@@ -17,7 +17,10 @@
 #else
             var targetFramework = "netstandard";
 #endif
-            var publicApi = ApiGenerator.GeneratePublicApi(typeof(GatewaySettings).Assembly);
+            var publicApi = typeof(GatewaySettings).Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            {
+                ExcludeAttributes = new[] { "System.Runtime.Versioning.TargetFrameworkAttribute", "System.Reflection.AssemblyMetadataAttribute" }
+            });
             Approver.Verify(publicApi, scenario: targetFramework);
         }
     }
