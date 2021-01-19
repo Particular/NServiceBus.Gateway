@@ -92,11 +92,10 @@ namespace NServiceBus.Gateway.Channels.Http
 
                     runningReceiveTasks.TryAdd(receiveTask, receiveTask);
 
-                    receiveTask.ContinueWith(t =>
+                    _ = receiveTask.ContinueWith(t =>
                     {
                         runningReceiveTasks.TryRemove(receiveTask, out _);
-                    }, TaskContinuationOptions.ExecuteSynchronously)
-                    .Forget();
+                    }, TaskContinuationOptions.ExecuteSynchronously);
                 }
                 catch (HttpListenerException ex)
                 {

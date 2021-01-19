@@ -10,16 +10,17 @@
         public void Default_LRU_cache_size_is_10000()
         {
             var configuration = new NonDurableDeduplicationConfiguration();
-            
+
             Assert.AreEqual(10000, configuration.CacheSize);
         }
 
         [Test]
         public void Can_configure_custom_LRU_cache_size()
         {
-            var configuration = new NonDurableDeduplicationConfiguration();
-
-            configuration.CacheSize = int.MaxValue;
+            var configuration = new NonDurableDeduplicationConfiguration
+            {
+                CacheSize = int.MaxValue
+            };
             Assert.AreEqual(int.MaxValue, configuration.CacheSize);
             configuration.CacheSize = 42;
             Assert.AreEqual(42, configuration.CacheSize);

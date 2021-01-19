@@ -9,7 +9,7 @@ namespace NServiceBus.Gateway
         /// Default request type.
         /// </summary>
         SingleCallSubmit,
-        
+
         /// <summary>
         /// Request type for Databus properties.
         /// </summary>

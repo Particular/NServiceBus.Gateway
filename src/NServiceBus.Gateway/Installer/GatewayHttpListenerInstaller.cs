@@ -69,7 +69,10 @@ netsh http add urlacl url={{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}}
 
             foreach (var receiveChannel in channelManager.GetReceiveChannels())
             {
-                if (receiveChannel.Type.ToLower() != "http") continue;
+                if (receiveChannel.Type.ToLower() != "http")
+                {
+                    continue;
+                }
 
                 var uri = receiveChannel.Address;
                 if (!uri.StartsWith("http", StringComparison.InvariantCultureIgnoreCase))

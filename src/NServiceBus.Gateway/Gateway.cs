@@ -140,7 +140,7 @@
 
         static EndpointRouter GetEndpointRouter(FeatureConfigurationContext context)
         {
-            return new EndpointRouter {MainInputAddress = context.Settings.EndpointName()};
+            return new EndpointRouter { MainInputAddress = context.Settings.EndpointName() };
         }
 
         static void ConfigureTransaction(FeatureConfigurationContext context)
@@ -220,10 +220,9 @@
                 var body = e.Body;
                 var headers = e.Headers;
                 var id = e.Id;
-                var recoverable = e.Recoverable;
                 var timeToBeReceived = e.TimeToBeReceived;
 
-                var destination = endpointRouter.GetDestinationFor(headers);
+                var destination = endpointRouter.GetDestinationFor();
 
                 Logger.Info("Sending message to " + destination);
 
