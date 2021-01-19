@@ -131,7 +131,7 @@
         {
             Guard.AgainstNegativeAndZero(nameof(timeout), timeout);
 
-            settings.Set("Gateway.TransactionTimeout",timeout);
+            settings.Set("Gateway.TransactionTimeout", timeout);
         }
 
         internal static TimeSpan? GetTransactionTimeout(ReadOnlySettings settings)
@@ -155,7 +155,5 @@
         }
 
         SettingsHolder settings;
-
-        static Logging.ILog logger = Logging.LogManager.GetLogger<TransportExtensions>();
     }
 }

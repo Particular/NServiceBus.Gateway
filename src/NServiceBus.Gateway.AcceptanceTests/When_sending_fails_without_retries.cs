@@ -53,7 +53,7 @@
 
                     var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
                     gatewaySettings.AddReceiveChannel("http://localhost:25999/Headquarters/");
-                    gatewaySettings.AddSite("SiteA","http://localhost:25999/SiteA/");
+                    gatewaySettings.AddSite("SiteA", "http://localhost:25999/SiteA/");
                     gatewaySettings.DisableRetries();
                 });
             }

@@ -24,8 +24,7 @@ namespace NServiceBus
         /// </summary>
         public static string[] GetSitesRoutingTo(this SendOptions options)
         {
-            string siteKeys;
-            if (options.GetHeaders().TryGetValue(Headers.DestinationSites, out siteKeys))
+            if (options.GetHeaders().TryGetValue(Headers.DestinationSites, out string siteKeys))
             {
                 return siteKeys.Split(new[]
                 {

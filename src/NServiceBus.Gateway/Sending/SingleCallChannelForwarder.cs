@@ -36,7 +36,7 @@
             }
         }
 
-        Dictionary<string,string> MapToHeaders(Dictionary<string, string> fromHeaders)
+        Dictionary<string, string> MapToHeaders(Dictionary<string, string> fromHeaders)
         {
             var to = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
             {
@@ -49,14 +49,12 @@
                 to.Add(NServiceBus + TimeToBeReceived, fromHeaders[Headers.TimeToBeReceived]);
             }
 
-            string reply;
-            if (fromHeaders.TryGetValue(Headers.ReplyToAddress, out reply)) //Handles SendOnly endpoints, where ReplyToAddress is not set
+            if (fromHeaders.TryGetValue(Headers.ReplyToAddress, out string reply)) //Handles SendOnly endpoints, where ReplyToAddress is not set
             {
                 to[NServiceBus + ReplyToAddress] = reply;
             }
 
-            string replyToAddress;
-            if (fromHeaders.TryGetValue(ReplyToAddress, out replyToAddress))
+            if (fromHeaders.TryGetValue(ReplyToAddress, out string replyToAddress))
             {
                 to[Headers.RouteTo] = replyToAddress;
             }
@@ -108,7 +106,6 @@
         const string Id = "Id";
 
         const string CorrelationId = "CorrelationId";
-        const string Recoverable = "Recoverable";
         const string ReplyToAddress = "ReplyToAddress";
         const string TimeToBeReceived = "TimeToBeReceived";
 

@@ -3,12 +3,11 @@ namespace NServiceBus.Gateway.Routing.Sites
     using System.Collections.Generic;
     using Channels;
 
-    class OriginatingSiteHeaderRouter 
+    class OriginatingSiteHeaderRouter
     {
         public static IEnumerable<Site> GetDestinationSitesFor(Dictionary<string, string> headers)
         {
-            string originatingSite;
-            if (headers.TryGetValue(Headers.OriginatingSite, out originatingSite))
+            if (headers.TryGetValue(Headers.OriginatingSite, out string originatingSite))
             {
                 yield return new Site
                 {

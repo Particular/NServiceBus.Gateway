@@ -21,7 +21,10 @@ namespace NServiceBus.Gateway.Receiving
             var defaultChannel = receiveChannels.SingleOrDefault(c => c.Default);
 
             if (defaultChannel == null)
+            {
                 return receiveChannels.First();
+            }
+
             return defaultChannel;
         }
 
