@@ -13,8 +13,7 @@ namespace NServiceBus.Installation
                 var windowsPrincipal = new WindowsPrincipal(windowsIdentity);
                 return windowsPrincipal.IsInRole(WindowsBuiltInRole.Administrator);
             }
-#endif
-#if NETSTANDARD2_0
+#else
             return true;
 #endif
         }

@@ -2,7 +2,7 @@ namespace NServiceBus.Installation
 {
     using System;
     using System.Diagnostics;
-#if NETSTANDARD
+#if NETCOREAPP2_1
     using System.Runtime.InteropServices;
 #endif    
     using System.IO;
@@ -37,7 +37,7 @@ namespace NServiceBus.Installation
                 return Task.FromResult(0);
             }
 
-#if NETSTANDARD
+#if NETCOREAPP2_1
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var platform = RuntimeInformation.OSDescription;
