@@ -2,10 +2,8 @@ namespace NServiceBus.Installation
 {
     using System;
     using System.Diagnostics;
-#if NETCOREAPP2_1
-    using System.Runtime.InteropServices;
-#endif    
     using System.IO;
+    using System.Runtime.InteropServices;
     using System.Threading.Tasks;
     using Gateway.Installer;
     using Gateway.Receiving;
@@ -37,15 +35,10 @@ namespace NServiceBus.Installation
                 return Task.FromResult(0);
             }
 
-#if NETCOREAPP2_1
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var platform = RuntimeInformation.OSDescription;
-#else
-            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
-            {
-                var platform = Environment.OSVersion.Platform.ToString("G");
-#endif
+
                 logger.InfoFormat("Installer does not support platform {0}. Ensure that the process has required permissions to listen to configured urls.", platform);
                 return Task.FromResult(0);
             }

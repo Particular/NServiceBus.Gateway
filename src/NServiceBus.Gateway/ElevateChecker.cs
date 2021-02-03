@@ -1,21 +1,22 @@
 namespace NServiceBus.Installation
 {
-#if NET472
+    using System.Runtime.InteropServices;
     using System.Security.Principal;
-#endif
+
     static class ElevateChecker
     {
         public static bool IsCurrentUserElevated()
         {
-#if NET472
-            using (var windowsIdentity = WindowsIdentity.GetCurrent())
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                var windowsPrincipal = new WindowsPrincipal(windowsIdentity);
-                return windowsPrincipal.IsInRole(WindowsBuiltInRole.Administrator);
+                using (var windowsIdentity = WindowsIdentity.GetCurrent())
+                {
+                    var windowsPrincipal = new WindowsPrincipal(windowsIdentity);
+                    return windowsPrincipal.IsInRole(WindowsBuiltInRole.Administrator);
+                }
             }
-#else
-            return true;
-#endif
+
+            return false;
         }
     }
 }
