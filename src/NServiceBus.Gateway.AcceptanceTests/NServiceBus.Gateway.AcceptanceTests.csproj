@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="8.0.0-alpha.631" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="[8.0.0-alpha.631, 9.0.0)" />
     <PackageReference Include="NServiceBus.Callbacks" Version="[4.0.0-alpha.91, 5.0.0)" />
   </ItemGroup>
 
@@ -33,10 +32,6 @@
 
   <ItemGroup>
     <RemoveSourceFileFromPackage Include="NonDurableTestSuiteConstaints.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\TestSuppressions.cs" Link="TestSuppressions.cs" />
   </ItemGroup>
 
 </Project>

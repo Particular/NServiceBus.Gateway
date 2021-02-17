@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(SolutionDir)NServiceBus.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
@@ -12,10 +11,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="NUnit" Version="[3.12.0, 4.0.0)" />
+    <PackageReference Include="NServiceBus" Version="[8.0.0-alpha.631, 9.0.0)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" PrivateAssets="All" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" PrivateAssets="All" />
-    <PackageReference Include="NUnit" Version="[3.12.0, 4.0.0)" />
-    <PackageReference Include="NServiceBus" Version="8.0.0-alpha.631" />
     <PackageReference Include="Particular.Packaging" Version="1.0.1" PrivateAssets="All" />
   </ItemGroup>
 
@@ -28,10 +30,6 @@
 
   <ItemGroup>
     <RemoveSourceFileFromPackage Include="NonDurableDeduplicationStorageConfiguration.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\TestSuppressions.cs" Link="TestSuppressions.cs" />
   </ItemGroup>
 
 </Project>

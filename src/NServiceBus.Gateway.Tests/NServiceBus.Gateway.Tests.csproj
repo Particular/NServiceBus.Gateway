@@ -4,12 +4,7 @@
     <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(SolutionDir)NServiceBus.snk</AssemblyOriginatorKeyFile>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="..\TestSuppressions.cs" Link="TestSuppressions.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\NServiceBus.Gateway\NServiceBus.Gateway.csproj" />
