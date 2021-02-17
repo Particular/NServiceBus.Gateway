@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,33 +13,25 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="8.0.0-alpha.631" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="[8.0.0-alpha.631, 9.0.0)" />
     <PackageReference Include="NServiceBus.Callbacks" Version="[4.0.0-alpha.91, 5.0.0)" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" PrivateAssets="All" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" PrivateAssets="All" />
-    <PackageReference Include="Particular.Packaging" Version="0.9.0" PrivateAssets="All" />
+    <PackageReference Include="Particular.Packaging" Version="1.0.1" PrivateAssets="All" />
   </ItemGroup>
 
   <PropertyGroup>
     <PackageId>NServiceBus.Gateway.AcceptanceTests.Sources</PackageId>
     <Description>Acceptance tests for NServiceBus gateway functionality</Description>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSourceFilesInPackage>true</IncludeSourceFilesInPackage>
   </PropertyGroup>
 
   <ItemGroup>
-    <_PackageFiles Include="**\*.cs">
-      <BuildAction>Compile</BuildAction>
-      <PackagePath>content\App_Packages\NSB.Gateway.AcceptanceTests\;contentFiles\cs\any\NSB.Gateway.AcceptanceTests\</PackagePath>
-    </_PackageFiles>
-    <_PackageFiles Remove="**\obj\**\*.cs" />
-    <_PackageFiles Remove="**\NonDurableTestSuiteConstaints.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\TestSuppressions.cs" Link="TestSuppressions.cs" />
+    <RemoveSourceFileFromPackage Include="NonDurableTestSuiteConstaints.cs" />
   </ItemGroup>
 
 </Project>
