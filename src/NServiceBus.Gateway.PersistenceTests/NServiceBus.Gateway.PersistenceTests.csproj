@@ -23,20 +23,15 @@
     <PackageId>NServiceBus.Gateway.PersistenceTests.Sources</PackageId>
     <Description>Tests for gateway deduplication storage seam implementations</Description>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSourceFilesInPackage>true</IncludeSourceFilesInPackage>
   </PropertyGroup>
 
-  <!-- Workaround for https://github.com/dotnet/sdk/issues/1479 -->
   <ItemGroup>
-    <_PackageFiles Include="**\*.cs">
-      <BuildAction>Compile</BuildAction>
-      <PackagePath>content\App_Packages\NSB.TransportTests\;contentFiles\cs\any\NSB.TransportTests\</PackagePath>
-    </_PackageFiles>
-    <_PackageFiles Remove="**\obj\**\*.cs" />
-    <_PackageFiles Remove="NonDurableDeduplicationStorageConfiguration.cs" />
+    <RemoveSourceFileFromPackage Include="NonDurableDeduplicationStorageConfiguration.cs" />
   </ItemGroup>
+
   <ItemGroup>
     <Compile Include="..\TestSuppressions.cs" Link="TestSuppressions.cs" />
   </ItemGroup>
-  <!-- End Workaround -->
 
 </Project>

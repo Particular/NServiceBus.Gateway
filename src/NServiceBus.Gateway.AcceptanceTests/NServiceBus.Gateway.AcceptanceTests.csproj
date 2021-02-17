@@ -28,15 +28,11 @@
     <PackageId>NServiceBus.Gateway.AcceptanceTests.Sources</PackageId>
     <Description>Acceptance tests for NServiceBus gateway functionality</Description>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSourceFilesInPackage>true</IncludeSourceFilesInPackage>
   </PropertyGroup>
 
   <ItemGroup>
-    <_PackageFiles Include="**\*.cs">
-      <BuildAction>Compile</BuildAction>
-      <PackagePath>content\App_Packages\NSB.Gateway.AcceptanceTests\;contentFiles\cs\any\NSB.Gateway.AcceptanceTests\</PackagePath>
-    </_PackageFiles>
-    <_PackageFiles Remove="**\obj\**\*.cs" />
-    <_PackageFiles Remove="**\NonDurableTestSuiteConstaints.cs" />
+    <RemoveSourceFileFromPackage Include="NonDurableTestSuiteConstaints.cs" />
   </ItemGroup>
 
   <ItemGroup>
