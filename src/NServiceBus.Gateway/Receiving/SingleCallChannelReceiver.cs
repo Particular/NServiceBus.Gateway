@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Threading;
     using System.Threading.Tasks;
     using Channels;
     using DataBus;
@@ -24,7 +25,7 @@
             headerManager = new DataBusHeaderManager();
         }
 
-        public void Start(Channel channel, int maxConcurrency, Func<MessageReceivedOnChannelArgs, Task> receivedHandler)
+        public void Start(Channel channel, int maxConcurrency, Func<MessageReceivedOnChannelArgs, CancellationToken, Task> receivedHandler)
         {
             messageReceivedHandler = receivedHandler;
             channelReceiver = channelFactory(channel.Type);
@@ -36,7 +37,7 @@
             return channelReceiver?.Stop();
         }
 
-        async Task DataReceivedOnChannel(DataReceivedOnChannelArgs e)
+        async Task DataReceivedOnChannel(DataReceivedOnChannelArgs e, CancellationToken cancellationToken = default)
         {
             using (e.Data)
             {
@@ -65,10 +66,10 @@
                 switch (callInfo.Type)
                 {
                     case CallType.SingleCallDatabusProperty:
-                        await HandleDatabusProperty(callInfo).ConfigureAwait(false);
+                        await HandleDatabusProperty(callInfo, cancellationToken).ConfigureAwait(false);
                         break;
                     case CallType.SingleCallSubmit:
-                        await HandleSubmit(callInfo).ConfigureAwait(false);
+                        await HandleSubmit(callInfo, cancellationToken).ConfigureAwait(false);
                         break;
                     default:
                         throw new Exception("Unknown call type: " + callInfo.Type);
@@ -76,11 +77,13 @@
             }
         }
 
-        async Task HandleSubmit(CallInfo callInfo)
+        async Task HandleSubmit(CallInfo callInfo, CancellationToken cancellationToken = default)
         {
             using (var stream = new MemoryStream())
             {
-                await callInfo.Data.CopyToAsync(stream).ConfigureAwait(false);
+                // 81920 is the default value in the 1-argument overload
+                // .NET Framework has no overload that accepts only Stream + CancellationToken
+                await callInfo.Data.CopyToAsync(stream, 81920, cancellationToken).ConfigureAwait(false);
                 stream.Position = 0;
 
                 if (callInfo.Md5 != null)
@@ -104,7 +107,7 @@
                 }
 
                 var body = new byte[stream.Length];
-                await stream.ReadAsync(body, 0, body.Length).ConfigureAwait(false);
+                await stream.ReadAsync(body, 0, body.Length, cancellationToken).ConfigureAwait(false);
                 args.Body = body;
 
                 var context = new ContextBag();
@@ -117,7 +120,7 @@
                     }
                     else
                     {
-                        await messageReceivedHandler(args).ConfigureAwait(false);
+                        await messageReceivedHandler(args, cancellationToken).ConfigureAwait(false);
                         try
                         {
                             await duplicationCheck.MarkAsDispatched().ConfigureAwait(false);
@@ -205,17 +208,17 @@
             return result;
         }
 
-        async Task HandleDatabusProperty(CallInfo callInfo)
+        async Task HandleDatabusProperty(CallInfo callInfo, CancellationToken cancellationToken = default)
         {
             if (databus == null)
             {
                 throw new InvalidOperationException("Databus transmission received without a configured databus");
             }
 
-            var newDatabusKey = await databus.Put(callInfo.Data, callInfo.TimeToBeReceived).ConfigureAwait(false);
+            var newDatabusKey = await databus.Put(callInfo.Data, callInfo.TimeToBeReceived, cancellationToken).ConfigureAwait(false);
             if (callInfo.Md5 != null)
             {
-                using (var databusStream = await databus.Get(newDatabusKey).ConfigureAwait(false))
+                using (var databusStream = await databus.Get(newDatabusKey, cancellationToken).ConfigureAwait(false))
                 {
                     await Hasher.Verify(databusStream, callInfo.Md5).ConfigureAwait(false);
                 }
@@ -241,6 +244,6 @@
         const string TimeToBeReceived = "TimeToBeReceived";
         static TimeSpan MinimumTimeToBeReceived = TimeSpan.FromSeconds(1);
 
-        Func<MessageReceivedOnChannelArgs, Task> messageReceivedHandler;
+        Func<MessageReceivedOnChannelArgs, CancellationToken, Task> messageReceivedHandler;
     }
 }

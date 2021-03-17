@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Channels.Http;
     using DataBus;
@@ -20,7 +21,7 @@
             this.databus = databus;
         }
 
-        public async Task Forward(byte[] body, Dictionary<string, string> headers, Site targetSite)
+        public async Task Forward(byte[] body, Dictionary<string, string> headers, Site targetSite, CancellationToken cancellationToken = default)
         {
             var toHeaders = MapToHeaders(headers);
 
@@ -28,11 +29,11 @@
 
             //databus properties have to be available at the receiver site
             //before the body of the message is forwarded on the bus
-            await TransmitDataBusProperties(channelSender, targetSite, toHeaders).ConfigureAwait(false);
+            await TransmitDataBusProperties(channelSender, targetSite, toHeaders, cancellationToken).ConfigureAwait(false);
 
             using (var messagePayload = new MemoryStream(body))
             {
-                await Transmit(channelSender, targetSite, CallType.SingleCallSubmit, toHeaders, messagePayload).ConfigureAwait(false);
+                await Transmit(channelSender, targetSite, CallType.SingleCallSubmit, toHeaders, messagePayload, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -66,7 +67,7 @@
         }
 
         async Task Transmit(IChannelSender channelSender, Site targetSite, CallType callType,
-            IDictionary<string, string> headers, Stream data)
+            IDictionary<string, string> headers, Stream data, CancellationToken cancellationToken = default)
         {
             headers[GatewayHeaders.IsGatewayMessage] = bool.TrueString;
             headers["NServiceBus.CallType"] = Enum.GetName(typeof(CallType), callType);
@@ -74,11 +75,11 @@
 
             Logger.DebugFormat("Sending message - {0} to: {1}", callType, targetSite.Channel.Address);
 
-            await channelSender.Send(targetSite.Channel.Address, headers, data).ConfigureAwait(false);
+            await channelSender.Send(targetSite.Channel.Address, headers, data, cancellationToken).ConfigureAwait(false);
         }
 
         async Task TransmitDataBusProperties(IChannelSender channelSender, Site targetSite,
-            IDictionary<string, string> headers)
+            IDictionary<string, string> headers, CancellationToken cancellationToken = default)
         {
             var headersToSend = new Dictionary<string, string>(headers);
 
@@ -95,9 +96,9 @@
 
                 var databusKeyForThisProperty = headers[headerKey];
 
-                using (var stream = await databus.Get(databusKeyForThisProperty).ConfigureAwait(false))
+                using (var stream = await databus.Get(databusKeyForThisProperty, cancellationToken).ConfigureAwait(false))
                 {
-                    await Transmit(channelSender, targetSite, CallType.SingleCallDatabusProperty, headersToSend, stream).ConfigureAwait(false);
+                    await Transmit(channelSender, targetSite, CallType.SingleCallDatabusProperty, headersToSend, stream, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

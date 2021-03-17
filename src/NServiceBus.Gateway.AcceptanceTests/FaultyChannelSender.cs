@@ -3,6 +3,7 @@ namespace NServiceBus.Gateway.AcceptanceTests
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Gateway;
@@ -14,7 +15,7 @@ namespace NServiceBus.Gateway.AcceptanceTests
             this.testContext = testContext;
         }
 
-        public Task Send(string remoteAddress, IDictionary<string, string> headers, Stream data)
+        public Task Send(string remoteAddress, IDictionary<string, string> headers, Stream data, CancellationToken cancellationToken)
         {
             if (headers.ContainsKey(FullRetriesHeaderKey))
             {

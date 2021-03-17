@@ -23,12 +23,12 @@ namespace NServiceBus.Gateway
     }
     public interface IChannelReceiver
     {
-        void Start(string address, int maxConcurrency, System.Func<NServiceBus.Gateway.DataReceivedOnChannelArgs, System.Threading.Tasks.Task> dataReceivedOnChannel);
+        void Start(string address, int maxConcurrency, System.Func<NServiceBus.Gateway.DataReceivedOnChannelArgs, System.Threading.CancellationToken, System.Threading.Tasks.Task> dataReceivedOnChannel);
         System.Threading.Tasks.Task Stop();
     }
     public interface IChannelSender
     {
-        System.Threading.Tasks.Task Send(string remoteAddress, System.Collections.Generic.IDictionary<string, string> headers, System.IO.Stream data);
+        System.Threading.Tasks.Task Send(string remoteAddress, System.Collections.Generic.IDictionary<string, string> headers, System.IO.Stream data, System.Threading.CancellationToken cancellationToken = default);
     }
     public interface IDeduplicationSession : System.IDisposable
     {

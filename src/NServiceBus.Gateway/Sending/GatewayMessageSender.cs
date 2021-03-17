@@ -3,13 +3,13 @@ namespace NServiceBus.Gateway.Sending
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
-    using Extensibility;
     using Notifications;
+    using NServiceBus.Routing;
     using Receiving;
     using Routing;
     using Routing.Sites;
-    using NServiceBus.Routing;
     using Transport;
 
     class GatewayMessageSender
@@ -23,7 +23,7 @@ namespace NServiceBus.Gateway.Sending
             this.inputAddress = inputAddress;
         }
 
-        public async Task SendToDestination(MessageContext context, IDispatchMessages dispatcher, SingleCallChannelForwarder forwarder)
+        public async Task SendToDestination(MessageContext context, IMessageDispatcher dispatcher, SingleCallChannelForwarder forwarder, CancellationToken cancellationToken = default)
         {
             var intent = GetMessageIntent(context.Headers);
 
@@ -34,7 +34,7 @@ namespace NServiceBus.Gateway.Sending
             {
                 foreach (var destinationSite in destinationSites)
                 {
-                    await CloneAndSendLocal(context.Body, context.Headers, destinationSite, context.TransportTransaction, dispatcher).ConfigureAwait(false);
+                    await CloneAndSendLocal(context.Body, context.Headers, destinationSite, context.TransportTransaction, dispatcher, cancellationToken).ConfigureAwait(false);
                 }
 
                 return;
@@ -47,7 +47,7 @@ namespace NServiceBus.Gateway.Sending
                 throw new InvalidOperationException("No destination found for message");
             }
 
-            await SendToSite(context.Body, context.Headers, destination, forwarder).ConfigureAwait(false);
+            await SendToSite(context.Body, context.Headers, destination, forwarder, cancellationToken).ConfigureAwait(false);
         }
 
         static MessageIntentEnum GetMessageIntent(Dictionary<string, string> headers)
@@ -73,21 +73,21 @@ namespace NServiceBus.Gateway.Sending
             return conventionRoutes.Concat(configuredRoutes).ToList();
         }
 
-        Task CloneAndSendLocal(byte[] body, Dictionary<string, string> headers, Site destinationSite, TransportTransaction transportTransaction, IDispatchMessages dispatcher)
+        Task CloneAndSendLocal(byte[] body, Dictionary<string, string> headers, Site destinationSite, TransportTransaction transportTransaction, IMessageDispatcher dispatcher, CancellationToken cancellationToken = default)
         {
             headers[Headers.DestinationSites] = destinationSite.Key;
 
             var message = new OutgoingMessage(headers[Headers.MessageId], headers, body);
             var operation = new TransportOperation(message, new UnicastAddressTag(inputAddress));
 
-            return dispatcher.Dispatch(new TransportOperations(operation), transportTransaction, new ContextBag());
+            return dispatcher.Dispatch(new TransportOperations(operation), transportTransaction, cancellationToken);
         }
 
-        async Task SendToSite(byte[] body, Dictionary<string, string> headers, Site targetSite, SingleCallChannelForwarder forwarder)
+        async Task SendToSite(byte[] body, Dictionary<string, string> headers, Site targetSite, SingleCallChannelForwarder forwarder, CancellationToken cancellationToken = default)
         {
             headers[Headers.OriginatingSite] = GetDefaultAddressForThisSite();
 
-            await forwarder.Forward(body, headers, targetSite).ConfigureAwait(false);
+            await forwarder.Forward(body, headers, targetSite, cancellationToken).ConfigureAwait(false);
 
             messageNotifier.RaiseMessageForwarded(localAddress, targetSite.Channel.Type, body, headers);
         }

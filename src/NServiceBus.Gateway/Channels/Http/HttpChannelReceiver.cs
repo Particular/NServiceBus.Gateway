@@ -15,7 +15,7 @@ namespace NServiceBus.Gateway.Channels.Http
 
     class HttpChannelReceiver : IChannelReceiver
     {
-        public void Start(string address, int maxConcurrency, Func<DataReceivedOnChannelArgs, Task> dataReceivedOnChannel)
+        public void Start(string address, int maxConcurrency, Func<DataReceivedOnChannelArgs, CancellationToken, Task> dataReceivedOnChannel)
         {
             dataReceivedHandler = dataReceivedOnChannel;
 
@@ -134,7 +134,7 @@ namespace NServiceBus.Gateway.Channels.Http
                 {
                     Headers = headers,
                     Data = dataStream
-                }).ConfigureAwait(false);
+                }, token).ConfigureAwait(false);
 
                 ReportSuccess(context);
 
@@ -245,6 +245,6 @@ namespace NServiceBus.Gateway.Channels.Http
         CancellationToken cancellationToken;
         Task messagePumpTask;
         ConcurrentDictionary<Task, Task> runningReceiveTasks = new ConcurrentDictionary<Task, Task>();
-        Func<DataReceivedOnChannelArgs, Task> dataReceivedHandler;
+        Func<DataReceivedOnChannelArgs, CancellationToken, Task> dataReceivedHandler;
     }
 }

@@ -2,6 +2,7 @@ namespace NServiceBus.Gateway.Tests
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Extensibility;
     using HeaderManagement;
@@ -78,5 +79,6 @@ namespace NServiceBus.Gateway.Tests
         }
 
         public IncomingMessage Message { get; }
+        public CancellationToken CancellationToken { get; set; }
     }
 }
