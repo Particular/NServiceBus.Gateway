@@ -167,7 +167,7 @@
                 this.transportTransactionMode = transportTransactionMode;
             }
 
-            protected override Task OnStart(IMessageSession context, CancellationToken cancellationToken)
+            protected override async Task OnStart(IMessageSession context, CancellationToken cancellationToken)
             {
                 // only use transaction scope if both transport and persistence are able to enlist with the transaction scope.
                 // If one of them cannot enlist, use no transaction scope as partial rollbacks of the deduplication process can cause incorrect side effects.
@@ -178,13 +178,11 @@
                 {
                     var receiver = new SingleCallChannelReceiver(channelReceiverFactory, deduplicationStorage, databus, useTransactionScope);
 
-                    receiver.Start(receiveChannel, receiveChannel.MaxConcurrency, MessageReceivedOnChannel);
+                    await receiver.Start(receiveChannel, receiveChannel.MaxConcurrency, MessageReceivedOnChannel, cancellationToken).ConfigureAwait(false);
                     activeReceivers.Add(receiver);
 
                     Logger.InfoFormat("Receive channel started: {0}", receiveChannel);
                 }
-
-                return Task.FromResult(0);
             }
 
 

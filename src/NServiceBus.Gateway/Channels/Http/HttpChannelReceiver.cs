@@ -15,14 +15,14 @@ namespace NServiceBus.Gateway.Channels.Http
 
     class HttpChannelReceiver : IChannelReceiver
     {
-        public void Start(string address, int maxConcurrency, Func<DataReceivedOnChannelArgs, CancellationToken, Task> dataReceivedOnChannel)
+        public Task Start(string address, int maxConcurrency, Func<DataReceivedOnChannelArgs, CancellationToken, Task> dataReceivedOnChannel, CancellationToken cancellationToken = default)
         {
             dataReceivedHandler = dataReceivedOnChannel;
 
             concurrencyLimiter = new SemaphoreSlim(maxConcurrency, maxConcurrency);
 
-            cancellationTokenSource = new CancellationTokenSource();
-            cancellationToken = cancellationTokenSource.Token;
+            pumpCancellationTokenSource = new CancellationTokenSource();
+            processingCancellationTokenSource = new CancellationTokenSource();
 
             listener = new HttpListener();
 
@@ -46,49 +46,47 @@ namespace NServiceBus.Gateway.Channels.Http
                 throw new Exception(message, ex);
             }
 
-            messagePumpTask = Task.Run(ProcessMessages, CancellationToken.None);
+            messagePumpTask = Task.Run(() => ProcessMessages(pumpCancellationTokenSource.Token), cancellationToken);
+
+            return Task.CompletedTask;
         }
 
-        public async Task Stop()
+        public async Task Stop(CancellationToken cancellationToken = default)
         {
             Logger.InfoFormat("Stopping channel - {0}", typeof(HttpChannelReceiver));
 
-            cancellationTokenSource?.Cancel();
-            listener?.Close();
-
-            var timeoutTask = Task.Delay(TimeSpan.FromSeconds(30));
-            var allTasks = runningReceiveTasks.Values.Concat(new[]
+            pumpCancellationTokenSource?.Cancel();
+            using (cancellationToken.Register(() => processingCancellationTokenSource?.Cancel()))
             {
-                messagePumpTask
-            });
+                listener?.Close();
 
-            var finishedTask = await Task.WhenAny(Task.WhenAll(allTasks), timeoutTask).ConfigureAwait(false);
+                var allTasks = runningReceiveTasks.Values.Concat(new[] { messagePumpTask });
 
-            if (finishedTask.Equals(timeoutTask))
-            {
-                Logger.Error("The http message pump failed to stop with in the time allowed(30s)");
+                await Task.WhenAll(allTasks).ConfigureAwait(false);
             }
 
             concurrencyLimiter.Dispose();
             runningReceiveTasks.Clear();
+            pumpCancellationTokenSource?.Dispose();
+            processingCancellationTokenSource?.Dispose();
         }
 
-        async Task ProcessMessages()
+        async Task ProcessMessages(CancellationToken cancellationToken)
         {
-            while (!cancellationTokenSource.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
                     var context = await listener.GetContextAsync().ConfigureAwait(false);
 
-                    if (cancellationTokenSource.IsCancellationRequested)
+                    if (cancellationToken.IsCancellationRequested)
                     {
                         return;
                     }
 
                     await concurrencyLimiter.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-                    var receiveTask = HandleMessage(context, cancellationToken);
+                    var receiveTask = HandleMessage(context, processingCancellationTokenSource.Token);
 
                     runningReceiveTasks.TryAdd(receiveTask, receiveTask);
 
@@ -241,8 +239,8 @@ namespace NServiceBus.Gateway.Channels.Http
         static ILog Logger = LogManager.GetLogger<HttpChannelReceiver>();
         SemaphoreSlim concurrencyLimiter;
         HttpListener listener;
-        CancellationTokenSource cancellationTokenSource;
-        CancellationToken cancellationToken;
+        CancellationTokenSource pumpCancellationTokenSource;
+        CancellationTokenSource processingCancellationTokenSource;
         Task messagePumpTask;
         ConcurrentDictionary<Task, Task> runningReceiveTasks = new ConcurrentDictionary<Task, Task>();
         Func<DataReceivedOnChannelArgs, CancellationToken, Task> dataReceivedHandler;

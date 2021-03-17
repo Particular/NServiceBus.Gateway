@@ -25,16 +25,16 @@
             headerManager = new DataBusHeaderManager();
         }
 
-        public void Start(Channel channel, int maxConcurrency, Func<MessageReceivedOnChannelArgs, CancellationToken, Task> receivedHandler)
+        public Task Start(Channel channel, int maxConcurrency, Func<MessageReceivedOnChannelArgs, CancellationToken, Task> receivedHandler, CancellationToken cancellationToken = default)
         {
             messageReceivedHandler = receivedHandler;
             channelReceiver = channelFactory(channel.Type);
-            channelReceiver.Start(channel.Address, maxConcurrency, DataReceivedOnChannel);
+            return channelReceiver.Start(channel.Address, maxConcurrency, DataReceivedOnChannel, cancellationToken);
         }
 
-        public Task Stop()
+        public Task Stop(CancellationToken cancellationToken = default)
         {
-            return channelReceiver?.Stop();
+            return channelReceiver?.Stop(cancellationToken);
         }
 
         async Task DataReceivedOnChannel(DataReceivedOnChannelArgs e, CancellationToken cancellationToken = default)
