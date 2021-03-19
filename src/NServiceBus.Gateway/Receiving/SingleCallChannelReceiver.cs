@@ -110,7 +110,7 @@
 
                 var context = new ContextBag();
 
-                using (var duplicationCheck = await deduplicationStorage.CheckForDuplicate(callInfo.ClientId, context).ConfigureAwait(false))
+                using (var duplicationCheck = await deduplicationStorage.CheckForDuplicate(callInfo.ClientId, context, cancellationToken).ConfigureAwait(false))
                 {
                     if (duplicationCheck.IsDuplicate)
                     {
@@ -121,7 +121,7 @@
                         await messageReceivedHandler(args, cancellationToken).ConfigureAwait(false);
                         try
                         {
-                            await duplicationCheck.MarkAsDispatched().ConfigureAwait(false);
+                            await duplicationCheck.MarkAsDispatched(cancellationToken).ConfigureAwait(false);
                         }
                         catch (Exception e) when (!useTransactionScope)
                         {
