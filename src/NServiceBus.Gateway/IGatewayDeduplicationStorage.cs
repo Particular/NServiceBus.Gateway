@@ -1,5 +1,6 @@
 ﻿namespace NServiceBus.Gateway
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Transactions;
     using Extensibility;
@@ -20,6 +21,6 @@
         /// <returns>
         /// A <see cref="IDeduplicationSession"/>
         /// </returns>
-        Task<IDeduplicationSession> CheckForDuplicate(string messageId, ContextBag context);
+        Task<IDeduplicationSession> CheckForDuplicate(string messageId, ContextBag context, CancellationToken cancellationToken = default);
     }
 }

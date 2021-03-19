@@ -1,6 +1,7 @@
 ﻿namespace NServiceBus.Gateway
 {
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
 
     class NonDurableDeduplicationSession : IDeduplicationSession
@@ -24,7 +25,7 @@
             }
         }
 
-        public Task MarkAsDispatched()
+        public Task MarkAsDispatched(CancellationToken cancellationToken = default)
         {
             lock (clientIdSet)
             {

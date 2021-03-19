@@ -33,12 +33,12 @@ namespace NServiceBus.Gateway
     public interface IDeduplicationSession : System.IDisposable
     {
         bool IsDuplicate { get; }
-        System.Threading.Tasks.Task MarkAsDispatched();
+        System.Threading.Tasks.Task MarkAsDispatched(System.Threading.CancellationToken cancellationToken = default);
     }
     public interface IGatewayDeduplicationStorage
     {
         bool SupportsDistributedTransactions { get; }
-        System.Threading.Tasks.Task<NServiceBus.Gateway.IDeduplicationSession> CheckForDuplicate(string messageId, NServiceBus.Extensibility.ContextBag context);
+        System.Threading.Tasks.Task<NServiceBus.Gateway.IDeduplicationSession> CheckForDuplicate(string messageId, NServiceBus.Extensibility.ContextBag context, System.Threading.CancellationToken cancellationToken = default);
     }
     public class NonDurableDeduplicationConfiguration : NServiceBus.Gateway.GatewayDeduplicationConfiguration
     {

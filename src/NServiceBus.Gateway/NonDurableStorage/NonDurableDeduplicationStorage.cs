@@ -1,6 +1,7 @@
 ﻿namespace NServiceBus.Gateway
 {
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Extensibility;
 
@@ -13,7 +14,7 @@
 
         public bool SupportsDistributedTransactions { get; } = false;
 
-        public Task<IDeduplicationSession> CheckForDuplicate(string messageId, ContextBag context)
+        public Task<IDeduplicationSession> CheckForDuplicate(string messageId, ContextBag context, CancellationToken cancellationToken = default)
         {
             return Task.FromResult<IDeduplicationSession>(
                 new NonDurableDeduplicationSession(messageId, clientIdSet, clientIdList, cacheSize));
