@@ -2,11 +2,12 @@ namespace NServiceBus.Gateway.Tests
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Extensibility;
     using HeaderManagement;
-    using Pipeline;
     using NServiceBus.Routing;
+    using Pipeline;
 
     class OutgoingPhysicalMessageContextFake : IOutgoingPhysicalMessageContext
     {
@@ -69,5 +70,6 @@ namespace NServiceBus.Gateway.Tests
 
         public byte[] Body { get; set; }
         public IReadOnlyCollection<RoutingStrategy> RoutingStrategies { get; }
+        public CancellationToken CancellationToken { get; set; }
     }
 }

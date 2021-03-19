@@ -2,6 +2,7 @@ namespace NServiceBus.Gateway
 {
     using System.Collections.Generic;
     using System.IO;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -15,6 +16,7 @@ namespace NServiceBus.Gateway
         /// <param name="remoteAddress">The destination address.</param>
         /// <param name="headers">Extra headers.</param>
         /// <param name="data">The data to be sent.</param>
-        Task Send(string remoteAddress, IDictionary<string, string> headers, Stream data);
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        Task Send(string remoteAddress, IDictionary<string, string> headers, Stream data, CancellationToken cancellationToken = default);
     }
 }

@@ -23,8 +23,7 @@
 
             endpointConfiguration.EnableInstallers();
 
-            endpointConfiguration.UseTransport<LearningTransport>()
-                .StorageDirectory(storageDir);
+            endpointConfiguration.UseTransport(new LearningTransport { StorageDirectory = storageDir });
 
             endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 

@@ -3,10 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
-    using ConsistencyGuarantees;
-    using DeliveryConstraints;
-    using Extensibility;
     using Logging;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.DataBus;
@@ -48,6 +46,7 @@
             var storageConfiguration = context.Settings.Get<GatewayDeduplicationConfiguration>();
             storageConfiguration.Setup(context.Settings);
 
+            var transportDefinition = context.Settings.Get<TransportDefinition>();
 
             ConfigureTransaction(context);
 
@@ -55,7 +54,8 @@
 
             RegisterChannels(context, channelManager, out var channelSenderFactory, out var channelReceiverFactory);
 
-            var gatewayInputAddress = context.Settings.GetTransportAddress(context.Settings.LogicalAddress().CreateQualifiedAddress("gateway"));
+            var logicalAddress = new QueueAddress(context.Settings.EndpointQueueName(), null, null, "gateway");
+            var gatewayInputAddress = transportDefinition.ToTransportAddress(logicalAddress);
 
             var retryPolicy = context.Settings.Get<Func<IncomingMessage, Exception, int, TimeSpan>>("Gateway.Retries.RetryPolicy");
 
@@ -68,7 +68,7 @@
 
             context.AddSatelliteReceiver("Gateway", gatewayInputAddress, PushRuntimeSettings.Default,
                 (config, errorContext) => GatewayRecoverabilityPolicy.Invoke(errorContext, retryPolicy, config),
-                (builder, messageContext) => sender.SendToDestination(messageContext, builder.GetRequiredService<IDispatchMessages>(), CreateForwarder(channelSenderFactory, builder.GetServices<IDataBus>()?.FirstOrDefault())));
+                (builder, messageContext, cancellationToken) => sender.SendToDestination(messageContext, builder.GetRequiredService<IMessageDispatcher>(), CreateForwarder(channelSenderFactory, builder.GetServices<IDataBus>()?.FirstOrDefault()), cancellationToken));
 
             var configuredSitesKeys = GatewaySettings.GetConfiguredSites(context.Settings)
                 .Select(s => s.Key)
@@ -82,25 +82,11 @@
                 channelManager,
                 channelReceiverFactory,
                 GetEndpointRouter(context),
-                b.GetRequiredService<IDispatchMessages>(),
+                b.GetRequiredService<IMessageDispatcher>(),
                 storageConfiguration.CreateStorage(b),
                 b.GetServices<IDataBus>()?.FirstOrDefault(),
                 gatewayInputAddress,
-                GetTransportTransactionMode(context)));
-        }
-
-        static TransportTransactionMode GetTransportTransactionMode(FeatureConfigurationContext context)
-        {
-            try
-            {
-                return context.Settings.GetRequiredTransactionModeForReceives();
-            }
-            catch (Exception)
-            {
-                // GetRequiredTransactionModeForReceives throws on read-only endpoints.
-                // Use the transport's default mode in that case:
-                return context.Settings.Get<TransportInfrastructure>().TransactionMode;
-            }
+                transportDefinition.TransportTransactionMode));
         }
 
         static void RegisterChannels(FeatureConfigurationContext context, IManageReceiveChannels channelManager, out Func<string, IChannelSender> channelSenderFactory, out Func<string, IChannelReceiver> channelReceiverFactory)
@@ -169,7 +155,7 @@
 
         class GatewayReceiverStartupTask : FeatureStartupTask
         {
-            public GatewayReceiverStartupTask(IManageReceiveChannels channelManager, Func<string, IChannelReceiver> channelReceiverFactory, EndpointRouter endpointRouter, IDispatchMessages dispatcher, IGatewayDeduplicationStorage deduplicationStorage, IDataBus databus, string replyToAddress, TransportTransactionMode transportTransactionMode)
+            public GatewayReceiverStartupTask(IManageReceiveChannels channelManager, Func<string, IChannelReceiver> channelReceiverFactory, EndpointRouter endpointRouter, IMessageDispatcher dispatcher, IGatewayDeduplicationStorage deduplicationStorage, IDataBus databus, string replyToAddress, TransportTransactionMode transportTransactionMode)
             {
                 dispatchMessages = dispatcher;
                 this.deduplicationStorage = deduplicationStorage;
@@ -181,7 +167,7 @@
                 this.transportTransactionMode = transportTransactionMode;
             }
 
-            protected override Task OnStart(IMessageSession context)
+            protected override Task OnStart(IMessageSession context, CancellationToken cancellationToken = default)
             {
                 // only use transaction scope if both transport and persistence are able to enlist with the transaction scope.
                 // If one of them cannot enlist, use no transaction scope as partial rollbacks of the deduplication process can cause incorrect side effects.
@@ -198,11 +184,11 @@
                     Logger.InfoFormat("Receive channel started: {0}", receiveChannel);
                 }
 
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
 
-            protected override async Task OnStop(IMessageSession context)
+            protected override async Task OnStop(IMessageSession context, CancellationToken cancellationToken = default)
             {
                 Logger.Info("Receiver is shutting down");
 
@@ -215,7 +201,7 @@
                 Logger.Info("Receiver shutdown complete");
             }
 
-            Task MessageReceivedOnChannel(MessageReceivedOnChannelArgs e)
+            Task MessageReceivedOnChannel(MessageReceivedOnChannelArgs e, CancellationToken cancellationToken)
             {
                 var body = e.Body;
                 var headers = e.Headers;
@@ -229,13 +215,10 @@
                 var outgoingMessage = new OutgoingMessage(id, headers, body);
                 outgoingMessage.Headers[Headers.ReplyToAddress] = replyToAddress;
 
-                var deliveryConstraints = new List<DeliveryConstraint>
-                {
-                    new DiscardIfNotReceivedBefore(timeToBeReceived)
-                };
+                var dispatchProperties = new DispatchProperties { DiscardIfNotReceivedBefore = new DiscardIfNotReceivedBefore(timeToBeReceived) };
 
-                var transportOperations = new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag(destination), DispatchConsistency.Default, deliveryConstraints));
-                return dispatchMessages.Dispatch(transportOperations, new TransportTransaction(), new ContextBag());
+                var transportOperations = new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag(destination), dispatchProperties, DispatchConsistency.Default));
+                return dispatchMessages.Dispatch(transportOperations, new TransportTransaction(), cancellationToken);
             }
 
             readonly TransportTransactionMode transportTransactionMode;
@@ -244,7 +227,7 @@
             IManageReceiveChannels manageReceiveChannels;
             Func<string, IChannelReceiver> channelReceiverFactory;
             EndpointRouter endpointRouter;
-            IDispatchMessages dispatchMessages;
+            IMessageDispatcher dispatchMessages;
             IGatewayDeduplicationStorage deduplicationStorage;
             IDataBus databus;
             string replyToAddress;

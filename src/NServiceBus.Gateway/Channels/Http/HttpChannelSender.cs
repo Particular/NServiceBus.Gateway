@@ -4,6 +4,7 @@ namespace NServiceBus.Gateway.Channels.Http
     using System.Collections.Generic;
     using System.IO;
     using System.Net;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Web;
     using Logging;
@@ -12,7 +13,7 @@ namespace NServiceBus.Gateway.Channels.Http
     [ChannelType("https")]
     class HttpChannelSender : IChannelSender
     {
-        public async Task Send(string remoteUrl, IDictionary<string, string> headers, Stream data)
+        public async Task Send(string remoteUrl, IDictionary<string, string> headers, Stream data, CancellationToken cancellationToken = default)
         {
             var request = WebRequest.Create(remoteUrl);
 
@@ -24,7 +25,9 @@ namespace NServiceBus.Gateway.Channels.Http
 
             using (var stream = await request.GetRequestStreamAsync().ConfigureAwait(false))
             {
-                await data.CopyToAsync(stream).ConfigureAwait(false);
+                // 81920 is the default value in the underlying code.
+                // .NET Framework does not have an overload that accepts only Stream and CancellationToken
+                await data.CopyToAsync(stream, 81920, cancellationToken).ConfigureAwait(false);
             }
 
             HttpStatusCode statusCode;

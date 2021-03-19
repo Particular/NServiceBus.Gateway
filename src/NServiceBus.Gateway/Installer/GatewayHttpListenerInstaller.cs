@@ -4,6 +4,7 @@ namespace NServiceBus.Installation
     using System.Diagnostics;
     using System.IO;
     using System.Runtime.InteropServices;
+    using System.Threading;
     using System.Threading.Tasks;
     using Gateway.Installer;
     using Gateway.Receiving;
@@ -28,7 +29,7 @@ namespace NServiceBus.Installation
 
         static ILog logger = LogManager.GetLogger<GatewayHttpListenerInstaller>();
 
-        public Task Install(string identity)
+        public Task Install(string identity, CancellationToken cancellationToken = default)
         {
             if (!enabled)
             {
@@ -85,7 +86,8 @@ netsh http add urlacl url={1} user=""{0}""", uri, identity);
                     logger.Warn(message, exception);
                 }
             }
-            return Task.FromResult(0);
+
+            return Task.CompletedTask;
         }
 
         static void StartNetshProcess(string identity, string uri)

@@ -2,8 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
-    using Transport;
+    using NServiceBus.Extensibility;
     using NUnit.Framework;
+    using Transport;
 
     class When_invoking_gateway_recoverability_policy
     {
@@ -16,7 +17,8 @@
                 Guid.NewGuid().ToString(),
                 new byte[0],
                 new TransportTransaction(),
-                2);
+                2,
+                new ContextBag());
 
             config = new RecoverabilityConfig(
                 new ImmediateConfig(0),

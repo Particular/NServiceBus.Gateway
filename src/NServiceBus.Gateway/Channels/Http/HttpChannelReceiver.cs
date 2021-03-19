@@ -15,14 +15,14 @@ namespace NServiceBus.Gateway.Channels.Http
 
     class HttpChannelReceiver : IChannelReceiver
     {
-        public void Start(string address, int maxConcurrency, Func<DataReceivedOnChannelArgs, Task> dataReceivedOnChannel)
+        public void Start(string address, int maxConcurrency, Func<DataReceivedOnChannelArgs, CancellationToken, Task> dataReceivedOnChannel)
         {
             dataReceivedHandler = dataReceivedOnChannel;
 
             concurrencyLimiter = new SemaphoreSlim(maxConcurrency, maxConcurrency);
 
-            cancellationTokenSource = new CancellationTokenSource();
-            cancellationToken = cancellationTokenSource.Token;
+            messageReceivingCancellationTokenSource = new CancellationTokenSource();
+            messageProcessingCancellationTokenSource = new CancellationTokenSource();
 
             listener = new HttpListener();
 
@@ -46,55 +46,53 @@ namespace NServiceBus.Gateway.Channels.Http
                 throw new Exception(message, ex);
             }
 
-            messagePumpTask = Task.Run(ProcessMessages, CancellationToken.None);
+            // CancellationToken.None because otherwise the task simply won't start if the token is cancelled
+            messageReceivingTask = Task.Run(() => ReceiveMessages(messageReceivingCancellationTokenSource.Token), CancellationToken.None);
         }
 
-        public async Task Stop()
+        public async Task Stop(CancellationToken cancellationToken = default)
         {
             Logger.InfoFormat("Stopping channel - {0}", typeof(HttpChannelReceiver));
 
-            cancellationTokenSource?.Cancel();
-            listener?.Close();
+            messageReceivingCancellationTokenSource?.Cancel();
 
-            var timeoutTask = Task.Delay(TimeSpan.FromSeconds(30));
-            var allTasks = runningReceiveTasks.Values.Concat(new[]
+            using (cancellationToken.Register(() => messageProcessingCancellationTokenSource?.Cancel()))
             {
-                messagePumpTask
-            });
+                listener?.Close();
 
-            var finishedTask = await Task.WhenAny(Task.WhenAll(allTasks), timeoutTask).ConfigureAwait(false);
+                var allTasks = messageProcessingTasks.Values.Concat(new[] { messageReceivingTask });
 
-            if (finishedTask.Equals(timeoutTask))
-            {
-                Logger.Error("The http message pump failed to stop with in the time allowed(30s)");
+                await Task.WhenAll(allTasks).ConfigureAwait(false);
             }
 
             concurrencyLimiter.Dispose();
-            runningReceiveTasks.Clear();
+            messageProcessingTasks.Clear();
+            messageReceivingCancellationTokenSource?.Dispose();
+            messageProcessingCancellationTokenSource?.Dispose();
         }
 
-        async Task ProcessMessages()
+        async Task ReceiveMessages(CancellationToken cancellationToken)
         {
-            while (!cancellationTokenSource.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
                     var context = await listener.GetContextAsync().ConfigureAwait(false);
 
-                    if (cancellationTokenSource.IsCancellationRequested)
+                    if (cancellationToken.IsCancellationRequested)
                     {
                         return;
                     }
 
                     await concurrencyLimiter.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-                    var receiveTask = HandleMessage(context, cancellationToken);
+                    var messageProcessingTask = ProcessMessage(context, messageProcessingCancellationTokenSource.Token);
 
-                    runningReceiveTasks.TryAdd(receiveTask, receiveTask);
+                    _ = messageProcessingTasks.TryAdd(messageProcessingTask, messageProcessingTask);
 
-                    _ = receiveTask.ContinueWith(t =>
+                    _ = messageProcessingTask.ContinueWith(t =>
                     {
-                        runningReceiveTasks.TryRemove(receiveTask, out _);
+                        _ = messageProcessingTasks.TryRemove(messageProcessingTask, out _);
                     }, TaskContinuationOptions.ExecuteSynchronously);
                 }
                 catch (HttpListenerException ex)
@@ -123,18 +121,20 @@ namespace NServiceBus.Gateway.Channels.Http
             }
         }
 
-        async Task HandleMessage(HttpListenerContext context, CancellationToken token)
+        async Task ProcessMessage(HttpListenerContext context, CancellationToken cancellationToken)
         {
             try
             {
                 var headers = GetHeaders(context);
-                var dataStream = await GetMessageStream(context, token).ConfigureAwait(false);
+                var dataStream = await GetMessageStream(context, cancellationToken).ConfigureAwait(false);
 
-                await dataReceivedHandler(new DataReceivedOnChannelArgs
-                {
-                    Headers = headers,
-                    Data = dataStream
-                }).ConfigureAwait(false);
+                await dataReceivedHandler(
+                    new DataReceivedOnChannelArgs
+                    {
+                        Headers = headers,
+                        Data = dataStream
+                    },
+                    cancellationToken).ConfigureAwait(false);
 
                 ReportSuccess(context);
 
@@ -159,7 +159,7 @@ namespace NServiceBus.Gateway.Channels.Http
             }
         }
 
-        static async Task<MemoryStream> GetMessageStream(HttpListenerContext context, CancellationToken token)
+        static async Task<MemoryStream> GetMessageStream(HttpListenerContext context, CancellationToken cancellationToken)
         {
             if (context.Request.QueryString.AllKeys.Contains("Message"))
             {
@@ -170,7 +170,7 @@ namespace NServiceBus.Gateway.Channels.Http
 
             var streamToReturn = new MemoryStream();
 
-            await context.Request.InputStream.CopyToAsync(streamToReturn, MaximumBytesToRead, token).ConfigureAwait(false);
+            await context.Request.InputStream.CopyToAsync(streamToReturn, MaximumBytesToRead, cancellationToken).ConfigureAwait(false);
             streamToReturn.Position = 0;
 
             return streamToReturn;
@@ -241,10 +241,10 @@ namespace NServiceBus.Gateway.Channels.Http
         static ILog Logger = LogManager.GetLogger<HttpChannelReceiver>();
         SemaphoreSlim concurrencyLimiter;
         HttpListener listener;
-        CancellationTokenSource cancellationTokenSource;
-        CancellationToken cancellationToken;
-        Task messagePumpTask;
-        ConcurrentDictionary<Task, Task> runningReceiveTasks = new ConcurrentDictionary<Task, Task>();
-        Func<DataReceivedOnChannelArgs, Task> dataReceivedHandler;
+        CancellationTokenSource messageReceivingCancellationTokenSource;
+        CancellationTokenSource messageProcessingCancellationTokenSource;
+        Task messageReceivingTask;
+        ConcurrentDictionary<Task, Task> messageProcessingTasks = new ConcurrentDictionary<Task, Task>();
+        Func<DataReceivedOnChannelArgs, CancellationToken, Task> dataReceivedHandler;
     }
 }
