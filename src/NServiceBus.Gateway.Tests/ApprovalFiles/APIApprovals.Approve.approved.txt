@@ -23,7 +23,7 @@ namespace NServiceBus.Gateway
     }
     public interface IChannelReceiver
     {
-        System.Threading.Tasks.Task Start(string address, int maxConcurrency, System.Func<NServiceBus.Gateway.DataReceivedOnChannelArgs, System.Threading.CancellationToken, System.Threading.Tasks.Task> dataReceivedOnChannel, System.Threading.CancellationToken cancellationToken = default);
+        void Start(string address, int maxConcurrency, System.Func<NServiceBus.Gateway.DataReceivedOnChannelArgs, System.Threading.CancellationToken, System.Threading.Tasks.Task> dataReceivedOnChannel);
         System.Threading.Tasks.Task Stop(System.Threading.CancellationToken cancellationToken = default);
     }
     public interface IChannelSender

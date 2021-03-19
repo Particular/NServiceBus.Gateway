@@ -15,14 +15,14 @@ namespace NServiceBus.Gateway.Channels.Http
 
     class HttpChannelReceiver : IChannelReceiver
     {
-        public Task Start(string address, int maxConcurrency, Func<DataReceivedOnChannelArgs, CancellationToken, Task> dataReceivedOnChannel, CancellationToken cancellationToken = default)
+        public void Start(string address, int maxConcurrency, Func<DataReceivedOnChannelArgs, CancellationToken, Task> dataReceivedOnChannel)
         {
             dataReceivedHandler = dataReceivedOnChannel;
 
             concurrencyLimiter = new SemaphoreSlim(maxConcurrency, maxConcurrency);
 
-            pumpCancellationTokenSource = new CancellationTokenSource();
-            processingCancellationTokenSource = new CancellationTokenSource();
+            messageReceivingCancellationTokenSource = new CancellationTokenSource();
+            messageProcessingCancellationTokenSource = new CancellationTokenSource();
 
             listener = new HttpListener();
 
@@ -46,32 +46,32 @@ namespace NServiceBus.Gateway.Channels.Http
                 throw new Exception(message, ex);
             }
 
-            messagePumpTask = Task.Run(() => ProcessMessages(pumpCancellationTokenSource.Token), cancellationToken);
-
-            return Task.CompletedTask;
+            // CancellationToken.None because otherwise the task simply won't start if the token is cancelled
+            messageReceivingTask = Task.Run(() => ReceiveMessages(messageReceivingCancellationTokenSource.Token), CancellationToken.None);
         }
 
         public async Task Stop(CancellationToken cancellationToken = default)
         {
             Logger.InfoFormat("Stopping channel - {0}", typeof(HttpChannelReceiver));
 
-            pumpCancellationTokenSource?.Cancel();
-            using (cancellationToken.Register(() => processingCancellationTokenSource?.Cancel()))
+            messageReceivingCancellationTokenSource?.Cancel();
+
+            using (cancellationToken.Register(() => messageProcessingCancellationTokenSource?.Cancel()))
             {
                 listener?.Close();
 
-                var allTasks = runningReceiveTasks.Values.Concat(new[] { messagePumpTask });
+                var allTasks = messageProcessingTasks.Values.Concat(new[] { messageReceivingTask });
 
                 await Task.WhenAll(allTasks).ConfigureAwait(false);
             }
 
             concurrencyLimiter.Dispose();
-            runningReceiveTasks.Clear();
-            pumpCancellationTokenSource?.Dispose();
-            processingCancellationTokenSource?.Dispose();
+            messageProcessingTasks.Clear();
+            messageReceivingCancellationTokenSource?.Dispose();
+            messageProcessingCancellationTokenSource?.Dispose();
         }
 
-        async Task ProcessMessages(CancellationToken cancellationToken)
+        async Task ReceiveMessages(CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -86,13 +86,13 @@ namespace NServiceBus.Gateway.Channels.Http
 
                     await concurrencyLimiter.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-                    var receiveTask = HandleMessage(context, processingCancellationTokenSource.Token);
+                    var messageProcessingTask = ProcessMessage(context, messageProcessingCancellationTokenSource.Token);
 
-                    runningReceiveTasks.TryAdd(receiveTask, receiveTask);
+                    _ = messageProcessingTasks.TryAdd(messageProcessingTask, messageProcessingTask);
 
-                    _ = receiveTask.ContinueWith(t =>
+                    _ = messageProcessingTask.ContinueWith(t =>
                     {
-                        runningReceiveTasks.TryRemove(receiveTask, out _);
+                        _ = messageProcessingTasks.TryRemove(messageProcessingTask, out _);
                     }, TaskContinuationOptions.ExecuteSynchronously);
                 }
                 catch (HttpListenerException ex)
@@ -121,18 +121,20 @@ namespace NServiceBus.Gateway.Channels.Http
             }
         }
 
-        async Task HandleMessage(HttpListenerContext context, CancellationToken token)
+        async Task ProcessMessage(HttpListenerContext context, CancellationToken cancellationToken)
         {
             try
             {
                 var headers = GetHeaders(context);
-                var dataStream = await GetMessageStream(context, token).ConfigureAwait(false);
+                var dataStream = await GetMessageStream(context, cancellationToken).ConfigureAwait(false);
 
-                await dataReceivedHandler(new DataReceivedOnChannelArgs
-                {
-                    Headers = headers,
-                    Data = dataStream
-                }, token).ConfigureAwait(false);
+                await dataReceivedHandler(
+                    new DataReceivedOnChannelArgs
+                    {
+                        Headers = headers,
+                        Data = dataStream
+                    },
+                    cancellationToken).ConfigureAwait(false);
 
                 ReportSuccess(context);
 
@@ -157,7 +159,7 @@ namespace NServiceBus.Gateway.Channels.Http
             }
         }
 
-        static async Task<MemoryStream> GetMessageStream(HttpListenerContext context, CancellationToken token)
+        static async Task<MemoryStream> GetMessageStream(HttpListenerContext context, CancellationToken cancellationToken)
         {
             if (context.Request.QueryString.AllKeys.Contains("Message"))
             {
@@ -168,7 +170,7 @@ namespace NServiceBus.Gateway.Channels.Http
 
             var streamToReturn = new MemoryStream();
 
-            await context.Request.InputStream.CopyToAsync(streamToReturn, MaximumBytesToRead, token).ConfigureAwait(false);
+            await context.Request.InputStream.CopyToAsync(streamToReturn, MaximumBytesToRead, cancellationToken).ConfigureAwait(false);
             streamToReturn.Position = 0;
 
             return streamToReturn;
@@ -239,10 +241,10 @@ namespace NServiceBus.Gateway.Channels.Http
         static ILog Logger = LogManager.GetLogger<HttpChannelReceiver>();
         SemaphoreSlim concurrencyLimiter;
         HttpListener listener;
-        CancellationTokenSource pumpCancellationTokenSource;
-        CancellationTokenSource processingCancellationTokenSource;
-        Task messagePumpTask;
-        ConcurrentDictionary<Task, Task> runningReceiveTasks = new ConcurrentDictionary<Task, Task>();
+        CancellationTokenSource messageReceivingCancellationTokenSource;
+        CancellationTokenSource messageProcessingCancellationTokenSource;
+        Task messageReceivingTask;
+        ConcurrentDictionary<Task, Task> messageProcessingTasks = new ConcurrentDictionary<Task, Task>();
         Func<DataReceivedOnChannelArgs, CancellationToken, Task> dataReceivedHandler;
     }
 }

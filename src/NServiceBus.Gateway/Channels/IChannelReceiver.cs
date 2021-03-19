@@ -15,8 +15,7 @@ namespace NServiceBus.Gateway
         /// <param name="address">The address to listen on.</param>
         /// <param name="maxConcurrency">The maximum number of messages that should be processed at any given time.</param>
         /// <param name="dataReceivedOnChannel">The handler fired when data is received.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
-        Task Start(string address, int maxConcurrency, Func<DataReceivedOnChannelArgs, CancellationToken, Task> dataReceivedOnChannel, CancellationToken cancellationToken = default);
+        void Start(string address, int maxConcurrency, Func<DataReceivedOnChannelArgs, CancellationToken, Task> dataReceivedOnChannel);
 
         /// <summary>
         /// Called to shut down the receive channel.

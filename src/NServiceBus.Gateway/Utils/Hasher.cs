@@ -30,7 +30,7 @@ namespace NServiceBus.Gateway.Utils
             return Convert.ToBase64String(hash);
         }
 
-        static async Task<byte[]> ComputeHashAsync(HashAlgorithm algorithm, Stream inputStream, CancellationToken cancellationToken = default)
+        static async Task<byte[]> ComputeHashAsync(HashAlgorithm algorithm, Stream inputStream, CancellationToken cancellationToken)
         {
             const int BufferSize = 4096;
 

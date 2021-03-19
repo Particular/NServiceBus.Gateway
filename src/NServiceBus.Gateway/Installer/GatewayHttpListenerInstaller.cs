@@ -29,7 +29,7 @@ namespace NServiceBus.Installation
 
         static ILog logger = LogManager.GetLogger<GatewayHttpListenerInstaller>();
 
-        public Task Install(string identity, CancellationToken cancellationToken)
+        public Task Install(string identity, CancellationToken cancellationToken = default)
         {
             if (!enabled)
             {
@@ -86,7 +86,8 @@ netsh http add urlacl url={1} user=""{0}""", uri, identity);
                     logger.Warn(message, exception);
                 }
             }
-            return Task.FromResult(0);
+
+            return Task.CompletedTask;
         }
 
         static void StartNetshProcess(string identity, string uri)

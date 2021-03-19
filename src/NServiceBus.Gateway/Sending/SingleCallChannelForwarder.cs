@@ -67,7 +67,7 @@
         }
 
         async Task Transmit(IChannelSender channelSender, Site targetSite, CallType callType,
-            IDictionary<string, string> headers, Stream data, CancellationToken cancellationToken = default)
+            IDictionary<string, string> headers, Stream data, CancellationToken cancellationToken)
         {
             headers[GatewayHeaders.IsGatewayMessage] = bool.TrueString;
             headers["NServiceBus.CallType"] = Enum.GetName(typeof(CallType), callType);
@@ -79,7 +79,7 @@
         }
 
         async Task TransmitDataBusProperties(IChannelSender channelSender, Site targetSite,
-            IDictionary<string, string> headers, CancellationToken cancellationToken = default)
+            IDictionary<string, string> headers, CancellationToken cancellationToken)
         {
             var headersToSend = new Dictionary<string, string>(headers);
 

@@ -25,19 +25,17 @@
             headerManager = new DataBusHeaderManager();
         }
 
-        public Task Start(Channel channel, int maxConcurrency, Func<MessageReceivedOnChannelArgs, CancellationToken, Task> receivedHandler, CancellationToken cancellationToken = default)
+        public void Start(Channel channel, int maxConcurrency, Func<MessageReceivedOnChannelArgs, CancellationToken, Task> receivedHandler)
         {
             messageReceivedHandler = receivedHandler;
             channelReceiver = channelFactory(channel.Type);
-            return channelReceiver.Start(channel.Address, maxConcurrency, DataReceivedOnChannel, cancellationToken);
+            channelReceiver.Start(channel.Address, maxConcurrency, DataReceivedOnChannel);
         }
 
-        public Task Stop(CancellationToken cancellationToken = default)
-        {
-            return channelReceiver?.Stop(cancellationToken);
-        }
+        public Task Stop(CancellationToken cancellationToken = default) =>
+            channelReceiver?.Stop(cancellationToken);
 
-        async Task DataReceivedOnChannel(DataReceivedOnChannelArgs e, CancellationToken cancellationToken = default)
+        async Task DataReceivedOnChannel(DataReceivedOnChannelArgs e, CancellationToken cancellationToken)
         {
             using (e.Data)
             {
@@ -77,7 +75,7 @@
             }
         }
 
-        async Task HandleSubmit(CallInfo callInfo, CancellationToken cancellationToken = default)
+        async Task HandleSubmit(CallInfo callInfo, CancellationToken cancellationToken)
         {
             using (var stream = new MemoryStream())
             {
@@ -208,7 +206,7 @@
             return result;
         }
 
-        async Task HandleDatabusProperty(CallInfo callInfo, CancellationToken cancellationToken = default)
+        async Task HandleDatabusProperty(CallInfo callInfo, CancellationToken cancellationToken)
         {
             if (databus == null)
             {

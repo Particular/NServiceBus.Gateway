@@ -167,7 +167,7 @@
                 this.transportTransactionMode = transportTransactionMode;
             }
 
-            protected override async Task OnStart(IMessageSession context, CancellationToken cancellationToken)
+            protected override Task OnStart(IMessageSession context, CancellationToken cancellationToken = default)
             {
                 // only use transaction scope if both transport and persistence are able to enlist with the transaction scope.
                 // If one of them cannot enlist, use no transaction scope as partial rollbacks of the deduplication process can cause incorrect side effects.
@@ -178,15 +178,17 @@
                 {
                     var receiver = new SingleCallChannelReceiver(channelReceiverFactory, deduplicationStorage, databus, useTransactionScope);
 
-                    await receiver.Start(receiveChannel, receiveChannel.MaxConcurrency, MessageReceivedOnChannel, cancellationToken).ConfigureAwait(false);
+                    receiver.Start(receiveChannel, receiveChannel.MaxConcurrency, MessageReceivedOnChannel);
                     activeReceivers.Add(receiver);
 
                     Logger.InfoFormat("Receive channel started: {0}", receiveChannel);
                 }
+
+                return Task.CompletedTask;
             }
 
 
-            protected override async Task OnStop(IMessageSession context, CancellationToken cancellationToken)
+            protected override async Task OnStop(IMessageSession context, CancellationToken cancellationToken = default)
             {
                 Logger.Info("Receiver is shutting down");
 
@@ -199,7 +201,7 @@
                 Logger.Info("Receiver shutdown complete");
             }
 
-            Task MessageReceivedOnChannel(MessageReceivedOnChannelArgs e, CancellationToken cancellationToken = default)
+            Task MessageReceivedOnChannel(MessageReceivedOnChannelArgs e, CancellationToken cancellationToken)
             {
                 var body = e.Body;
                 var headers = e.Headers;

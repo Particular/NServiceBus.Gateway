@@ -26,7 +26,7 @@ namespace NServiceBus.Gateway.Channels.Http
             using (var stream = await request.GetRequestStreamAsync().ConfigureAwait(false))
             {
                 // 81920 is the default value in the underlying code.
-                // .NET Framework does not have an overload that accepts only Stream & CancellationTOken
+                // .NET Framework does not have an overload that accepts only Stream and CancellationToken
                 await data.CopyToAsync(stream, 81920, cancellationToken).ConfigureAwait(false);
             }
 
