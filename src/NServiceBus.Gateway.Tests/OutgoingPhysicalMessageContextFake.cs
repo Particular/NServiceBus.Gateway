@@ -70,6 +70,8 @@ namespace NServiceBus.Gateway.Tests
 
         public byte[] Body { get; set; }
         public IReadOnlyCollection<RoutingStrategy> RoutingStrategies { get; }
+#pragma warning disable PS0002 // Instance methods on types implementing ICancellableContext should not have a CancellationToken parameter
         public CancellationToken CancellationToken { get; set; }
+#pragma warning restore PS0002 // Instance methods on types implementing ICancellableContext should not have a CancellationToken parameter
     }
 }

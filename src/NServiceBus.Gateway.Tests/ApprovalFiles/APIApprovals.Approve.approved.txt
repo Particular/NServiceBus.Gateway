@@ -108,7 +108,7 @@ namespace NServiceBus
     public static class MessageHandlerContextExtensions
     {
         public static System.Threading.Tasks.Task SendToSites(this NServiceBus.IMessageHandlerContext context, System.Collections.Generic.IEnumerable<string> siteKeys, object message) { }
-        public static System.Threading.Tasks.Task SendToSites(this NServiceBus.IMessageSession context, System.Collections.Generic.IEnumerable<string> siteKeys, object message) { }
+        public static System.Threading.Tasks.Task SendToSites(this NServiceBus.IMessageSession context, System.Collections.Generic.IEnumerable<string> siteKeys, object message, System.Threading.CancellationToken cancellationToken = default) { }
     }
     public static class SendOptionsExtensions
     {
