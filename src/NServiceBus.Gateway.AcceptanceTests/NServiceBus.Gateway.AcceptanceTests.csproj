@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="GitHubActionsTestLogger" Version="1.2.0" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" Version="[8.0.0-alpha.917, 9.0.0)" />
     <PackageReference Include="NServiceBus.Callbacks" Version="[4.0.0-alpha.127, 5.0.0)" />
   </ItemGroup>
