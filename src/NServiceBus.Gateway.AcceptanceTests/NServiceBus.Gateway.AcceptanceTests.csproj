@@ -13,12 +13,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GitHubActionsTestLogger" Version="1.2.0" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" Version="[8.0.0-alpha.917, 9.0.0)" />
     <PackageReference Include="NServiceBus.Callbacks" Version="[4.0.0-alpha.127, 5.0.0)" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="GitHubActionsTestLogger" Version="1.2.0" PrivateAssets="All"/>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" PrivateAssets="All" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" PrivateAssets="All" />
     <PackageReference Include="Particular.Packaging" Version="1.2.0" PrivateAssets="All" />
