@@ -3,6 +3,9 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+#if NETSTANDARD
+    using System.Runtime.InteropServices;
+#endif
     using System.Threading.Tasks;
     using ConsistencyGuarantees;
     using DeliveryConstraints;
@@ -117,7 +120,12 @@
                 return;
             }
 
-            CheckForNonWildcardDefaultChannel(channelManager);
+
+            var k8SIsActive = context.Settings.Get<bool>(GatewaySettings.KubernetesCompatibilityIsActive);
+            if (!k8SIsActive)
+            {
+                CheckForNonWildcardDefaultChannel(channelManager);
+            }
 
             channelReceiverFactory = s => new ChannelReceiverFactory(typeof(HttpChannelReceiver)).GetReceiver(s);
             channelSenderFactory = s => new ChannelSenderFactory(typeof(HttpChannelSender)).GetSender(s);
@@ -125,6 +133,12 @@
             var installerSettings = context.Settings.Get<InstallerSettings>();
             installerSettings.ChannelManager = channelManager;
             installerSettings.Enabled = true;
+
+#if NETSTANDARD
+           installerSettings.Enabled = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+#else
+            installerSettings.Enabled = Environment.OSVersion.Platform == PlatformID.Win32NT;
+#endif
         }
 
         static void CheckForNonWildcardDefaultChannel(IManageReceiveChannels channelManager)
@@ -143,7 +157,7 @@
 
         static EndpointRouter GetEndpointRouter(FeatureConfigurationContext context)
         {
-            return new EndpointRouter {MainInputAddress = context.Settings.EndpointName()};
+            return new EndpointRouter { MainInputAddress = context.Settings.EndpointName() };
         }
 
         static void ConfigureTransaction(FeatureConfigurationContext context)

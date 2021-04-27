@@ -18,9 +18,15 @@
     /// </summary>
     public class GatewaySettings
     {
+        /// <summary>
+        /// Settings key to enable/disable K8s compatibility
+        /// </summary>
+        public const string KubernetesCompatibilityIsActive = "KubernetesCompatibilityIsActive";
+
         internal GatewaySettings(EndpointConfiguration config)
         {
             settings = config.GetSettings();
+            settings.Set(KubernetesCompatibilityIsActive, false);
         }
 
 
@@ -40,6 +46,14 @@
 
             settings.Set("GatewayChannelSenderFactory", senderFactory);
             settings.Set("GatewayChannelReceiverFactory", receiverFactory);
+        }
+
+        /// <summary>
+        /// Activate a wildcard on Kubernetes Pods avoid a CheckForNonWildcardDefaultChannel(channelManager) on feature enabling.
+        /// </summary>
+        public void ActivateKubernetesCompatibility()
+        {
+            settings.Set(KubernetesCompatibilityIsActive, true);
         }
 
 
@@ -135,7 +149,7 @@
         {
             Guard.AgainstNegativeAndZero(nameof(timeout), timeout);
 
-            settings.Set("Gateway.TransactionTimeout",timeout);
+            settings.Set("Gateway.TransactionTimeout", timeout);
         }
 
         internal static TimeSpan? GetTransactionTimeout(ReadOnlySettings settings)
