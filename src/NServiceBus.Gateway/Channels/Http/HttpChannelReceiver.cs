@@ -148,7 +148,7 @@ namespace NServiceBus.Gateway.Channels.Http
                 }
                 else
                 {
-                    Logger.Warn("Operation cancelled.", ex);
+                    Logger.Warn("OperationCanceledException thrown.", ex);
                 }
             }
             catch (ChannelException ex)
