@@ -142,7 +142,14 @@ namespace NServiceBus.Gateway.Channels.Http
             }
             catch (OperationCanceledException ex)
             {
-                Logger.Info("Operation cancelled while shutting down the gateway", ex);
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    Logger.Debug("Operation cancelled while shutting down the gateway.", ex);
+                }
+                else
+                {
+                    Logger.Warn("OperationCanceledException thrown.", ex);
+                }
             }
             catch (ChannelException ex)
             {
