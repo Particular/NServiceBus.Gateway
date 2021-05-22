@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="NUnit" Version="[3.13.1, 4.0.0)" />
-    <PackageReference Include="NServiceBus" Version="[8.0.0-alpha.940, 9.0.0)" />
+    <PackageReference Include="NServiceBus" Version="[8.0.0-alpha.1895, 9.0.0)" />
   </ItemGroup>
 
   <ItemGroup>
