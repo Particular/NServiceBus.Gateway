@@ -40,6 +40,8 @@ namespace NServiceBus.Gateway.Utils
             var streamLength = inputStream.Length;
             while (true)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var read = await inputStream.ReadAsync(buffer, 0, BufferSize, cancellationToken).ConfigureAwait(false);
                 if (inputStream.Position == streamLength)
                 {

@@ -46,8 +46,8 @@ namespace NServiceBus.Gateway.Channels.Http
                 throw new Exception(message, ex);
             }
 
-            // CancellationToken.None because otherwise the task simply won't start if the token is cancelled
-            messageReceivingTask = Task.Run(() => ReceiveMessages(messageReceivingCancellationTokenSource.Token), CancellationToken.None);
+            // Task.Run() so the call returns immediately instead of waiting for the first await or return down the call stack
+            messageReceivingTask = Task.Run(() => ReceiveMessagesAndSwallowExceptions(messageReceivingCancellationTokenSource.Token), CancellationToken.None);
         }
 
         public async Task Stop(CancellationToken cancellationToken = default)
@@ -71,49 +71,45 @@ namespace NServiceBus.Gateway.Channels.Http
             messageProcessingCancellationTokenSource?.Dispose();
         }
 
-        async Task ReceiveMessages(CancellationToken cancellationToken)
+        async Task ReceiveMessagesAndSwallowExceptions(CancellationToken messageReceivingCancellationToken)
         {
-            while (!cancellationToken.IsCancellationRequested)
+            while (!messageReceivingCancellationToken.IsCancellationRequested)
             {
                 try
                 {
-                    var context = await listener.GetContextAsync().ConfigureAwait(false);
+                    HttpListenerContext context;
 
-                    if (cancellationToken.IsCancellationRequested)
+                    try
                     {
-                        return;
+                        context = await listener.GetContextAsync().ConfigureAwait(false);
+                    }
+                    catch (HttpListenerException ex) when (messageReceivingCancellationToken.IsCancellationRequested)
+                    {
+                        Logger.Debug("Assuming HttpListener.GetContextAsync() failed due to the receiver stopping.", ex);
+                        break;
+                    }
+                    catch (ObjectDisposedException ex) when (messageReceivingCancellationToken.IsCancellationRequested && ex.ObjectName == typeof(HttpListener).FullName)
+                    {
+                        Logger.Debug("Assuming HttpListener.GetContextAsync() failed due to the receiver stopping.", ex);
+                        break;
                     }
 
-                    await concurrencyLimiter.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    await concurrencyLimiter.WaitAsync(messageReceivingCancellationToken).ConfigureAwait(false);
 
-                    var messageProcessingTask = ProcessMessage(context, messageProcessingCancellationTokenSource.Token);
+                    // no Task.Run() here to avoid a closure
+                    var messageProcessingTask = ProcessMessageSwallowExceptionsAndReleaseConcurrencyLimiter(context, messageProcessingCancellationTokenSource.Token);
 
                     _ = messageProcessingTasks.TryAdd(messageProcessingTask, messageProcessingTask);
 
-                    _ = messageProcessingTask.ContinueWith(t =>
-                    {
-                        _ = messageProcessingTasks.TryRemove(messageProcessingTask, out _);
-                    }, TaskContinuationOptions.ExecuteSynchronously);
+                    _ = messageProcessingTask.ContinueWith(__ => _ = messageProcessingTasks.TryRemove(messageProcessingTask, out _), TaskContinuationOptions.ExecuteSynchronously);
                 }
-                catch (HttpListenerException ex)
+                catch (Exception ex) when (ex.IsCausedBy(messageReceivingCancellationToken))
                 {
-                    // a HttpListenerException can occur on listener.GetContext when we shutdown. this can be ignored
-                    if (!cancellationToken.IsCancellationRequested)
-                    {
-                        Logger.Error("Gateway failed to receive incoming request.", ex);
-                    }
+                    // private token, poller is being cancelled, log exception in case stack trace is ever needed for debugging
+                    Logger.Debug("Operation canceled while stopping HTTP channel receiver.", ex);
                     break;
                 }
-                catch (ObjectDisposedException ex)
-                {
-                    // a ObjectDisposedException can occur on listener.GetContext when we shutdown. this can be ignored
-                    if (!cancellationToken.IsCancellationRequested && ex.ObjectName == typeof(HttpListener).FullName)
-                    {
-                        Logger.Error("Gateway failed to receive incoming request.", ex);
-                    }
-                    break;
-                }
-                catch (InvalidOperationException ex)
+                catch (Exception ex)
                 {
                     Logger.Error("Gateway failed to receive incoming request.", ex);
                     break;
@@ -121,12 +117,12 @@ namespace NServiceBus.Gateway.Channels.Http
             }
         }
 
-        async Task ProcessMessage(HttpListenerContext context, CancellationToken cancellationToken)
+        async Task ProcessMessageSwallowExceptionsAndReleaseConcurrencyLimiter(HttpListenerContext context, CancellationToken messageProcessingCancellationToken)
         {
             try
             {
                 var headers = GetHeaders(context);
-                var dataStream = await GetMessageStream(context, cancellationToken).ConfigureAwait(false);
+                var dataStream = await GetMessageStream(context, messageProcessingCancellationToken).ConfigureAwait(false);
 
                 await dataReceivedHandler(
                     new DataReceivedOnChannelArgs
@@ -134,31 +130,24 @@ namespace NServiceBus.Gateway.Channels.Http
                         Headers = headers,
                         Data = dataStream
                     },
-                    cancellationToken).ConfigureAwait(false);
+                    messageProcessingCancellationToken).ConfigureAwait(false);
 
                 ReportSuccess(context);
 
                 Logger.Debug("Http request processing complete.");
             }
-            catch (OperationCanceledException ex)
+            catch (Exception ex) when (ex.IsCausedBy(messageProcessingCancellationToken))
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    Logger.Debug("Operation cancelled while shutting down the gateway.", ex);
-                }
-                else
-                {
-                    Logger.Warn("OperationCanceledException thrown.", ex);
-                }
+                Logger.Debug("Message processing canceled.", ex);
             }
             catch (ChannelException ex)
             {
-                CloseResponseAndWarn(context, ex.Message, ex.StatusCode);
+                TryReportFailure(context, ex.Message, ex.StatusCode);
             }
             catch (Exception ex)
             {
                 Logger.Error("Unexpected error", ex);
-                CloseResponseAndWarn(context, "Unexpected server error", 502);
+                TryReportFailure(context, "Unexpected server error", 502);
             }
             finally
             {
@@ -166,7 +155,7 @@ namespace NServiceBus.Gateway.Channels.Http
             }
         }
 
-        static async Task<MemoryStream> GetMessageStream(HttpListenerContext context, CancellationToken cancellationToken)
+        static async Task<MemoryStream> GetMessageStream(HttpListenerContext context, CancellationToken messageProcessingCancellationToken)
         {
             if (context.Request.QueryString.AllKeys.Contains("Message"))
             {
@@ -177,7 +166,7 @@ namespace NServiceBus.Gateway.Channels.Http
 
             var streamToReturn = new MemoryStream();
 
-            await context.Request.InputStream.CopyToAsync(streamToReturn, MaximumBytesToRead, cancellationToken).ConfigureAwait(false);
+            await context.Request.InputStream.CopyToAsync(streamToReturn, MaximumBytesToRead, messageProcessingCancellationToken).ConfigureAwait(false);
             streamToReturn.Position = 0;
 
             return streamToReturn;
@@ -227,7 +216,7 @@ namespace NServiceBus.Gateway.Channels.Http
             context.Response.Close(Encoding.ASCII.GetBytes(newStatus), false);
         }
 
-        static void CloseResponseAndWarn(HttpListenerContext context, string warning, int statusCode)
+        static void TryReportFailure(HttpListenerContext context, string warning, int statusCode)
         {
             try
             {
@@ -237,21 +226,23 @@ namespace NServiceBus.Gateway.Channels.Http
 
                 WriteData(context, warning);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Logger.Error("Could not return warning to client.", e);
+                Logger.Error("Could not return warning to client.", ex);
             }
         }
 
         const int MaximumBytesToRead = 100000;
 
-        static ILog Logger = LogManager.GetLogger<HttpChannelReceiver>();
+        static readonly ILog Logger = LogManager.GetLogger<HttpChannelReceiver>();
+
+        readonly ConcurrentDictionary<Task, Task> messageProcessingTasks = new ConcurrentDictionary<Task, Task>();
+
         SemaphoreSlim concurrencyLimiter;
         HttpListener listener;
         CancellationTokenSource messageReceivingCancellationTokenSource;
         CancellationTokenSource messageProcessingCancellationTokenSource;
         Task messageReceivingTask;
-        ConcurrentDictionary<Task, Task> messageProcessingTasks = new ConcurrentDictionary<Task, Task>();
         Func<DataReceivedOnChannelArgs, CancellationToken, Task> dataReceivedHandler;
     }
 }
