@@ -75,7 +75,13 @@ namespace NServiceBus.Gateway.Channels.Http
         {
             while (!messageReceivingCancellationToken.IsCancellationRequested)
             {
+#pragma warning disable PS0021 // Highlight when a try block passes multiple cancellation tokens - justification:
+                // The message processing cancellation token is being used for processing messages,
+                // since we want that only to be cancelled when the public token passed to Stop() is cancelled.
+                // The message recieving token is being used elsewhere, because we want those operations to be cancelled as soon as Stop() is called.
+                // The catch clause is correctly filtered on the message recieving cancellation token.
                 try
+#pragma warning restore PS0021 // Highlight when a try block passes multiple cancellation tokens
                 {
                     HttpListenerContext context;
 
