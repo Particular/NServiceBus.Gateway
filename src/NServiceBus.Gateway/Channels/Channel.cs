@@ -17,6 +17,11 @@ namespace NServiceBus.Gateway.Channels
         /// </summary>
         public string Address { get; set; }
 
+        /// <summary>
+        /// Gets or sets the proxy address using as a public.
+        /// </summary>
+        public string ProxyAddress { get; set; }
+
         internal static Channel Parse(string s)
         {
             var parts = s.Split(',');
@@ -26,6 +31,17 @@ namespace NServiceBus.Gateway.Channels
                 Type = parts[0],
                 Address = parts[1]
             };
+        }
+
+        /// <summary>
+        /// The get public address (if exists ProxyAddress return it if not returns channel address).
+        /// </summary>
+        /// <returns>
+        /// The <see cref="string"/>.
+        /// </returns>
+        internal string GetPublicAddress()
+        {
+            return !string.IsNullOrEmpty(ProxyAddress) ? ProxyAddress : Address;
         }
 
         /// <summary>

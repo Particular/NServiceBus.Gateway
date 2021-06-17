@@ -130,9 +130,10 @@
         static void CheckForNonWildcardDefaultChannel(IManageReceiveChannels channelManager)
         {
             var defaultChannel = channelManager.GetDefaultChannel();
-            if (defaultChannel.Address.Contains("*") || defaultChannel.Address.Contains("+"))
+            var address = defaultChannel.GetPublicAddress();
+            if (address.Contains("*") || address.Contains("+"))
             {
-                throw new Exception($"Default channel {defaultChannel.Address} is using a wildcard uri. Please add an extra channel with a fully qualified non-wildcard uri in order for replies to be transmitted properly.");
+                throw new Exception($"Default channel with public address {address} is using a wildcard uri. Please add an extra channel with a fully qualified non-wildcard uri in order for replies to be transmitted properly.");
             }
         }
 
