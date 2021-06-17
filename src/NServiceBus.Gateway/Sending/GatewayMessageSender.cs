@@ -95,7 +95,7 @@ namespace NServiceBus.Gateway.Sending
         string GetDefaultAddressForThisSite()
         {
             var defaultChannel = channelManager.GetDefaultChannel();
-            return $"{defaultChannel.Type},{defaultChannel.Address}";
+            return $"{defaultChannel.Type},{defaultChannel.GetPublicAddress()}";
         }
 
         IManageReceiveChannels channelManager;

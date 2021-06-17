@@ -17,6 +17,12 @@ namespace NServiceBus.Gateway.Channels
         /// </summary>
         public string Address { get; set; }
 
+        /// <summary>
+        /// Gets or sets a proxy address to use as a return address. In cases where the Gateway is hosted in a mode (such as a container)
+        /// where the <see cref="Address"/> must be a wildcard address, the proxy address will be used as a return address.
+        /// </summary>
+        public string ProxyAddress { get; set; }
+
         internal static Channel Parse(string s)
         {
             var parts = s.Split(',');
@@ -26,6 +32,14 @@ namespace NServiceBus.Gateway.Channels
                 Type = parts[0],
                 Address = parts[1]
             };
+        }
+
+        /// <summary>
+        /// Returns the publicly-valid address for the Gateway: the <see cref="ProxyAddress"/> if it exists, otherwise the <see cref="Address"/>.
+        /// </summary>
+        internal string GetPublicAddress()
+        {
+            return !string.IsNullOrEmpty(ProxyAddress) ? ProxyAddress : Address;
         }
 
         /// <summary>
@@ -85,7 +99,7 @@ namespace NServiceBus.Gateway.Channels
         }
 
         /// <summary>
-        /// Serves as a hash function for a particular type. 
+        /// Serves as a hash function for a particular type.
         /// </summary>
         /// <returns>
         /// A hash code for the current <see cref="T:System.Object"/>.

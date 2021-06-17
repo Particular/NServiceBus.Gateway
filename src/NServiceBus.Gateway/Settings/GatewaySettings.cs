@@ -99,14 +99,13 @@
             });
         }
 
-        /// <summary>
-        /// Adds a receive channel that the gateway should listen to.
-        /// </summary>
+        /// <summary>Adds a receive channel that the gateway should listen to.</summary>
         /// <param name="address">The channel address.</param>
         /// <param name="type">The channel type. Default is `http`.</param>
         /// <param name="maxConcurrency">Maximum number of receive connections. Default is `1`.</param>
         /// <param name="isDefault">True if this should be the default channel for send operations. Default is `false`.</param>
-        public void AddReceiveChannel(string address, string type = "http", int maxConcurrency = 1, bool isDefault = false)
+        /// <param name="proxyAddress">The proxy Address to use when gateway is behind proxy, is used in reply on headers.</param>
+        public void AddReceiveChannel(string address, string type = "http", int maxConcurrency = 1, bool isDefault = false, string proxyAddress = null)
         {
             Guard.AgainstNullAndEmpty(nameof(address), address);
             Guard.AgainstNullAndEmpty(nameof(type), type);
@@ -119,7 +118,8 @@
                 Address = address,
                 MaxConcurrency = maxConcurrency,
                 Type = type,
-                Default = isDefault
+                Default = isDefault,
+                ProxyAddress = proxyAddress
             });
         }
 
