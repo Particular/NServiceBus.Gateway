@@ -41,4 +41,8 @@
     <_PackageFiles Remove="**\InMemoryTestSuiteConstaints.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <_PackageFiles Remove="When_doing_request_reply_with_proxy_address.cs" />
+  </ItemGroup>
+
 </Project>
