@@ -70,6 +70,7 @@ namespace NServiceBus.Gateway.Channels
     {
         public Channel() { }
         public string Address { get; set; }
+        public string ProxyAddress { get; set; }
         public string Type { get; set; }
         public bool Equals(NServiceBus.Gateway.Channels.Channel other) { }
         public override bool Equals(object obj) { }
@@ -104,7 +105,7 @@ namespace NServiceBus
     }
     public class GatewaySettings
     {
-        public void AddReceiveChannel(string address, string type = "http", int maxConcurrency = 1, bool isDefault = False) { }
+        public void AddReceiveChannel(string address, string type = "http", int maxConcurrency = 1, bool isDefault = False, string proxyAddress = null) { }
         public void AddSite(string siteKey, string address, string type = "http", bool legacyMode = False) { }
         public void ChannelFactories(System.Func<string, NServiceBus.Gateway.IChannelSender> senderFactory, System.Func<string, NServiceBus.Gateway.IChannelReceiver> receiverFactory) { }
         public void CustomRetryPolicy(System.Func<NServiceBus.Transport.IncomingMessage, System.Exception, int, System.TimeSpan> customRetryPolicy) { }
