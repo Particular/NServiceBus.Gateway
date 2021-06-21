@@ -27,7 +27,6 @@
             Assert.AreEqual(1, context.Response);
         }
 
-        
         public class Context : ScenarioContext
         {
             public bool GotCallback { get; set; }

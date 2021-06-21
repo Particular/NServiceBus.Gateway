@@ -5,7 +5,7 @@
     using Configuration.AdvancedExtensibility;
     using NUnit.Framework;
 
-    public class When_doing_request_reply_with_proxy_address: NServiceBusAcceptanceTest
+    public class When_doing_request_reply_with_proxy_address : NServiceBusAcceptanceTest
     {
         [Test]
         public async Task Callback_should_be_fired_when_SideAProxy_IsBehind_Proxy()

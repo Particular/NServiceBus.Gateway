@@ -130,10 +130,10 @@
         static void CheckForNonWildcardDefaultChannel(IManageReceiveChannels channelManager)
         {
             var defaultChannel = channelManager.GetDefaultChannel();
-            var address = defaultChannel.GetPublicAddress();
-            if (address.Contains("*") || address.Contains("+"))
+            var publicAddress = defaultChannel.GetPublicAddress();
+            if (publicAddress.Contains("*") || publicAddress.Contains("+"))
             {
-                throw new Exception($"Default channel with public address {address} is using a wildcard uri. Please add an extra channel with a fully qualified non-wildcard uri in order for replies to be transmitted properly.");
+                throw new Exception($"Default channel with public address {publicAddress} is using a wildcard uri. Please add an extra channel with a fully qualified non-wildcard uri in order for replies to be transmitted properly.");
             }
         }
 
@@ -144,7 +144,7 @@
 
         static EndpointRouter GetEndpointRouter(FeatureConfigurationContext context)
         {
-            return new EndpointRouter {MainInputAddress = context.Settings.EndpointName()};
+            return new EndpointRouter { MainInputAddress = context.Settings.EndpointName() };
         }
 
         static void ConfigureTransaction(FeatureConfigurationContext context)
