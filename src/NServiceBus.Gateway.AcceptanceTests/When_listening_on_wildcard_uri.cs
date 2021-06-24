@@ -52,5 +52,53 @@
                 });
             }
         }
+
+        [Test]
+        public void Should_not_throw_if_replyto_address_specified()
+        {
+            Assert.DoesNotThrowAsync(async () =>
+                await Scenario.Define<ScenarioContext>()
+                    .WithEndpoint<EndpointWithWildCardAndReplyToAddressSpecified>()
+                    .Done(c => c.EndpointsStarted)
+                    .Run());
+        }
+
+        class EndpointWithWildCardAndReplyToAddressSpecified : EndpointConfigurationBuilder
+        {
+            public EndpointWithWildCardAndReplyToAddressSpecified()
+            {
+                EndpointSetup<GatewayEndpoint>(c =>
+                {
+                    var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
+                    gatewaySettings.AddReceiveChannel("http://+:25701/WildcardB/");
+                    gatewaySettings.SetReplyToAddress("http://localhost:25701/WildcardB/");
+                });
+            }
+        }
+
+        [Test]
+        public void Should_throw_if_no_channels_match_replytoaddress_type()
+        {
+            Assert.That(async () =>
+            {
+                await Scenario.Define<ScenarioContext>()
+                    .WithEndpoint<EndpointWithNoChannelMatchingReplyToAddressType>()
+                    .Done(c => c.EndpointsStarted)
+                    .Run();
+            }, Throws.Exception.With.Message.Contains("there are no channels of that type configured to listen"));
+        }
+
+        class EndpointWithNoChannelMatchingReplyToAddressType : EndpointConfigurationBuilder
+        {
+            public EndpointWithNoChannelMatchingReplyToAddressType()
+            {
+                EndpointSetup<GatewayEndpoint>(c =>
+                {
+                    var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
+                    gatewaySettings.AddReceiveChannel("http://+:25701/WildcardB/");
+                    gatewaySettings.SetReplyToAddress("http://localhost:25701/WildcardB/", type: "notHttp");
+                });
+            }
+        }
     }
 }
