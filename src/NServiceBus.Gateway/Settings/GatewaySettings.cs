@@ -124,6 +124,21 @@
         }
 
         /// <summary>
+        /// Sets the reply-to address for messages sent from this Gateway. Useful for setting a publicly-accessible
+        /// load balancer address that will be routed to this Gateway, but the local system would be unable
+        /// to bind an HTTP listener (or other type of listener) to that address.
+        /// </summary>
+        /// <param name="address">The publicly-accessible address to include as the Reply-To address.</param>
+        /// <param name="type">The address type. Default is `http`. Must match one of the incoming receive channels.</param>
+        public void SetReplyToAddress(string address, string type = "http")
+        {
+            Guard.AgainstNullAndEmpty(nameof(address), address);
+            Guard.AgainstNullAndEmpty(nameof(type), type);
+
+            settings.Set("Gateway.ReplyToAddress", (type, address));
+        }
+
+        /// <summary>
         /// Configures the transaction timeout to use when transmitting messages to remote sites. By default, the transaction timeout of the underlying transport is used.
         /// </summary>
         /// <param name="timeout">The new timeout value.</param>
@@ -147,6 +162,11 @@
         internal static List<ReceiveChannel> GetConfiguredChannels(ReadOnlySettings settings)
         {
             return settings.TryGet(out List<ReceiveChannel> channels) ? channels : new List<ReceiveChannel>();
+        }
+
+        internal static (string type, string address) GetReplyToAddress(ReadOnlySettings settings)
+        {
+            return settings.TryGet("Gateway.ReplyToAddress", out (string type, string address) values) ? values : (null, null);
         }
 
         void SetDefaultRetryPolicySettings(int numberOfRetries, TimeSpan timeIncrease)

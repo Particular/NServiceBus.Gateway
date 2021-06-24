@@ -59,12 +59,14 @@
 
             var retryPolicy = context.Settings.Get<Func<IncomingMessage, Exception, int, TimeSpan>>("Gateway.Retries.RetryPolicy");
 
+            var replyToAddress = GetReplyToAddress(context.Settings, channelManager);
+
             var sender = new GatewayMessageSender(
                 gatewayInputAddress,
-                channelManager,
                 new MessageNotifier(),
                 context.Settings.LocalAddress(),
-                GetConfigurationBasedSiteRouter(context));
+                GetConfigurationBasedSiteRouter(context),
+                replyToAddress);
 
             context.AddSatelliteReceiver("Gateway", gatewayInputAddress, PushRuntimeSettings.Default,
                 (config, errorContext) => GatewayRecoverabilityPolicy.Invoke(errorContext, retryPolicy, config),
@@ -100,8 +102,6 @@
                 return;
             }
 
-            CheckForNonWildcardDefaultChannel(channelManager);
-
             channelReceiverFactory = s => new ChannelReceiverFactory(typeof(HttpChannelReceiver)).GetReceiver(s);
             channelSenderFactory = s => new ChannelSenderFactory(typeof(HttpChannelSender)).GetSender(s);
 
@@ -110,13 +110,19 @@
             installerSettings.Enabled = true;
         }
 
-        static void CheckForNonWildcardDefaultChannel(IManageReceiveChannels channelManager)
+        static string GetReplyToAddress(ReadOnlySettings settings, IManageReceiveChannels channelManager)
         {
-            var defaultChannel = channelManager.GetDefaultChannel();
-            if (defaultChannel.Address.Contains("*") || defaultChannel.Address.Contains("+"))
+            var replyToAddress = GatewaySettings.GetReplyToAddress(settings);
+            if (replyToAddress.type == null || replyToAddress.address == null)
             {
-                throw new Exception($"Default channel {defaultChannel.Address} is using a wildcard uri. Please add an extra channel with a fully qualified non-wildcard uri in order for replies to be transmitted properly.");
+                var defaultChannel = channelManager.GetDefaultChannel();
+                replyToAddress = (defaultChannel.Type, defaultChannel.Address);
             }
+            if (replyToAddress.address.Contains("*") || replyToAddress.address.Contains("+"))
+            {
+                throw new Exception($"The address {replyToAddress.address} is configured as the reply-to address, but contains a wildcard in the URI, which would not be addressable for a reply. Please use `gatewaySettings.SetReplyToAddress(address)` with a non-wildcard address in order for replies to be transmitted properly.");
+            }
+            return $"{replyToAddress.type},{replyToAddress.address}";
         }
 
         static SingleCallChannelForwarder CreateForwarder(Func<string, IChannelSender> channelSenderFactory, IDataBus databus)
