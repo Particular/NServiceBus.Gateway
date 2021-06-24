@@ -15,7 +15,7 @@
                     .WithEndpoint<EndpointWithWildCardUriAsDefault>()
                     .Done(c => c.EndpointsStarted)
                     .Run();
-            }, Throws.Exception.With.Message.Contains("Please add an extra channel with a fully qualified non-wildcard uri in order for replies to be transmitted properly."));
+            }, Throws.Exception.With.Message.Contains("contains a wildcard in the URI"));
         }
 
         class EndpointWithWildCardUriAsDefault : EndpointConfigurationBuilder
