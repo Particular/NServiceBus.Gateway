@@ -112,24 +112,24 @@
 
         static string GetReplyToAddress(ReadOnlySettings settings, IManageReceiveChannels channelManager)
         {
-            var replyToAddress = GatewaySettings.GetReplyToUri(settings);
-            if (replyToAddress.type == null || replyToAddress.address == null)
+            var replyToUri = GatewaySettings.GetReplyToUri(settings);
+            if (replyToUri.type == null || replyToUri.address == null)
             {
                 var defaultChannel = channelManager.GetDefaultChannel();
-                replyToAddress = (defaultChannel.Type, defaultChannel.Address);
+                replyToUri = (defaultChannel.Type, defaultChannel.Address);
             }
 
-            if (replyToAddress.address.Contains("*") || replyToAddress.address.Contains("+"))
+            if (replyToUri.address.Contains("*") || replyToUri.address.Contains("+"))
             {
-                throw new Exception($"The address {replyToUri.Address} is configured as the reply-to URI, but contains a wildcard in the URI, which would not be addressable for a reply. Please use `gatewaySettings.SetReplyToAddress(address)` with a non-wildcard address in order for replies to be transmitted properly.");
+                throw new Exception($"The address {replyToUri.address} is configured as the reply-to URI, but contains a wildcard in the URI, which would not be addressable for a reply. Please use `gatewaySettings.SetReplyToAddress(address)` with a non-wildcard address in order for replies to be transmitted properly.");
             }
 
-            if (!channelManager.GetReceiveChannels().Any(channel => channel.Type == replyToAddress.type))
+            if (!channelManager.GetReceiveChannels().Any(channel => channel.Type == replyToUri.type))
             {
-                throw new Exception($"The ReplyToAddress is of type `{replyToAddress.type}` but there are no channels of that type configured to listen for replies.");
+                throw new Exception($"The ReplyToAddress is of type `{replyToUri.type}` but there are no channels of that type configured to listen for replies.");
             }
 
-            return $"{replyToAddress.type},{replyToAddress.address}";
+            return $"{replyToUri.type},{replyToUri.address}";
         }
 
         static SingleCallChannelForwarder CreateForwarder(Func<string, IChannelSender> channelSenderFactory, IDataBus databus)
