@@ -43,7 +43,7 @@
 
                     var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
                     gatewaySettings.AddReceiveChannel("http://+:25698/SiteA/");
-                    gatewaySettings.SetReplyToAddress("http://localhost:25698/SiteA/");
+                    gatewaySettings.SetReplyToUri("http://localhost:25698/SiteA/");
                     gatewaySettings.AddSite("SiteB", "http://localhost:25699/SiteB/");
                 });
             }

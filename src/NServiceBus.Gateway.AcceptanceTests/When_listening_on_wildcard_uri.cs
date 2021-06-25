@@ -71,7 +71,7 @@
                 {
                     var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
                     gatewaySettings.AddReceiveChannel("http://+:25701/WildcardB/");
-                    gatewaySettings.SetReplyToAddress("http://localhost:25701/WildcardB/");
+                    gatewaySettings.SetReplyToUri("http://localhost:25701/WildcardB/");
                 });
             }
         }
@@ -96,7 +96,7 @@
                 {
                     var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
                     gatewaySettings.AddReceiveChannel("http://+:25701/WildcardB/");
-                    gatewaySettings.SetReplyToAddress("http://localhost:25701/WildcardB/", type: "notHttp");
+                    gatewaySettings.SetReplyToUri("http://localhost:25701/WildcardB/", type: "notHttp");
                 });
             }
         }

@@ -128,14 +128,14 @@
         /// load balancer address that will be routed to this Gateway, but the local system would be unable
         /// to bind an HTTP listener (or other type of listener) to that address.
         /// </summary>
-        /// <param name="address">The publicly-accessible address to include as the Reply-To address.</param>
+        /// <param name="replyToUri">The publicly-accessible Uri to include on outgoing messages as the Reply-To address.</param>
         /// <param name="type">The address type. Default is `http`. Must match one of the incoming receive channels.</param>
-        public void SetReplyToAddress(string address, string type = "http")
+        public void SetReplyToUri(string replyToUri, string type = "http")
         {
-            Guard.AgainstNullAndEmpty(nameof(address), address);
+            Guard.AgainstNullAndEmpty(nameof(replyToUri), replyToUri);
             Guard.AgainstNullAndEmpty(nameof(type), type);
 
-            settings.Set("Gateway.ReplyToAddress", (type, address));
+            settings.Set("Gateway.ReplyToUri", (type, replyToUri));
         }
 
         /// <summary>
@@ -164,9 +164,9 @@
             return settings.TryGet(out List<ReceiveChannel> channels) ? channels : new List<ReceiveChannel>();
         }
 
-        internal static (string type, string address) GetReplyToAddress(ReadOnlySettings settings)
+        internal static (string type, string address) GetReplyToUri(ReadOnlySettings settings)
         {
-            return settings.TryGet("Gateway.ReplyToAddress", out (string type, string address) values) ? values : (null, null);
+            return settings.TryGet("Gateway.ReplyToUri", out (string type, string address) values) ? values : (null, null);
         }
 
         void SetDefaultRetryPolicySettings(int numberOfRetries, TimeSpan timeIncrease)

@@ -112,7 +112,7 @@
 
         static string GetReplyToAddress(ReadOnlySettings settings, IManageReceiveChannels channelManager)
         {
-            var replyToAddress = GatewaySettings.GetReplyToAddress(settings);
+            var replyToAddress = GatewaySettings.GetReplyToUri(settings);
             if (replyToAddress.type == null || replyToAddress.address == null)
             {
                 var defaultChannel = channelManager.GetDefaultChannel();
