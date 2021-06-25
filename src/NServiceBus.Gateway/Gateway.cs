@@ -121,7 +121,7 @@
 
             if (replyToAddress.address.Contains("*") || replyToAddress.address.Contains("+"))
             {
-                throw new Exception($"The address {replyToAddress.address} is configured as the reply-to address, but contains a wildcard in the URI, which would not be addressable for a reply. Please use `gatewaySettings.SetReplyToAddress(address)` with a non-wildcard address in order for replies to be transmitted properly.");
+                throw new Exception($"The address {replyToUri.Address} is configured as the reply-to URI, but contains a wildcard in the URI, which would not be addressable for a reply. Please use `gatewaySettings.SetReplyToAddress(address)` with a non-wildcard address in order for replies to be transmitted properly.");
             }
 
             if (!channelManager.GetReceiveChannels().Any(channel => channel.Type == replyToAddress.type))
