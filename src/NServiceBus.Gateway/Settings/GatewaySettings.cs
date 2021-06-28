@@ -128,6 +128,21 @@
         }
 
         /// <summary>
+        /// Sets the reply-to address for messages sent from this Gateway. Useful for setting a publicly-accessible
+        /// load balancer address that will be routed to this Gateway, but the local system would be unable
+        /// to bind an HTTP listener (or other type of listener) to that address.
+        /// </summary>
+        /// <param name="replyToUri">The publicly-accessible Uri to include on outgoing messages as the Reply-To address.</param>
+        /// <param name="type">The address type. Default is `http`. Must match one of the incoming receive channels.</param>
+        public void SetReplyToUri(string replyToUri, string type = "http")
+        {
+            Guard.AgainstNullAndEmpty(nameof(replyToUri), replyToUri);
+            Guard.AgainstNullAndEmpty(nameof(type), type);
+
+            settings.Set<GatewayReplyUri>(new GatewayReplyUri(type, replyToUri));
+        }
+
+        /// <summary>
         /// Configures the transaction timeout to use when transmitting messages to remote sites. By default, the transaction timeout of the underlying transport is used.
         /// </summary>
         /// <param name="timeout">The new timeout value.</param>
@@ -135,7 +150,7 @@
         {
             Guard.AgainstNegativeAndZero(nameof(timeout), timeout);
 
-            settings.Set("Gateway.TransactionTimeout",timeout);
+            settings.Set("Gateway.TransactionTimeout", timeout);
         }
 
         internal static TimeSpan? GetTransactionTimeout(ReadOnlySettings settings)
@@ -232,6 +247,11 @@
             return ConfigurationManager.GetSection(typeof(GatewayConfig).Name) as GatewayConfig;
         }
 #endif
+        internal static GatewayReplyUri GetReplyToUri(ReadOnlySettings settings)
+        {
+            return settings.TryGet<GatewayReplyUri>(out var values) ? values : null;
+        }
+
         void SetDefaultRetryPolicySettings(int numberOfRetries, TimeSpan timeIncrease)
         {
             settings.Set("Gateway.Retries.RetryPolicy", DefaultRetryPolicy.Build(numberOfRetries, timeIncrease));

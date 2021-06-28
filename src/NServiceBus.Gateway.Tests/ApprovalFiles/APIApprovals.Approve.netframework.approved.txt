@@ -184,6 +184,7 @@ namespace NServiceBus
         public void CustomRetryPolicy(System.Func<NServiceBus.Transport.IncomingMessage, System.Exception, int, System.TimeSpan> customRetryPolicy) { }
         public void DisableRetries() { }
         public void Retries(int numberOfRetries, System.TimeSpan timeIncrease) { }
+        public void SetReplyToUri(string replyToUri, string type = "http") { }
         public void TransactionTimeout(System.TimeSpan timeout) { }
     }
     public class static MessageHandlerContextExtensions

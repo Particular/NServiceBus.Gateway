@@ -6,21 +6,20 @@ namespace NServiceBus.Gateway.Sending
     using System.Threading.Tasks;
     using Extensibility;
     using Notifications;
-    using Receiving;
+    using NServiceBus.Routing;
     using Routing;
     using Routing.Sites;
-    using NServiceBus.Routing;
     using Transport;
 
     class GatewayMessageSender
     {
-        public GatewayMessageSender(string inputAddress, IManageReceiveChannels channelManager, MessageNotifier notifier, string localAddress, ConfigurationBasedSiteRouter configRouter)
+        public GatewayMessageSender(string inputAddress, MessageNotifier notifier, string localAddress, ConfigurationBasedSiteRouter configRouter, string replyToAddress)
         {
             this.configRouter = configRouter;
             messageNotifier = notifier;
             this.localAddress = localAddress;
-            this.channelManager = channelManager;
             this.inputAddress = inputAddress;
+            this.replyToAddress = replyToAddress;
         }
 
         public async Task SendToDestination(MessageContext context, IDispatchMessages dispatcher, SingleCallChannelForwarder forwarder)
@@ -85,23 +84,17 @@ namespace NServiceBus.Gateway.Sending
 
         async Task SendToSite(byte[] body, Dictionary<string, string> headers, Site targetSite, SingleCallChannelForwarder forwarder)
         {
-            headers[Headers.OriginatingSite] = GetDefaultAddressForThisSite();
+            headers[Headers.OriginatingSite] = replyToAddress;
 
             await forwarder.Forward(body, headers, targetSite).ConfigureAwait(false);
 
             messageNotifier.RaiseMessageForwarded(localAddress, targetSite.Channel.Type, body, headers);
         }
 
-        string GetDefaultAddressForThisSite()
-        {
-            var defaultChannel = channelManager.GetDefaultChannel();
-            return $"{defaultChannel.Type},{defaultChannel.Address}";
-        }
-
-        IManageReceiveChannels channelManager;
         string localAddress;
         ConfigurationBasedSiteRouter configRouter;
         MessageNotifier messageNotifier;
         string inputAddress;
+        string replyToAddress;
     }
 }
