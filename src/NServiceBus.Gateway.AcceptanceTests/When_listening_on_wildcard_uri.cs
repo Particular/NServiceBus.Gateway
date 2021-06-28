@@ -15,7 +15,7 @@
                     .WithEndpoint<EndpointWithWildCardUriAsDefault>()
                     .Done(c => c.EndpointsStarted)
                     .Run();
-            }, Throws.Exception.With.Message.Contains("Please add an extra channel with a fully qualified non-wildcard uri in order for replies to be transmitted properly."));
+            }, Throws.Exception.With.Message.Contains("contains a wildcard in the URI"));
         }
 
         class EndpointWithWildCardUriAsDefault : EndpointConfigurationBuilder
@@ -49,6 +49,54 @@
                     var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
                     gatewaySettings.AddReceiveChannel("http://+:25701/WildcardB/");
                     gatewaySettings.AddReceiveChannel("http://localhost:25700/WildcardB/", isDefault: true);
+                });
+            }
+        }
+
+        [Test]
+        public void Should_not_throw_if_replyto_address_specified()
+        {
+            Assert.DoesNotThrowAsync(async () =>
+                await Scenario.Define<ScenarioContext>()
+                    .WithEndpoint<EndpointWithWildCardAndReplyToAddressSpecified>()
+                    .Done(c => c.EndpointsStarted)
+                    .Run());
+        }
+
+        class EndpointWithWildCardAndReplyToAddressSpecified : EndpointConfigurationBuilder
+        {
+            public EndpointWithWildCardAndReplyToAddressSpecified()
+            {
+                EndpointSetup<GatewayEndpoint>(c =>
+                {
+                    var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
+                    gatewaySettings.AddReceiveChannel("http://+:25701/WildcardB/");
+                    gatewaySettings.SetReplyToUri("http://localhost:25701/WildcardB/");
+                });
+            }
+        }
+
+        [Test]
+        public void Should_throw_if_no_channels_match_replytoaddress_type()
+        {
+            Assert.That(async () =>
+            {
+                await Scenario.Define<ScenarioContext>()
+                    .WithEndpoint<EndpointWithNoChannelMatchingReplyToAddressType>()
+                    .Done(c => c.EndpointsStarted)
+                    .Run();
+            }, Throws.Exception.With.Message.Contains("there are no channels of that type configured to listen"));
+        }
+
+        class EndpointWithNoChannelMatchingReplyToAddressType : EndpointConfigurationBuilder
+        {
+            public EndpointWithNoChannelMatchingReplyToAddressType()
+            {
+                EndpointSetup<GatewayEndpoint>(c =>
+                {
+                    var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
+                    gatewaySettings.AddReceiveChannel("http://+:25701/WildcardB/");
+                    gatewaySettings.SetReplyToUri("http://localhost:25701/WildcardB/", type: "notHttp");
                 });
             }
         }
