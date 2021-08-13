@@ -9,7 +9,7 @@ namespace NServiceBus.Gateway.Receiving
 
     static class ChannelReceiverHeaderReader
     {
-        public static CallInfo GetCallInfo(DataReceivedOnChannelArgs receivedData)
+        public static CallInfo GetCallInfo(DataReceivedOnChannelEventArgs receivedData)
         {
             return new CallInfo
             {

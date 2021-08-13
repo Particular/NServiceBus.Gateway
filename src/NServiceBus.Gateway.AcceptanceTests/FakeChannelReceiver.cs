@@ -7,7 +7,7 @@ namespace NServiceBus.Gateway.AcceptanceTests
 
     class FakeChannelReceiver : IChannelReceiver
     {
-        public void Start(string address, int maxConcurrency, Func<DataReceivedOnChannelArgs, CancellationToken, Task> dataReceivedOnChannel)
+        public void Start(string address, int maxConcurrency, Func<DataReceivedOnChannelEventArgs, CancellationToken, Task> dataReceivedOnChannel)
         {
         }
 

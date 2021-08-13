@@ -35,7 +35,7 @@
         public Task Stop(CancellationToken cancellationToken = default) =>
             channelReceiver?.Stop(cancellationToken);
 
-        async Task DataReceivedOnChannel(DataReceivedOnChannelArgs e, CancellationToken cancellationToken)
+        async Task DataReceivedOnChannel(DataReceivedOnChannelEventArgs e, CancellationToken cancellationToken)
         {
             using (e.Data)
             {
