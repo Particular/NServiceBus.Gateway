@@ -3,8 +3,6 @@
 namespace NServiceBus.Gateway
 {
     using System;
-    using System.Collections.Generic;
-    using System.IO;
 
     [ObsoleteEx(
         TreatAsErrorFromVersion = "4.0.0",
@@ -14,9 +12,6 @@ namespace NServiceBus.Gateway
     public class DataReceivedOnChannelArgs : EventArgs
 #pragma warning restore CA1710 // Identifiers should have correct suffix
     {
-        public IDictionary<string, string> Headers { get; set; }
-
-        public Stream Data { get; set; }
     }
 }
 
