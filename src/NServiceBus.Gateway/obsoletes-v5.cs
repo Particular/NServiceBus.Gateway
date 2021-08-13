@@ -7,10 +7,12 @@ namespace NServiceBus.Gateway
     using System.IO;
 
     [ObsoleteEx(
-        TreatAsErrorFromVersion = "8.0.0",
-        RemoveInVersion = "9.0.0",
+        TreatAsErrorFromVersion = "4.0.0",
+        RemoveInVersion = "5.0.0",
         ReplacementTypeOrMember = nameof(DataReceivedOnChannelEventArgs))]
+#pragma warning disable CA1710 // Identifiers should have correct suffix
     public class DataReceivedOnChannelArgs : EventArgs
+#pragma warning restore CA1710 // Identifiers should have correct suffix
     {
         public IDictionary<string, string> Headers { get; set; }
 
