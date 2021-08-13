@@ -49,19 +49,19 @@ namespace NServiceBus.Gateway.Sending
             await SendToSite(context.Body, context.Headers, destination, forwarder, cancellationToken).ConfigureAwait(false);
         }
 
-        static MessageIntentEnum GetMessageIntent(Dictionary<string, string> headers)
+        static MessageIntent GetMessageIntent(Dictionary<string, string> headers)
         {
-            if (headers.TryGetValue(Headers.MessageIntent, out var messageIntentString) && Enum.TryParse(messageIntentString, true, out MessageIntentEnum messageIntent))
+            if (headers.TryGetValue(Headers.MessageIntent, out var messageIntentString) && Enum.TryParse(messageIntentString, true, out MessageIntent messageIntent))
             {
                 return messageIntent;
             }
-            return MessageIntentEnum.Send;
+            return MessageIntent.Send;
         }
 
 
-        IList<Site> GetDestinationSitesFor(Dictionary<string, string> headers, MessageIntentEnum intent)
+        IList<Site> GetDestinationSitesFor(Dictionary<string, string> headers, MessageIntent intent)
         {
-            if (intent == MessageIntentEnum.Reply)
+            if (intent == MessageIntent.Reply)
             {
                 return OriginatingSiteHeaderRouter.GetDestinationSitesFor(headers).ToList();
             }

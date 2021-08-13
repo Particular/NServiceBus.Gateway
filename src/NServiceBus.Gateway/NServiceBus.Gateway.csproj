@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
-    <PackageReference Include="NServiceBus" Version="[8.0.0-alpha.1895, 9.0.0)" />
+    <PackageReference Include="NServiceBus" Version="[8.0.0-alpha.1896, 9.0.0)" />
   </ItemGroup>
 
   <ItemGroup>

@@ -149,22 +149,22 @@
             settings.Set("Gateway.TransactionTimeout", timeout);
         }
 
-        internal static TimeSpan? GetTransactionTimeout(ReadOnlySettings settings)
+        internal static TimeSpan? GetTransactionTimeout(IReadOnlySettings settings)
         {
             return settings.TryGet("Gateway.TransactionTimeout", out TimeSpan? timeout) ? timeout : null;
         }
 
-        internal static List<Site> GetConfiguredSites(ReadOnlySettings settings)
+        internal static List<Site> GetConfiguredSites(IReadOnlySettings settings)
         {
             return settings.TryGet(out List<Site> sites) ? sites : new List<Site>();
         }
 
-        internal static List<ReceiveChannel> GetConfiguredChannels(ReadOnlySettings settings)
+        internal static List<ReceiveChannel> GetConfiguredChannels(IReadOnlySettings settings)
         {
             return settings.TryGet(out List<ReceiveChannel> channels) ? channels : new List<ReceiveChannel>();
         }
 
-        internal static (string type, string address) GetReplyToUri(ReadOnlySettings settings)
+        internal static (string type, string address) GetReplyToUri(IReadOnlySettings settings)
         {
             return settings.TryGet("Gateway.ReplyToUri", out (string type, string address) values) ? values : (null, null);
         }

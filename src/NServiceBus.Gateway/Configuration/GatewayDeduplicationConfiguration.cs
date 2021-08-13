@@ -11,7 +11,7 @@
         /// <summary>
         /// Invoked when the endpoint configuration completed to initialize the storage or verify configuration before the endpoint starts.
         /// </summary>
-        public virtual void Setup(ReadOnlySettings settings)
+        public virtual void Setup(IReadOnlySettings settings)
         {
         }
 
