@@ -110,7 +110,7 @@
             installerSettings.Enabled = true;
         }
 
-        static string GetReplyToAddress(ReadOnlySettings settings, IManageReceiveChannels channelManager)
+        static string GetReplyToAddress(IReadOnlySettings settings, IManageReceiveChannels channelManager)
         {
             var replyToUri = GatewaySettings.GetReplyToUri(settings);
             if (replyToUri.type == null || replyToUri.address == null)
@@ -147,7 +147,7 @@
             GatewayTransaction.ConfiguredTimeout = GatewaySettings.GetTransactionTimeout(context.Settings);
         }
 
-        internal static IManageReceiveChannels CreateChannelManager(ReadOnlySettings settings)
+        internal static IManageReceiveChannels CreateChannelManager(IReadOnlySettings settings)
         {
             var channels = GatewaySettings.GetConfiguredChannels(settings);
 

@@ -7,7 +7,7 @@ namespace NServiceBus.Gateway
     /// <summary>
     /// Contains the data and headers received.
     /// </summary>
-    public class DataReceivedOnChannelArgs : EventArgs
+    public class DataReceivedOnChannelEventArgs : EventArgs
     {
         /// <summary>
         /// The headers received.

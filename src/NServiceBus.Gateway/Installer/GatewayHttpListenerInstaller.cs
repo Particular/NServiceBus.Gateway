@@ -16,7 +16,7 @@ namespace NServiceBus.Installation
         IManageReceiveChannels channelManager;
         bool enabled;
 
-        public GatewayHttpListenerInstaller(ReadOnlySettings settings)
+        public GatewayHttpListenerInstaller(IReadOnlySettings settings)
         {
             if (!settings.TryGet<InstallerSettings>(out var installerSettings))
             {
