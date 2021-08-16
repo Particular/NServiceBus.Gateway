@@ -9,9 +9,14 @@ namespace NServiceBus.Gateway
         SingleCallSubmit = 0,
         SingleCallDatabusProperty = 1,
     }
+    [System.Obsolete("Use `DataReceivedOnChannelEventArgs` instead. Will be removed in version 5.0.0.", true)]
     public class DataReceivedOnChannelArgs : System.EventArgs
     {
         public DataReceivedOnChannelArgs() { }
+    }
+    public class DataReceivedOnChannelEventArgs : System.EventArgs
+    {
+        public DataReceivedOnChannelEventArgs() { }
         public System.IO.Stream Data { get; set; }
         public System.Collections.Generic.IDictionary<string, string> Headers { get; set; }
     }
@@ -19,11 +24,11 @@ namespace NServiceBus.Gateway
     {
         protected GatewayDeduplicationConfiguration() { }
         public abstract NServiceBus.Gateway.IGatewayDeduplicationStorage CreateStorage(System.IServiceProvider builder);
-        public virtual void Setup(NServiceBus.Settings.ReadOnlySettings settings) { }
+        public virtual void Setup(NServiceBus.Settings.IReadOnlySettings settings) { }
     }
     public interface IChannelReceiver
     {
-        void Start(string address, int maxConcurrency, System.Func<NServiceBus.Gateway.DataReceivedOnChannelArgs, System.Threading.CancellationToken, System.Threading.Tasks.Task> dataReceivedOnChannel);
+        void Start(string address, int maxConcurrency, System.Func<NServiceBus.Gateway.DataReceivedOnChannelEventArgs, System.Threading.CancellationToken, System.Threading.Tasks.Task> dataReceivedOnChannel);
         System.Threading.Tasks.Task Stop(System.Threading.CancellationToken cancellationToken = default);
     }
     public interface IChannelSender
