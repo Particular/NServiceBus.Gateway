@@ -5,7 +5,7 @@ namespace NServiceBus.Gateway.Notifications
 
     class MessageReceivedOnChannelArgs : EventArgs
     {
-        public byte[] Body { get; set; }
+        public ReadOnlyMemory<byte> Body { get; set; }
         public Dictionary<string, string> Headers { get; set; }
         public string FromChannel { get; set; }
         public string ToChannel { get; set; }

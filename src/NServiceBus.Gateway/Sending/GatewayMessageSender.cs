@@ -72,7 +72,7 @@ namespace NServiceBus.Gateway.Sending
             return conventionRoutes.Concat(configuredRoutes).ToList();
         }
 
-        Task CloneAndSendLocal(byte[] body, Dictionary<string, string> headers, Site destinationSite, TransportTransaction transportTransaction, IMessageDispatcher dispatcher, CancellationToken cancellationToken)
+        Task CloneAndSendLocal(ReadOnlyMemory<byte> body, Dictionary<string, string> headers, Site destinationSite, TransportTransaction transportTransaction, IMessageDispatcher dispatcher, CancellationToken cancellationToken)
         {
             headers[Headers.DestinationSites] = destinationSite.Key;
 
@@ -82,7 +82,7 @@ namespace NServiceBus.Gateway.Sending
             return dispatcher.Dispatch(new TransportOperations(operation), transportTransaction, cancellationToken);
         }
 
-        async Task SendToSite(byte[] body, Dictionary<string, string> headers, Site targetSite, SingleCallChannelForwarder forwarder, CancellationToken cancellationToken)
+        async Task SendToSite(ReadOnlyMemory<byte> body, Dictionary<string, string> headers, Site targetSite, SingleCallChannelForwarder forwarder, CancellationToken cancellationToken)
         {
             headers[Headers.OriginatingSite] = replyToAddress;
 

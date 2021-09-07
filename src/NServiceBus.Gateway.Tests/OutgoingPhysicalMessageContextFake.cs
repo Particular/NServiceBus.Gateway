@@ -63,12 +63,9 @@ namespace NServiceBus.Gateway.Tests
 
         public string MessageId { get; }
         public Dictionary<string, string> Headers { get; }
-        public void UpdateMessage(byte[] body)
-        {
-            throw new NotImplementedException();
-        }
+        public void UpdateMessage(ReadOnlyMemory<byte> body) => throw new NotImplementedException();
 
-        public byte[] Body { get; set; }
+        public ReadOnlyMemory<byte> Body { get; set; }
         public IReadOnlyCollection<RoutingStrategy> RoutingStrategies { get; }
 #pragma warning disable PS0002 // Instance methods on types implementing ICancellableContext should not have a CancellationToken parameter
         public CancellationToken CancellationToken { get; set; }
