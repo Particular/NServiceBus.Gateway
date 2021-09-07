@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="[8.0.0-alpha.1896, 9.0.0)" />
-    <PackageReference Include="NServiceBus.Callbacks" Version="[4.0.0-alpha.128, 5.0.0)" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="[8.0.0-alpha.1897, 9.0.0)" />
+    <PackageReference Include="NServiceBus.Callbacks" Version="[4.0.0-alpha.129, 5.0.0)" />
   </ItemGroup>
 
   <ItemGroup>

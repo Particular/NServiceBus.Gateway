@@ -7,7 +7,7 @@ namespace NServiceBus.Gateway.Notifications
     {
         public event EventHandler<MessageReceivedOnChannelArgs> MessageForwarded = (sender, e) => { };
 
-        public void RaiseMessageForwarded(string from, string to, byte[] messageBody, Dictionary<string, string> headers)
+        public void RaiseMessageForwarded(string from, string to, ReadOnlyMemory<byte> messageBody, Dictionary<string, string> headers)
         {
             MessageForwarded(this, new MessageReceivedOnChannelArgs
             {
