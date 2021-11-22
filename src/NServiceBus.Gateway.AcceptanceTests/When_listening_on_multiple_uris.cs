@@ -8,7 +8,6 @@
     using System.Security.Cryptography;
     using System.Text;
     using System.Threading.Tasks;
-    using System.Web;
     using AcceptanceTesting;
     using Configuration.AdvancedExtensibility;
     using NUnit.Framework;
@@ -35,12 +34,11 @@
 
         async Task SendMessage(string url)
         {
-            var webRequest = CreateWebRequest(url);
-
             while (true)
             {
                 try
                 {
+                    var webRequest = CreateWebRequest(url);
                     using (var httpClient = new HttpClient())
                     using (var response = await httpClient.SendAsync(webRequest))
                     {
@@ -62,11 +60,9 @@
 
             const string message = "<?xml version=\"1.0\" ?><Messages xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"http://tempuri.net/NServiceBus.Gateway.AcceptanceTests\"><MyRequest></MyRequest></Messages>";
 
-            using (var messagePayload = new MemoryStream(Encoding.UTF8.GetBytes(message)))
-            {
-                webRequest.Content = new StreamContent(messagePayload);
-                webRequest.Content.Headers.Add("Content-MD5", HttpUtility.UrlEncode(Hash(messagePayload)));
-            }
+            var messagePayload = new MemoryStream(Encoding.UTF8.GetBytes(message));
+            webRequest.Content = new StreamContent(messagePayload);
+            webRequest.Content.Headers.Add("Content-MD5", Hash(messagePayload));
 
             webRequest.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml; charset=utf-8");
 

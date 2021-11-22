@@ -8,7 +8,6 @@
     using System.Security.Cryptography;
     using System.Text;
     using System.Threading.Tasks;
-    using System.Web;
     using AcceptanceTesting;
     using Configuration.AdvancedExtensibility;
     using NUnit.Framework;
@@ -25,12 +24,10 @@
 
                     const string message = "<?xml version=\"1.0\" ?><Messages xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"http://tempuri.net/NServiceBus.Gateway.AcceptanceTests\"><MyRequest></MyRequest></Messages>";
 
-                    using (var messagePayload = new MemoryStream(Encoding.UTF8.GetBytes(message)))
-                    {
-                        webRequest.Content = new StreamContent(messagePayload);
-                        webRequest.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml; charset=utf-8");
-                        webRequest.Content.Headers.Add("Content-MD5", HttpUtility.UrlEncode(Hash(messagePayload)));
-                    }
+                    var messagePayload = new MemoryStream(Encoding.UTF8.GetBytes(message));
+                    webRequest.Content = new StreamContent(messagePayload);
+                    webRequest.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml; charset=utf-8");
+                    webRequest.Content.Headers.Add("Content-MD5", Hash(messagePayload));
 
                     webRequest.Content.Headers.Add("Content-Encoding", "utf-8");
                     webRequest.Content.Headers.Add("NServiceBus.CallType", "SingleCallSubmit");
