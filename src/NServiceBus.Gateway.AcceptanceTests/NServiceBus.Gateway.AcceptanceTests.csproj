@@ -35,8 +35,4 @@
     <RemoveSourceFileFromPackage Include="NonDurableTestSuiteConstaints.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Remove="databus\**" />
-  </ItemGroup>
-
 </Project>
