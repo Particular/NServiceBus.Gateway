@@ -56,11 +56,11 @@
 
             var retryPolicy = context.Settings.Get<Func<IncomingMessage, Exception, int, TimeSpan>>("Gateway.Retries.RetryPolicy");
 
-            var gatewayInputAddress = new QueueAddress(context.Settings.EndpointQueueName(), null, null, "gateway");
+            var logicalGatewayAddress = new QueueAddress(context.Settings.EndpointQueueName(), null, null, "gateway");
             var replyToAddress = GetReplyToAddress(context.Settings, channelManager);
 
             context.Services.AddSingleton(b => new GatewayMessageSender(
-                b.GetService<ITransportAddressResolver>().ToTransportAddress(gatewayInputAddress),
+                b.GetService<ITransportAddressResolver>().ToTransportAddress(logicalGatewayAddress),
                 new MessageNotifier(),
                 b.GetService<ReceiveAddresses>().MainReceiveAddress,
                 GetConfigurationBasedSiteRouter(context),
@@ -68,7 +68,7 @@
                 b.GetService<IMessageDispatcher>(),
                 CreateForwarder(channelSenderFactory, b.GetServices<IDataBus>()?.FirstOrDefault())));
 
-            context.AddSatelliteReceiver("Gateway", gatewayInputAddress, PushRuntimeSettings.Default,
+            context.AddSatelliteReceiver("Gateway", logicalGatewayAddress, PushRuntimeSettings.Default,
                 (config, errorContext) => GatewayRecoverabilityPolicy.Invoke(errorContext, retryPolicy, config),
                 (builder, messageContext, cancellationToken) => builder.GetService<GatewayMessageSender>().SendToDestination(messageContext, cancellationToken));
             ;
@@ -77,7 +77,7 @@
                 .Select(s => s.Key)
                 .ToList();
 
-            context.Pipeline.Register("RouteToGateway", b => new RouteToGatewayBehavior(b.GetService<ITransportAddressResolver>().ToTransportAddress(gatewayInputAddress), configuredSitesKeys), "Reroutes gateway messages to the gateway");
+            context.Pipeline.Register("RouteToGateway", b => new RouteToGatewayBehavior(b.GetService<ITransportAddressResolver>().ToTransportAddress(logicalGatewayAddress), configuredSitesKeys), "Reroutes gateway messages to the gateway");
             context.Pipeline.Register("GatewayIncomingBehavior", new GatewayIncomingBehavior(), "Extracts gateway related information from the incoming message");
             context.Pipeline.Register("GatewayOutgoingBehavior", new GatewayOutgoingBehavior(), "Puts gateway related information on the headers of outgoing messages");
 
@@ -88,7 +88,7 @@
                 b.GetRequiredService<IMessageDispatcher>(),
                 storageConfiguration.CreateStorage(b),
                 b.GetServices<IDataBus>()?.FirstOrDefault(),
-                b.GetService<ITransportAddressResolver>().ToTransportAddress(gatewayInputAddress),
+                b.GetService<ITransportAddressResolver>().ToTransportAddress(logicalGatewayAddress),
                 transportDefinition.TransportTransactionMode));
         }
 
