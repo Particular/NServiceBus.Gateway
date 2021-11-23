@@ -13,15 +13,25 @@ namespace NServiceBus.Gateway.Sending
 
     class GatewayMessageSender
     {
-        public GatewayMessageSender(QueueAddress inputAddress, MessageNotifier notifier, ConfigurationBasedSiteRouter configRouter, string replyToAddress)
+        public GatewayMessageSender(
+            string inputAddress,
+            MessageNotifier notifier,
+            string localAddress,
+            ConfigurationBasedSiteRouter configRouter,
+            string replyToAddress,
+            IMessageDispatcher dispatcher,
+            SingleCallChannelForwarder forwarder)
         {
             this.configRouter = configRouter;
             messageNotifier = notifier;
+            this.localAddress = localAddress;
             this.inputAddress = inputAddress;
             this.replyToAddress = replyToAddress;
+            this.dispatcher = dispatcher;
+            this.forwarder = forwarder;
         }
 
-        public async Task SendToDestination(ITransportAddressResolver transportAddressResolver, MessageContext context, IMessageDispatcher dispatcher, SingleCallChannelForwarder forwarder, CancellationToken cancellationToken = default)
+        public async Task SendToDestination(MessageContext context, CancellationToken cancellationToken = default)
         {
             var intent = GetMessageIntent(context.Headers);
 
@@ -32,7 +42,7 @@ namespace NServiceBus.Gateway.Sending
             {
                 foreach (var destinationSite in destinationSites)
                 {
-                    await CloneAndSendLocal(transportAddressResolver, context.Body, context.Headers, destinationSite, context.TransportTransaction, dispatcher, cancellationToken).ConfigureAwait(false);
+                    await CloneAndSendLocal(context.Body, context.Headers, destinationSite, context.TransportTransaction, dispatcher, cancellationToken).ConfigureAwait(false);
                 }
 
                 return;
@@ -45,7 +55,7 @@ namespace NServiceBus.Gateway.Sending
                 throw new InvalidOperationException("No destination found for message");
             }
 
-            await SendToSite(context.ReceiveAddress, context.Body, context.Headers, destination, forwarder, cancellationToken).ConfigureAwait(false);
+            await SendToSite(context.Body, context.Headers, destination, forwarder, cancellationToken).ConfigureAwait(false);
         }
 
         static MessageIntent GetMessageIntent(Dictionary<string, string> headers)
@@ -71,17 +81,17 @@ namespace NServiceBus.Gateway.Sending
             return conventionRoutes.Concat(configuredRoutes).ToList();
         }
 
-        Task CloneAndSendLocal(ITransportAddressResolver transportAddressResolver, ReadOnlyMemory<byte> body, Dictionary<string, string> headers, Site destinationSite, TransportTransaction transportTransaction, IMessageDispatcher dispatcher, CancellationToken cancellationToken)
+        Task CloneAndSendLocal(ReadOnlyMemory<byte> body, Dictionary<string, string> headers, Site destinationSite, TransportTransaction transportTransaction, IMessageDispatcher dispatcher, CancellationToken cancellationToken)
         {
             headers[Headers.DestinationSites] = destinationSite.Key;
 
             var message = new OutgoingMessage(headers[Headers.MessageId], headers, body);
-            var operation = new TransportOperation(message, new UnicastAddressTag(transportAddressResolver.ToTransportAddress(inputAddress)));
+            var operation = new TransportOperation(message, new UnicastAddressTag(inputAddress));
 
             return dispatcher.Dispatch(new TransportOperations(operation), transportTransaction, cancellationToken);
         }
 
-        async Task SendToSite(string localAddress, ReadOnlyMemory<byte> body, Dictionary<string, string> headers, Site targetSite, SingleCallChannelForwarder forwarder, CancellationToken cancellationToken)
+        async Task SendToSite(ReadOnlyMemory<byte> body, Dictionary<string, string> headers, Site targetSite, SingleCallChannelForwarder forwarder, CancellationToken cancellationToken)
         {
             headers[Headers.OriginatingSite] = replyToAddress;
 
@@ -90,9 +100,12 @@ namespace NServiceBus.Gateway.Sending
             messageNotifier.RaiseMessageForwarded(localAddress, targetSite.Channel.Type, body, headers);
         }
 
+        string localAddress;
         ConfigurationBasedSiteRouter configRouter;
         MessageNotifier messageNotifier;
-        QueueAddress inputAddress;
+        string inputAddress;
         string replyToAddress;
+        readonly IMessageDispatcher dispatcher;
+        readonly SingleCallChannelForwarder forwarder;
     }
 }

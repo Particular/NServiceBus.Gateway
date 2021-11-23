@@ -59,15 +59,18 @@
             var gatewayInputAddress = new QueueAddress(context.Settings.EndpointQueueName(), null, null, "gateway");
             var replyToAddress = GetReplyToAddress(context.Settings, channelManager);
 
-            var sender = new GatewayMessageSender(
-                gatewayInputAddress,
+            context.Services.AddSingleton(b => new GatewayMessageSender(
+                b.GetService<ITransportAddressResolver>().ToTransportAddress(gatewayInputAddress),
                 new MessageNotifier(),
+                b.GetService<ReceiveAddresses>().MainReceiveAddress,
                 GetConfigurationBasedSiteRouter(context),
-                replyToAddress);
+                replyToAddress,
+                b.GetService<IMessageDispatcher>(),
+                CreateForwarder(channelSenderFactory, b.GetServices<IDataBus>()?.FirstOrDefault())));
 
             context.AddSatelliteReceiver("Gateway", gatewayInputAddress, PushRuntimeSettings.Default,
                 (config, errorContext) => GatewayRecoverabilityPolicy.Invoke(errorContext, retryPolicy, config),
-                (builder, messageContext, cancellationToken) => sender.SendToDestination(builder.GetService<ITransportAddressResolver>(), messageContext, builder.GetRequiredService<IMessageDispatcher>(), CreateForwarder(channelSenderFactory, builder.GetServices<IDataBus>()?.FirstOrDefault()), cancellationToken));
+                (builder, messageContext, cancellationToken) => builder.GetService<GatewayMessageSender>().SendToDestination(messageContext, cancellationToken));
             ;
 
             var configuredSitesKeys = GatewaySettings.GetConfiguredSites(context.Settings)
@@ -86,10 +89,7 @@
                 storageConfiguration.CreateStorage(b),
                 b.GetServices<IDataBus>()?.FirstOrDefault(),
                 b.GetService<ITransportAddressResolver>().ToTransportAddress(gatewayInputAddress),
-                transportDefinition.TransportTransactionMode)
-            {
-
-            });
+                transportDefinition.TransportTransactionMode));
         }
 
         static void RegisterChannels(FeatureConfigurationContext context, IManageReceiveChannels channelManager, out Func<string, IChannelSender> channelSenderFactory, out Func<string, IChannelReceiver> channelReceiverFactory)
