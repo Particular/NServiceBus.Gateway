@@ -13,7 +13,8 @@
             {
                 var endpointName = endpointCustomizationConfiguration.CustomEndpointName ?? configuration.GetSettings().EndpointName();
 
-                var deduplicationConfiguration = GatewayTestSuiteConstraints.Current.ConfigureDeduplicationStorage(
+                var constraints = new GatewayTestSuiteConstraints();
+                var deduplicationConfiguration = constraints.ConfigureDeduplicationStorage(
                     endpointName,
                     configuration,
                     runDescriptor.Settings)
@@ -23,7 +24,7 @@
 
                 configuration.GetSettings().Set(gatewaySettings);
 
-                runDescriptor.OnTestCompleted(_ => GatewayTestSuiteConstraints.Current.Cleanup());
+                runDescriptor.OnTestCompleted(_ => constraints.Cleanup());
 
                 configurationBuilderCustomization(configuration);
             });
