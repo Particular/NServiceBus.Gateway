@@ -43,6 +43,11 @@
         /// </summary>
         protected override void Setup(FeatureConfigurationContext context)
         {
+            if (context.Settings.GetOrDefault<bool>("Endpoint.SendOnly"))
+            {
+                throw new InvalidOperationException("Gateway is not support for send only endpoints.");
+            }
+
             var storageConfiguration = context.Settings.Get<GatewayDeduplicationConfiguration>();
             storageConfiguration.Setup(context.Settings);
 
