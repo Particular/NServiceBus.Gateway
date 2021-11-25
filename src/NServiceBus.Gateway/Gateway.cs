@@ -43,6 +43,11 @@
         /// </summary>
         protected override void Setup(FeatureConfigurationContext context)
         {
+            if (context.Settings.GetOrDefault<bool>("Endpoint.SendOnly"))
+            {
+                throw new InvalidOperationException("Gateway is not support for send only endpoints.");
+            }
+
             var storageConfiguration = context.Settings.Get<GatewayDeduplicationConfiguration>();
             storageConfiguration.Setup(context.Settings);
 
@@ -54,29 +59,30 @@
 
             RegisterChannels(context, channelManager, out var channelSenderFactory, out var channelReceiverFactory);
 
-            var logicalAddress = new QueueAddress(context.Settings.EndpointQueueName(), null, null, "gateway");
-            var gatewayInputAddress = transportDefinition.ToTransportAddress(logicalAddress);
-
             var retryPolicy = context.Settings.Get<Func<IncomingMessage, Exception, int, TimeSpan>>("Gateway.Retries.RetryPolicy");
 
+            var logicalGatewayAddress = new QueueAddress(context.Settings.EndpointQueueName(), null, null, "gateway");
             var replyToAddress = GetReplyToAddress(context.Settings, channelManager);
 
-            var sender = new GatewayMessageSender(
-                gatewayInputAddress,
+            context.Services.AddSingleton(b => new GatewayMessageSender(
+                b.GetRequiredService<ITransportAddressResolver>().ToTransportAddress(logicalGatewayAddress),
                 new MessageNotifier(),
-                context.Settings.LocalAddress(),
+                b.GetRequiredService<ReceiveAddresses>().MainReceiveAddress,
                 GetConfigurationBasedSiteRouter(context),
-                replyToAddress);
+                replyToAddress,
+                b.GetRequiredService<IMessageDispatcher>(),
+                CreateForwarder(channelSenderFactory, b.GetServices<IDataBus>()?.FirstOrDefault())));
 
-            context.AddSatelliteReceiver("Gateway", gatewayInputAddress, PushRuntimeSettings.Default,
+            context.AddSatelliteReceiver("Gateway", logicalGatewayAddress, PushRuntimeSettings.Default,
                 (config, errorContext) => GatewayRecoverabilityPolicy.Invoke(errorContext, retryPolicy, config),
-                (builder, messageContext, cancellationToken) => sender.SendToDestination(messageContext, builder.GetRequiredService<IMessageDispatcher>(), CreateForwarder(channelSenderFactory, builder.GetServices<IDataBus>()?.FirstOrDefault()), cancellationToken));
+                (builder, messageContext, cancellationToken) => builder.GetRequiredService<GatewayMessageSender>().SendToDestination(messageContext, cancellationToken));
+            ;
 
             var configuredSitesKeys = GatewaySettings.GetConfiguredSites(context.Settings)
                 .Select(s => s.Key)
                 .ToList();
 
-            context.Pipeline.Register("RouteToGateway", new RouteToGatewayBehavior(gatewayInputAddress, configuredSitesKeys), "Reroutes gateway messages to the gateway");
+            context.Pipeline.Register("RouteToGateway", b => new RouteToGatewayBehavior(b.GetRequiredService<ITransportAddressResolver>().ToTransportAddress(logicalGatewayAddress), configuredSitesKeys), "Reroutes gateway messages to the gateway");
             context.Pipeline.Register("GatewayIncomingBehavior", new GatewayIncomingBehavior(), "Extracts gateway related information from the incoming message");
             context.Pipeline.Register("GatewayOutgoingBehavior", new GatewayOutgoingBehavior(), "Puts gateway related information on the headers of outgoing messages");
 
@@ -87,7 +93,7 @@
                 b.GetRequiredService<IMessageDispatcher>(),
                 storageConfiguration.CreateStorage(b),
                 b.GetServices<IDataBus>()?.FirstOrDefault(),
-                gatewayInputAddress,
+                b.GetRequiredService<ITransportAddressResolver>().ToTransportAddress(logicalGatewayAddress),
                 transportDefinition.TransportTransactionMode));
         }
 

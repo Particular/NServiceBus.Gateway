@@ -18,6 +18,7 @@
                 new byte[0],
                 new TransportTransaction(),
                 2,
+                "my-queue",
                 new ContextBag());
 
             config = new RecoverabilityConfig(

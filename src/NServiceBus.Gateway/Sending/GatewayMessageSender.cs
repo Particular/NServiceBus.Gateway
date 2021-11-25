@@ -13,16 +13,25 @@ namespace NServiceBus.Gateway.Sending
 
     class GatewayMessageSender
     {
-        public GatewayMessageSender(string inputAddress, MessageNotifier notifier, string localAddress, ConfigurationBasedSiteRouter configRouter, string replyToAddress)
+        public GatewayMessageSender(
+            string inputAddress,
+            MessageNotifier notifier,
+            string localAddress,
+            ConfigurationBasedSiteRouter configRouter,
+            string replyToAddress,
+            IMessageDispatcher dispatcher,
+            SingleCallChannelForwarder forwarder)
         {
             this.configRouter = configRouter;
             messageNotifier = notifier;
             this.localAddress = localAddress;
             this.inputAddress = inputAddress;
             this.replyToAddress = replyToAddress;
+            this.dispatcher = dispatcher;
+            this.forwarder = forwarder;
         }
 
-        public async Task SendToDestination(MessageContext context, IMessageDispatcher dispatcher, SingleCallChannelForwarder forwarder, CancellationToken cancellationToken = default)
+        public async Task SendToDestination(MessageContext context, CancellationToken cancellationToken = default)
         {
             var intent = GetMessageIntent(context.Headers);
 
@@ -96,5 +105,7 @@ namespace NServiceBus.Gateway.Sending
         MessageNotifier messageNotifier;
         string inputAddress;
         string replyToAddress;
+        readonly IMessageDispatcher dispatcher;
+        readonly SingleCallChannelForwarder forwarder;
     }
 }
