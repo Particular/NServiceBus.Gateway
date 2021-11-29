@@ -3,10 +3,11 @@
     using System;
     using System.IO;
     using System.Net;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Security.Cryptography;
     using System.Text;
     using System.Threading.Tasks;
-    using System.Web;
     using AcceptanceTesting;
     using Configuration.AdvancedExtensibility;
     using NUnit.Framework;
@@ -17,13 +18,12 @@
         public async Task Should_receive_on_all_uris()
         {
             var context = await Scenario.Define<Context>()
-                .WithEndpoint<Headquarters>(b => b.When(bus =>
+                .WithEndpoint<Headquarters>(b => b.When(async bus =>
                 {
                     var hostname = Dns.GetHostName();
 
-                    SendMessage(DefaultReceiveURI);
-                    SendMessage($"http://{hostname}:25898/Headquarters/");
-                    return Task.FromResult(0);
+                    await SendMessage(DefaultReceiveURI);
+                    await SendMessage($"http://{hostname}:25898/Headquarters/");
                 }))
                 .Done(c => c.GotMessageOnDefaultChannel && c.GotMessageOnNonDefaultChannel)
                 .Run();
@@ -32,53 +32,45 @@
             Assert.IsTrue(context.GotMessageOnNonDefaultChannel);
         }
 
-        void SendMessage(string url)
+        async Task SendMessage(string url)
         {
-            var webRequest = CreateWebRequest(url);
-
             while (true)
             {
                 try
                 {
-                    using (var myWebResponse = (HttpWebResponse)webRequest.GetResponse())
+                    var webRequest = CreateWebRequest(url);
+                    using (var httpClient = new HttpClient())
+                    using (var response = await httpClient.SendAsync(webRequest))
                     {
-                        if (myWebResponse.StatusCode == HttpStatusCode.OK)
+                        if (response.StatusCode == HttpStatusCode.OK)
                         {
                             break;
                         }
                     }
                 }
-                catch (WebException)
+                catch (HttpRequestException)
                 {
                 }
             }
         }
 
-        static HttpWebRequest CreateWebRequest(string uri)
+        static HttpRequestMessage CreateWebRequest(string uri)
         {
-            var webRequest = (HttpWebRequest)WebRequest.Create(uri);
-
-            webRequest.Method = "POST";
-            webRequest.ContentType = "text/xml; charset=utf-8";
-           
-            webRequest.Headers.Add("Content-Encoding", "utf-8");
-            webRequest.Headers.Add("NServiceBus.CallType", "SingleCallSubmit");
-            webRequest.Headers.Add("NServiceBus.AutoAck", "true");
-            webRequest.Headers.Add("SentToHeader", uri);
-            webRequest.Headers.Add("NServiceBus.Id", Guid.NewGuid().ToString("N"));
+            var webRequest = new HttpRequestMessage(HttpMethod.Post, uri);
 
             const string message = "<?xml version=\"1.0\" ?><Messages xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns=\"http://tempuri.net/NServiceBus.Gateway.AcceptanceTests\"><MyRequest></MyRequest></Messages>";
 
-            using (var messagePayload = new MemoryStream(Encoding.UTF8.GetBytes(message)))
-            {
-                webRequest.Headers.Add(HttpRequestHeader.ContentMd5, HttpUtility.UrlEncode(Hash(messagePayload)));
-                webRequest.ContentLength = messagePayload.Length;
+            var messagePayload = new MemoryStream(Encoding.UTF8.GetBytes(message));
+            webRequest.Content = new StreamContent(messagePayload);
+            webRequest.Content.Headers.Add("Content-MD5", Hash(messagePayload));
 
-                using (var requestStream = webRequest.GetRequestStream())
-                {
-                    messagePayload.CopyTo(requestStream);
-                }
-            }
+            webRequest.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml; charset=utf-8");
+
+            webRequest.Content.Headers.Add("Content-Encoding", "utf-8");
+            webRequest.Content.Headers.Add("NServiceBus.CallType", "SingleCallSubmit");
+            webRequest.Content.Headers.Add("NServiceBus.AutoAck", "true");
+            webRequest.Content.Headers.Add("SentToHeader", uri);
+            webRequest.Content.Headers.Add("NServiceBus.Id", Guid.NewGuid().ToString("N"));
 
             return webRequest;
         }
@@ -114,17 +106,22 @@
 
             public class MyRequestHandler : IHandleMessages<MyRequest>
             {
-                public Context Context { get; set; }
+                Context testContext;
+
+                public MyRequestHandler(Context testContext)
+                {
+                    this.testContext = testContext;
+                }
 
                 public Task Handle(MyRequest response, IMessageHandlerContext context)
                 {
                     if (context.MessageHeaders["SentToHeader"] == DefaultReceiveURI)
                     {
-                        Context.GotMessageOnDefaultChannel = true;
+                        testContext.GotMessageOnDefaultChannel = true;
                     }
                     else
                     {
-                        Context.GotMessageOnNonDefaultChannel = true;
+                        testContext.GotMessageOnNonDefaultChannel = true;
                     }
 
                     return Task.FromResult(0);
