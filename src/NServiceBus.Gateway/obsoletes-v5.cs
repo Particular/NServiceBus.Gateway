@@ -13,6 +13,14 @@ namespace NServiceBus.Gateway
 #pragma warning restore CA1710 // Identifiers should have correct suffix
     {
     }
+
+    [ObsoleteEx(
+        TreatAsErrorFromVersion = "4.0.0",
+        RemoveInVersion = "5.0.0",
+        ReplacementTypeOrMember = nameof(NonDurableDeduplicationConfiguration))]
+    public class InMemoryDeduplicationConfiguration
+    {
+    }
 }
 
 #pragma warning restore 1591
