@@ -30,8 +30,10 @@
                 {
                     c.UsePersistence<InMemoryPersistence, StorageType.GatewayDeduplication>();
                     
+#pragma warning disable 618
                     // legacy configuration API (not passing a storage as parameter):
                     var gatewayConfiguration = c.Gateway();
+#pragma warning restore 618
                     gatewayConfiguration.AddReceiveChannel("http://localhost:25999/SiteA/");
                 });
             }

@@ -99,6 +99,9 @@ namespace NServiceBus
 {
     public class static GatewayExtensions
     {
+        [System.ObsoleteAttribute("Use `EndpointConfiguration.Gateway(GatewayDeduplicationConfiguration)` instead. W" +
+            "ill be treated as an error from version 4.0.0. Will be removed in version 5.0.0." +
+            "", false)]
         public static NServiceBus.GatewaySettings Gateway(this NServiceBus.EndpointConfiguration config) { }
         public static NServiceBus.GatewaySettings Gateway(this NServiceBus.EndpointConfiguration config, NServiceBus.Gateway.GatewayDeduplicationConfiguration storageConfiguration) { }
     }

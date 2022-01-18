@@ -12,6 +12,10 @@
         /// Allows the user to control how the gateway behaves.
         /// </summary>
         /// <param name="config">The <see cref="EndpointConfiguration"/> instance to apply the settings to.</param>
+        [ObsoleteEx(
+            TreatAsErrorFromVersion = "4",
+            RemoveInVersion = "5",
+            ReplacementTypeOrMember = "EndpointConfiguration.Gateway(GatewayDeduplicationConfiguration)")]
         public static GatewaySettings Gateway(this EndpointConfiguration config)
         {
             return config.Gateway(new LegacyDeduplicationStorageConfiguration());

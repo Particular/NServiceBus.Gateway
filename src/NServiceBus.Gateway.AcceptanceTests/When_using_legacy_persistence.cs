@@ -53,7 +53,9 @@
                     var testContext = runDescriptor.ScenarioContext as Context;
                     configuration.RegisterComponents(r => r.RegisterSingleton(typeof(IDeduplicateMessages), new FakeDeduplicationStorage(testContext)));
                     configuration.UsePersistence<FakeDeduplicationPersistence, StorageType.GatewayDeduplication>();
+#pragma warning disable 618
                     var gatewaySettings = configuration.Gateway();
+#pragma warning restore 618
                     gatewaySettings.AddReceiveChannel("http://localhost:25999/SiteA/");
                 });
             }

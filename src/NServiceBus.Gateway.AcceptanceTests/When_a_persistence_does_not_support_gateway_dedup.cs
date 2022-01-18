@@ -23,7 +23,9 @@
             {
                 EndpointSetup<GatewayEndpointWithNoStorage>(c =>
                 {
+#pragma warning disable 618
                     c.Gateway().AddReceiveChannel("http://localhost:25898/SomeSite/");
+#pragma warning restore 618
                 });
             }
         }

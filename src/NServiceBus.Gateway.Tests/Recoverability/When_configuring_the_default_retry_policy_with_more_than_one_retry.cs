@@ -18,8 +18,9 @@
             NumberOfRetries = 2;
 
             var config = new EndpointConfiguration("fake-endpoint");
+#pragma warning disable 618
             config.Gateway().Retries(NumberOfRetries, TimeIncrease);
-
+#pragma warning restore 618
             RetryPolicy = config.GetSettings().Get<Func<IncomingMessage, Exception, int, TimeSpan>>("Gateway.Retries.RetryPolicy");
         }
 
