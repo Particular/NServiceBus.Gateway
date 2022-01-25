@@ -45,6 +45,12 @@ namespace NServiceBus.Gateway
         bool SupportsDistributedTransactions { get; }
         System.Threading.Tasks.Task<NServiceBus.Gateway.IDeduplicationSession> CheckForDuplicate(string messageId, NServiceBus.Extensibility.ContextBag context, System.Threading.CancellationToken cancellationToken = default);
     }
+    [System.Obsolete("Use `NonDurableDeduplicationConfiguration` instead. Will be removed in version 5." +
+        "0.0.", true)]
+    public class InMemoryDeduplicationConfiguration
+    {
+        public InMemoryDeduplicationConfiguration() { }
+    }
     public class NonDurableDeduplicationConfiguration : NServiceBus.Gateway.GatewayDeduplicationConfiguration
     {
         public NonDurableDeduplicationConfiguration() { }
