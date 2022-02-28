@@ -79,7 +79,7 @@ namespace NServiceBus.Gateway.Channels
         public static bool operator !=(NServiceBus.Gateway.Channels.Channel left, NServiceBus.Gateway.Channels.Channel right) { }
         public static bool operator ==(NServiceBus.Gateway.Channels.Channel left, NServiceBus.Gateway.Channels.Channel right) { }
     }
-    [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.All, AllowMultiple=true)]
+    [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple=true)]
     public sealed class ChannelTypeAttribute : System.Attribute
     {
         public ChannelTypeAttribute(string type) { }
