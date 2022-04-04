@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27004.2002
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NServiceBus.Gateway", "NServiceBus.Gateway\NServiceBus.Gateway.csproj", "{25AD2314-8D8F-4950-B12C-D80487E666C9}"
 EndProject
@@ -11,11 +11,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NServiceBus.Gateway.Accepta
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5A37BBF9-A5C5-44BE-B684-17D256DDBF00}"
 	ProjectSection(SolutionItems) = preProject
-		Directory.Build.props = Directory.Build.props
-		..\GitVersion.yml = ..\GitVersion.yml
+		Custom.Build.props = Custom.Build.props
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.Gateway.PersistenceTests", "NServiceBus.Gateway.PersistenceTests\NServiceBus.Gateway.PersistenceTests.csproj", "{42FAF188-456D-46E4-9D4D-9E6856B36274}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NServiceBus.Gateway.PersistenceTests", "NServiceBus.Gateway.PersistenceTests\NServiceBus.Gateway.PersistenceTests.csproj", "{42FAF188-456D-46E4-9D4D-9E6856B36274}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
