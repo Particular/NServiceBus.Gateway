@@ -4,7 +4,7 @@ namespace NServiceBus.Installation
     using System.Diagnostics;
 #if NETSTANDARD
     using System.Runtime.InteropServices;
-#endif    
+#endif
     using System.IO;
     using System.Threading.Tasks;
     using Gateway.Installer;
@@ -37,15 +37,15 @@ namespace NServiceBus.Installation
                 return Task.FromResult(0);
             }
 
-            #if NETSTANDARD
+#if NETSTANDARD
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var platform = RuntimeInformation.OSDescription;
-            #else
+#else
             if (Environment.OSVersion.Platform != PlatformID.Win32NT)
             {
                 var platform = Environment.OSVersion.Platform.ToString("G");
-            #endif
+#endif
                 logger.InfoFormat("Installer does not support platform {0}. Ensure that the process has required permissions to listen to configured urls.", platform);
                 return Task.FromResult(0);
             }
@@ -69,10 +69,13 @@ netsh http add urlacl url={{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}}
 
             foreach (var receiveChannel in channelManager.GetReceiveChannels())
             {
-                if (receiveChannel.Type.ToLower() != "http") continue;
+                if (receiveChannel.Type.ToLower() != "http")
+                {
+                    continue;
+                }
 
                 var uri = receiveChannel.Address;
-                if(!uri.StartsWith("http", StringComparison.InvariantCultureIgnoreCase))
+                if (!uri.StartsWith("http", StringComparison.InvariantCultureIgnoreCase))
                 {
                     continue;
                 }

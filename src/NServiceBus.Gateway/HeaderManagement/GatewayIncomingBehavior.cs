@@ -11,20 +11,18 @@ namespace NServiceBus.Gateway.HeaderManagement
             var message = context.Message;
 
             var headers = message.Headers;
-            
+
             var legacyMessageWithNoReturnCapability = !headers.ContainsKey(Headers.HttpFrom) && !headers.ContainsKey(Headers.OriginatingSite);
             if (legacyMessageWithNoReturnCapability)
             {
                 return next();
             }
 
-            string originatingSite;
-            headers.TryGetValue(Headers.OriginatingSite, out originatingSite);
-            string httpFrom;
-            headers.TryGetValue(Headers.HttpFrom, out httpFrom);
+            headers.TryGetValue(Headers.OriginatingSite, out string originatingSite);
+            headers.TryGetValue(Headers.HttpFrom, out string httpFrom);
 
             var state = context.Extensions.GetOrCreate<ReturnState>();
-            //we preserve the httpFrom to be backwards compatible with NServiceBus 2.X 
+            //we preserve the httpFrom to be backwards compatible with NServiceBus 2.X
             state.HttpFrom = httpFrom;
             state.OriginatingSite = originatingSite;
             state.ReplyToAddress = headers[Headers.ReplyToAddress];

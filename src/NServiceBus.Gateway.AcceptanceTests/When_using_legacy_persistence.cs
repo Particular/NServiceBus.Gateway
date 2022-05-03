@@ -17,7 +17,7 @@
         {
             var context = await Scenario.Define<Context>()
                 .WithEndpoint<Sender>(e => e
-                    .When(s => s.SendToSites(new []{ "SiteA" }, new SomeMessage())))
+                    .When(s => s.SendToSites(new[] { "SiteA" }, new SomeMessage())))
                 .WithEndpoint<EndpointWithLegacyStorage>()
                 .Done(c => c.MessageReceived)
                 .Run();
@@ -46,6 +46,7 @@
 
         class EndpointWithLegacyStorage : EndpointConfigurationBuilder
         {
+            [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "Needed due to ObsoleteEx")]
             public EndpointWithLegacyStorage()
             {
                 EndpointSetup<GatewayEndpointWithNoStorage>((configuration, runDescriptor) =>
@@ -85,7 +86,7 @@
         {
             public FakeDeduplicationPersistence()
             {
-                Supports<StorageType.GatewayDeduplication>(_ => {});
+                Supports<StorageType.GatewayDeduplication>(_ => { });
             }
         }
 

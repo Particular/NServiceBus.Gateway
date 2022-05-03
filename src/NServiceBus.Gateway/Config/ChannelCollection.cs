@@ -21,7 +21,7 @@ namespace NServiceBus.Config
         /// </summary>
         protected override object GetElementKey(ConfigurationElement element)
         {
-            return ((ChannelConfig) element).Address;
+            return ((ChannelConfig)element).Address;
         }
 
         /// <summary>

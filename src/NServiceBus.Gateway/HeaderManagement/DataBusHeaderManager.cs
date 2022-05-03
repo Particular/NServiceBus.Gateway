@@ -10,8 +10,7 @@
         {
             lock (headers)
             {
-                Dictionary<string, string> collection;
-                if (!headers.TryGetValue(clientId, out collection))
+                if (!headers.TryGetValue(clientId, out Dictionary<string, string> collection))
                 {
                     collection = new Dictionary<string, string>();
                     headers[clientId] = collection;
@@ -31,20 +30,18 @@
 
             lock (headers)
             {
-                Dictionary<string, string> collection;
-                if (!headers.TryGetValue(clientId, out collection))
+                if (!headers.TryGetValue(clientId, out Dictionary<string, string> collection))
                 {
                     var message = $"Expected {expectedDatabusProperties.Count} databus properties. None were received. Please resubmit.";
-                    throw new ChannelException(412,message);
+                    throw new ChannelException(412, message);
                 }
 
                 foreach (var propertyHeader in expectedDatabusProperties)
                 {
-                    string propertyValue;
-                    if (!collection.TryGetValue(propertyHeader.Key, out propertyValue))
+                    if (!collection.TryGetValue(propertyHeader.Key, out string propertyValue))
                     {
                         var message = $"Databus property {propertyHeader.Key} was never received. Please resubmit.";
-                        throw new ChannelException(412,message);
+                        throw new ChannelException(412, message);
                     }
                     input[propertyHeader.Key] = propertyValue;
                 }
@@ -54,7 +51,7 @@
             return input;
         }
 
-        Dictionary<string, Dictionary<string, string>> headers 
+        Dictionary<string, Dictionary<string, string>> headers
             = new Dictionary<string, Dictionary<string, string>>();
     }
 }

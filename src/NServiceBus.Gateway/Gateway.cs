@@ -250,7 +250,7 @@
                 var recoverable = e.Recoverable;
                 var timeToBeReceived = e.TimeToBeReceived;
 
-                var destination = endpointRouter.GetDestinationFor(headers);
+                var destination = endpointRouter.GetDestinationFor();
 
                 Logger.Info("Sending message to " + destination);
 

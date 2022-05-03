@@ -30,7 +30,7 @@ namespace NServiceBus.Gateway.Utils
         }
 
         static async Task<byte[]> ComputeHashAsync(HashAlgorithm algorithm, Stream inputStream)
-        { 
+        {
             const int BufferSize = 4096;
 
             algorithm.Initialize();
@@ -45,7 +45,7 @@ namespace NServiceBus.Gateway.Utils
                     algorithm.TransformFinalBlock(buffer, 0, read);
                     break;
                 }
-                algorithm.TransformBlock(buffer, 0, read, default(byte[]), default(int));
+                algorithm.TransformBlock(buffer, 0, read, default, default);
             }
             return algorithm.Hash;
         }

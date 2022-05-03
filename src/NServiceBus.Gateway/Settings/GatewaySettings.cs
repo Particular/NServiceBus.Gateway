@@ -244,7 +244,7 @@
                 return config;
             }
 
-            return ConfigurationManager.GetSection(typeof(GatewayConfig).Name) as GatewayConfig;
+            return ConfigurationManager.GetSection(nameof(GatewayConfig)) as GatewayConfig;
         }
 #endif
         internal static GatewayReplyUri GetReplyToUri(ReadOnlySettings settings)
@@ -259,6 +259,8 @@
 
         SettingsHolder settings;
 
-        static Logging.ILog logger = Logging.LogManager.GetLogger<TransportExtensions>();
+#if NET452
+        static readonly Logging.ILog logger = Logging.LogManager.GetLogger<TransportExtensions>();
+#endif
     }
 }

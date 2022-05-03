@@ -11,8 +11,8 @@
             return base.GetConfiguration(runDescriptor, endpointCustomizationConfiguration, configuration =>
             {
                 GatewayTestSuiteConstraints.Current.ConfigureDeduplicationStorage(
-                    endpointCustomizationConfiguration.CustomEndpointName, 
-                    configuration, 
+                    endpointCustomizationConfiguration.CustomEndpointName,
+                    configuration,
                     runDescriptor.Settings)
                     .GetAwaiter().GetResult();
 

@@ -5,15 +5,15 @@ namespace NServiceBus.Gateway.Tests
     using System.Threading.Tasks;
     using Extensibility;
     using HeaderManagement;
-    using Pipeline;
     using ObjectBuilder;
+    using Pipeline;
     using Transport;
 
     class IncomingPhysicalMessageContextFake : IIncomingPhysicalMessageContext
     {
-        public IncomingPhysicalMessageContextFake(GatewayIncomingBehavior.ReturnState state = null, Dictionary < string, string> headers = null)
+        public IncomingPhysicalMessageContextFake(GatewayIncomingBehavior.ReturnState state = null, Dictionary<string, string> headers = null)
         {
-            var messageHeaders  = headers ?? new Dictionary<string, string>();
+            var messageHeaders = headers ?? new Dictionary<string, string>();
             Message = new IncomingMessage(Guid.NewGuid().ToString(), messageHeaders, new byte[0]);
 
             Extensions = new ContextBag();
