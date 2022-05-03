@@ -17,7 +17,7 @@ namespace NServiceBus.Config
         {
             get
             {
-                return (string) this["Key"];
+                return (string)this["Key"];
             }
             set
             {
@@ -33,7 +33,7 @@ namespace NServiceBus.Config
         {
             get
             {
-                return (string) this["Address"];
+                return (string)this["Address"];
             }
             set
             {
@@ -49,7 +49,7 @@ namespace NServiceBus.Config
         {
             get
             {
-                return ((string) this["ChannelType"]).ToLower();
+                return ((string)this["ChannelType"]).ToLower();
             }
             set
             {
@@ -65,7 +65,7 @@ namespace NServiceBus.Config
         {
             get
             {
-                return (bool) this["LegacyMode"];
+                return (bool)this["LegacyMode"];
             }
             set
             {

@@ -10,11 +10,12 @@
         public void Default_LRU_cache_size_is_10000()
         {
             var configuration = new InMemoryDeduplicationConfiguration();
-            
+
             Assert.AreEqual(10000, configuration.CacheSize);
         }
 
         [Test]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0017:Simplify object initialization", Justification = "Testing property")]
         public void Can_configure_custom_LRU_cache_size()
         {
             var configuration = new InMemoryDeduplicationConfiguration();

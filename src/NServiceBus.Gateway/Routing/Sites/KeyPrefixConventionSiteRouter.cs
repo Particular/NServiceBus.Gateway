@@ -3,12 +3,11 @@ namespace NServiceBus.Gateway.Routing.Sites
     using System.Collections.Generic;
     using Channels;
 
-    class KeyPrefixConventionSiteRouter 
+    class KeyPrefixConventionSiteRouter
     {
         public static IEnumerable<Site> GetDestinationSitesFor(Dictionary<string, string> headers)
         {
-            string sites;
-            if (headers.TryGetValue(Headers.DestinationSites, out sites))
+            if (headers.TryGetValue(Headers.DestinationSites, out string sites))
             {
                 var siteKeys = sites.Split(',');
 
@@ -21,10 +20,10 @@ namespace NServiceBus.Gateway.Routing.Sites
                         yield return new Site
                         {
                             Channel = new Channel
-                                {
-                                    Address = siteKey, 
-                                    Type = parts[0]
-                                },
+                            {
+                                Address = siteKey,
+                                Type = parts[0]
+                            },
                             Key = siteKey
                         };
                     }

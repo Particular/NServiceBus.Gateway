@@ -165,8 +165,7 @@
             {
                 return TimeSpan.MaxValue;
             }
-            TimeSpan timeToBeReceived;
-            TimeSpan.TryParse(headers[NServiceBus + TimeToBeReceived], out timeToBeReceived);
+            TimeSpan.TryParse(headers[NServiceBus + TimeToBeReceived], out TimeSpan timeToBeReceived);
 
             return timeToBeReceived < MinimumTimeToBeReceived ? MinimumTimeToBeReceived : timeToBeReceived;
         }
@@ -218,7 +217,7 @@
             {
                 using (var databusStream = await databus.Get(newDatabusKey).ConfigureAwait(false))
                 {
-                   await Hasher.Verify(databusStream, callInfo.Md5).ConfigureAwait(false);
+                    await Hasher.Verify(databusStream, callInfo.Md5).ConfigureAwait(false);
                 }
             }
 

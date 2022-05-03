@@ -4,7 +4,7 @@
 
     static class TaskExtensions
     {
-        // ReSharper disable once UnusedParameter.Global
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Supposed to be no-op")]
         public static void Forget(this Task task)
         {
         }

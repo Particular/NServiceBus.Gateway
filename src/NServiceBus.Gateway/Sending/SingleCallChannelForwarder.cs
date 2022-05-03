@@ -36,7 +36,7 @@
             }
         }
 
-        Dictionary<string,string> MapToHeaders(Dictionary<string, string> fromHeaders)
+        Dictionary<string, string> MapToHeaders(Dictionary<string, string> fromHeaders)
         {
             var to = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase)
             {
@@ -47,8 +47,7 @@
             if (fromHeaders.ContainsKey(Headers.NonDurableMessage))
             {
                 var recoverable = true;
-                bool nonDurable;
-                if (bool.TryParse(fromHeaders[Headers.NonDurableMessage], out nonDurable))
+                if (bool.TryParse(fromHeaders[Headers.NonDurableMessage], out bool nonDurable))
                 {
                     recoverable = !nonDurable;
                 }
@@ -61,14 +60,12 @@
                 to.Add(NServiceBus + TimeToBeReceived, fromHeaders[Headers.TimeToBeReceived]);
             }
 
-            string reply;
-            if (fromHeaders.TryGetValue(Headers.ReplyToAddress, out reply)) //Handles SendOnly endpoints, where ReplyToAddress is not set
+            if (fromHeaders.TryGetValue(Headers.ReplyToAddress, out string reply)) //Handles SendOnly endpoints, where ReplyToAddress is not set
             {
                 to[NServiceBus + ReplyToAddress] = reply;
             }
 
-            string replyToAddress;
-            if (fromHeaders.TryGetValue(ReplyToAddress, out replyToAddress))
+            if (fromHeaders.TryGetValue(ReplyToAddress, out string replyToAddress))
             {
                 to[Headers.RouteTo] = replyToAddress;
             }

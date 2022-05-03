@@ -8,8 +8,7 @@ namespace NServiceBus.Gateway.HeaderManagement
     {
         public override Task Invoke(IOutgoingPhysicalMessageContext context, Func<Task> next)
         {
-            GatewayIncomingBehavior.ReturnState returnState;
-            var noReturnInfo = !context.Extensions.TryGet(out returnState);
+            var noReturnInfo = !context.Extensions.TryGet(out GatewayIncomingBehavior.ReturnState returnState);
 
             var correlationIdMissing = !context.Headers.ContainsKey(Headers.CorrelationId);
             var normalSend = context.Headers.ContainsKey(Headers.DestinationSites);
@@ -19,7 +18,7 @@ namespace NServiceBus.Gateway.HeaderManagement
             {
                 return next();
             }
-            
+
             //handle response message
             context.Headers[Headers.HttpTo] = returnState.HttpFrom;
             context.Headers[Headers.OriginatingSite] = returnState.OriginatingSite;

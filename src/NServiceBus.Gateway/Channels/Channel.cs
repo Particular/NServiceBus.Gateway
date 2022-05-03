@@ -11,7 +11,7 @@ namespace NServiceBus.Gateway.Channels
         /// The type of the channel.
         /// </summary>
         public string Type { get; set; }
-        
+
         /// <summary>
         /// The address to receive/send on.
         /// </summary>
@@ -37,7 +37,7 @@ namespace NServiceBus.Gateway.Channels
         /// <param name="other">An object to compare with this object.</param>
         public bool Equals(Channel other)
         {
-            if (ReferenceEquals(null, other))
+            if (other is null)
             {
                 return false;
             }
@@ -69,7 +69,7 @@ namespace NServiceBus.Gateway.Channels
         /// <param name="obj">The object to compare with the current object. </param><filterpriority>2</filterpriority>
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (obj is null)
             {
                 return false;
             }
@@ -81,11 +81,11 @@ namespace NServiceBus.Gateway.Channels
             {
                 return false;
             }
-            return Equals((Channel) obj);
+            return Equals((Channel)obj);
         }
 
         /// <summary>
-        /// Serves as a hash function for a particular type. 
+        /// Serves as a hash function for a particular type.
         /// </summary>
         /// <returns>
         /// A hash code for the current <see cref="T:System.Object"/>.
@@ -95,7 +95,7 @@ namespace NServiceBus.Gateway.Channels
         {
             unchecked
             {
-                return ((Type?.GetHashCode() ?? 0)*397) ^ (Address?.GetHashCode() ?? 0);
+                return ((Type?.GetHashCode() ?? 0) * 397) ^ (Address?.GetHashCode() ?? 0);
             }
         }
 

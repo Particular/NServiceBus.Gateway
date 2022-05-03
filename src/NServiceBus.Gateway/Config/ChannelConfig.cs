@@ -16,7 +16,7 @@ namespace NServiceBus.Config
         [ConfigurationProperty("Default", IsRequired = false, DefaultValue = false, IsKey = false)]
         public bool Default
         {
-            get => (bool) this["Default"];
+            get => (bool)this["Default"];
             set => this["Default"] = value;
         }
 
@@ -26,7 +26,7 @@ namespace NServiceBus.Config
         [ConfigurationProperty("Address", IsRequired = true, IsKey = false)]
         public string Address
         {
-            get => (string) this["Address"];
+            get => (string)this["Address"];
             set => this["Address"] = value;
         }
 
@@ -60,7 +60,7 @@ namespace NServiceBus.Config
         [ConfigurationProperty("ChannelType", IsRequired = true, IsKey = false)]
         public string ChannelType
         {
-            get => ((string) this["ChannelType"]).ToLower();
+            get => ((string)this["ChannelType"]).ToLower();
             set => this["ChannelType"] = value;
         }
     }

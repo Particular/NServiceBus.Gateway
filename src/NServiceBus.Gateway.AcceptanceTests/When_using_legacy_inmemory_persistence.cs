@@ -24,12 +24,13 @@
 
         class EndpointWithLegacyConfiguration : EndpointConfigurationBuilder
         {
+            [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "Needed due to ObsoleteEx")]
             public EndpointWithLegacyConfiguration()
             {
                 EndpointSetup<GatewayEndpointWithNoStorage>(c =>
                 {
                     c.UsePersistence<InMemoryPersistence, StorageType.GatewayDeduplication>();
-                    
+
 #pragma warning disable 618
                     // legacy configuration API (not passing a storage as parameter):
                     var gatewayConfiguration = c.Gateway();
