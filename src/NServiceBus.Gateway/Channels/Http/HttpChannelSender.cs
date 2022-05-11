@@ -33,9 +33,11 @@ namespace NServiceBus.Gateway.Channels.Http
 
             foreach (var pair in headers)
             {
-                if (!request.Headers.TryAddWithoutValidation(pair.Key, pair.Value))
+                var encodedName = WebUtility.UrlEncode(pair.Key);
+                var encodedValue = WebUtility.UrlEncode(pair.Value);
+                if (!request.Headers.TryAddWithoutValidation(encodedName, encodedValue))
                 {
-                    if (!request.Content.Headers.TryAddWithoutValidation(pair.Key, pair.Value))
+                    if (!request.Content.Headers.TryAddWithoutValidation(encodedName, encodedValue))
                     {
                         throw new Exception("Invalid header");
                     }
