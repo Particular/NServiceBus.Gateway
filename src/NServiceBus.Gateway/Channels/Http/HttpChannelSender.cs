@@ -14,24 +14,38 @@ namespace NServiceBus.Gateway.Channels.Http
     [ChannelType("https")]
     class HttpChannelSender : IChannelSender
     {
+        static HttpChannelSender()
+        {
+            httpClientHandler = new HttpClientHandler
+            {
+                UseDefaultCredentials = true
+            };
+        }
+
         public async Task Send(string remoteUrl, IDictionary<string, string> headers, Stream data, CancellationToken cancellationToken = default)
         {
+            var request = new HttpRequestMessage(HttpMethod.Post, remoteUrl)
+            {
+                Content = new StreamContent(data)
+            };
 
-
-            var request = new HttpRequestMessage(HttpMethod.Post, remoteUrl);
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
 
             foreach (var pair in headers)
             {
-                request.Headers.Add(pair.Key, pair.Value);
+                if (!request.Headers.TryAddWithoutValidation(pair.Key, pair.Value))
+                {
+                    if (!request.Content.Headers.TryAddWithoutValidation(pair.Key, pair.Value))
+                    {
+                        throw new Exception("Invalid header");
+                    }
+                }
             }
-
-            request.Content = new StreamContent(data);
-            request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
 
             HttpStatusCode statusCode;
 
             //todo make the receiver send the md5 back so that we can double check that the transmission went ok
-            using (var httpClient = new HttpClient())
+            using (var httpClient = new HttpClient(httpClientHandler, disposeHandler: false))
             {
                 var response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
                 statusCode = response.StatusCode;
@@ -47,5 +61,6 @@ namespace NServiceBus.Gateway.Channels.Http
         }
 
         static ILog Logger = LogManager.GetLogger<HttpChannelSender>();
+        static readonly HttpClientHandler httpClientHandler;
     }
 }
