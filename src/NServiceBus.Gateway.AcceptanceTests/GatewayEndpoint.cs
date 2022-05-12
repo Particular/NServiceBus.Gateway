@@ -7,9 +7,9 @@
 
     public class GatewayEndpoint : GatewayEndpointWithNoStorage
     {
-        public override Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizationConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
+        public override Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizationConfiguration, Func<EndpointConfiguration, Task> configurationBuilderCustomization)
         {
-            return base.GetConfiguration(runDescriptor, endpointCustomizationConfiguration, configuration =>
+            return base.GetConfiguration(runDescriptor, endpointCustomizationConfiguration, async configuration =>
             {
                 var endpointName = endpointCustomizationConfiguration.CustomEndpointName ?? configuration.GetSettings().EndpointName();
 
@@ -26,7 +26,7 @@
 
                 runDescriptor.OnTestCompleted(_ => constraints.Cleanup());
 
-                configurationBuilderCustomization(configuration);
+                await configurationBuilderCustomization(configuration);
             });
         }
     }

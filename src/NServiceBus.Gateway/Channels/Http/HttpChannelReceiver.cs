@@ -9,7 +9,6 @@ namespace NServiceBus.Gateway.Channels.Http
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Web;
     using Logging;
     using Receiving;
 
@@ -165,7 +164,7 @@ namespace NServiceBus.Gateway.Channels.Http
         {
             if (context.Request.QueryString.AllKeys.Contains("Message"))
             {
-                var message = HttpUtility.UrlDecode(context.Request.QueryString["Message"]);
+                var message = WebUtility.UrlDecode(context.Request.QueryString["Message"]);
 
                 return new MemoryStream(Encoding.UTF8.GetBytes(message));
             }
@@ -184,12 +183,12 @@ namespace NServiceBus.Gateway.Channels.Http
 
             foreach (string header in context.Request.Headers.Keys)
             {
-                headers.Add(HttpUtility.UrlDecode(header), HttpUtility.UrlDecode(context.Request.Headers[header]));
+                headers.Add(WebUtility.UrlDecode(header), WebUtility.UrlDecode(context.Request.Headers[header]));
             }
 
             foreach (string header in context.Request.QueryString.Keys)
             {
-                headers[HttpUtility.UrlDecode(header)] = HttpUtility.UrlDecode(context.Request.QueryString[header]);
+                headers[WebUtility.UrlDecode(header)] = WebUtility.UrlDecode(context.Request.QueryString[header]);
             }
 
             return headers;

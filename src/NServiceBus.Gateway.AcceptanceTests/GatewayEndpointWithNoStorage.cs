@@ -9,7 +9,7 @@
 
     public class GatewayEndpointWithNoStorage : IEndpointSetupTemplate
     {
-        public virtual Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizationConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
+        public virtual async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizationConfiguration, Func<EndpointConfiguration, Task> configurationBuilderCustomization)
         {
             var endpointConfiguration = new EndpointConfiguration(endpointCustomizationConfiguration.EndpointName);
 
@@ -27,9 +27,9 @@
 
             endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 
-            configurationBuilderCustomization(endpointConfiguration);
+            await configurationBuilderCustomization(endpointConfiguration).ConfigureAwait(false);
 
-            return Task.FromResult(endpointConfiguration);
+            return endpointConfiguration;
         }
     }
 }

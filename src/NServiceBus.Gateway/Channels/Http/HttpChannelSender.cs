@@ -4,48 +4,67 @@ namespace NServiceBus.Gateway.Channels.Http
     using System.Collections.Generic;
     using System.IO;
     using System.Net;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Web;
     using Logging;
 
     [ChannelType("http")]
     [ChannelType("https")]
     class HttpChannelSender : IChannelSender
     {
+        static HttpChannelSender()
+        {
+#if NETFRAMEWORK
+            httpHandler = new HttpClientHandler
+            {
+                UseDefaultCredentials = true
+            };
+#else
+            httpHandler = new SocketsHttpHandler
+            {
+                Credentials = CredentialCache.DefaultCredentials,
+                DefaultProxyCredentials = CredentialCache.DefaultCredentials,
+                // Default is infinite, needs to be able to react to load balancer changes, etc.
+                PooledConnectionLifetime = TimeSpan.FromMinutes(1)
+            };
+#endif
+        }
+
         public async Task Send(string remoteUrl, IDictionary<string, string> headers, Stream data, CancellationToken cancellationToken = default)
         {
-            var request = WebRequest.Create(remoteUrl);
-
-            request.Method = "POST";
-            request.ContentType = "application/x-www-form-urlencoded";
-            request.Headers = Encode(headers);
-            request.UseDefaultCredentials = true;
-            request.ContentLength = data.Length;
-
-            using (var stream = await request.GetRequestStreamAsync().ConfigureAwait(false))
+            var request = new HttpRequestMessage(HttpMethod.Post, remoteUrl)
             {
-                // 81920 is the default value in the underlying code.
-                // .NET Framework does not have an overload that accepts only Stream and CancellationToken
-                await data.CopyToAsync(stream, 81920, cancellationToken).ConfigureAwait(false);
+                Content = new StreamContent(data)
+            };
+
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+
+            foreach (var pair in headers)
+            {
+                var encodedName = WebUtility.UrlEncode(pair.Key);
+                var encodedValue = WebUtility.UrlEncode(pair.Value);
+
+                // HttpClient wants some headers added to Content headers, such as Content-MD5,
+                // but we just need the collection of headers added wherever the API will allow
+                if (!request.Headers.TryAddWithoutValidation(encodedName, encodedValue))
+                {
+                    if (!request.Content.Headers.TryAddWithoutValidation(encodedName, encodedValue))
+                    {
+                        throw new Exception("Invalid header");
+                    }
+                }
             }
 
             HttpStatusCode statusCode;
 
-            try
+            //todo make the receiver send the md5 back so that we can double check that the transmission went ok
+            using (var httpClient = new HttpClient(httpHandler, disposeHandler: false))
             {
-                //todo make the receiver send the md5 back so that we can double check that the transmission went ok
-                using (var response = (HttpWebResponse)await request.GetResponseAsync().ConfigureAwait(false))
-                {
-                    statusCode = response.StatusCode;
-                }
+                var response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                statusCode = response.StatusCode;
             }
-            catch (WebException ex)
-            {
-                ex.Response?.Dispose();
-                throw;
-            }
-
 
             Logger.Debug("Got HTTP response with status code " + statusCode);
 
@@ -56,19 +75,7 @@ namespace NServiceBus.Gateway.Channels.Http
             }
         }
 
-        static WebHeaderCollection Encode(IDictionary<string, string> headers)
-        {
-            var webHeaders = new WebHeaderCollection();
-
-            foreach (var pair in headers)
-            {
-                webHeaders.Add(HttpUtility.UrlEncode(pair.Key), HttpUtility.UrlEncode(pair.Value));
-            }
-
-            return webHeaders;
-        }
-
-
         static ILog Logger = LogManager.GetLogger<HttpChannelSender>();
+        static readonly HttpMessageHandler httpHandler;
     }
 }
