@@ -21,7 +21,7 @@
 
         public IDictionary<string, string> ReassembleDataBusProperties(string clientId, IDictionary<string, string> input)
         {
-            var expectedDatabusProperties = input.Where(kv => kv.Key.Contains("NServiceBus.DataBus.")).ToList();
+            var expectedDatabusProperties = input.Where(kv => kv.Key.Contains("NServiceBus.DataBus.") && !kv.Key.EndsWith(Headers.DataBusContentType)).ToList();
 
             if (!expectedDatabusProperties.Any())
             {

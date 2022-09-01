@@ -123,8 +123,7 @@
         {
             var headersToSend = new Dictionary<string, string>(headers);
 
-            foreach (
-                var headerKey in headers.Keys.Where(headerKey => headerKey.Contains("NServiceBus.DataBus.")))
+            foreach (var headerKey in headers.Keys.Where(headerKey => headerKey.Contains("NServiceBus.DataBus.") && !headerKey.EndsWith(Headers.DataBusContentType)))
             {
                 if (databus == null)
                 {
