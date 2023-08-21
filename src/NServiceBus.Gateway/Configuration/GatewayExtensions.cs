@@ -1,6 +1,5 @@
 ﻿namespace NServiceBus
 {
-    using System;
     using Configuration.AdvancedExtensibility;
     using Gateway;
 
@@ -9,16 +8,6 @@
     /// </summary>
     public static class GatewayExtensions
     {
-        /// <summary>
-        /// Allows the user to control how the gateway behaves.
-        /// </summary>
-        /// <param name="config">The <see cref="EndpointConfiguration"/> instance to apply the settings to.</param>
-        [ObsoleteEx(Message = "Gateway with no configuration is not supported.", ReplacementTypeOrMember = "Gateway(GatewayDeduplicationConfiguration)", TreatAsErrorFromVersion = "4.0.0", RemoveInVersion = "5.0.0")]
-        public static GatewaySettings Gateway(this EndpointConfiguration config)
-        {
-            throw new NotImplementedException();
-        }
-
         /// <summary>
         /// Allows the user to control how the gateway behaves.
         /// </summary>
