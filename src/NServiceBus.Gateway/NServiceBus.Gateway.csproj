@@ -7,12 +7,8 @@
     <Description>The NServiceBus Gateway</Description>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <Reference Include="System.Net.Http" />
-  </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="NServiceBus" Version="[9.0.0-alpha.1, 9.0.0)" />
+    <PackageReference Include="NServiceBus" Version="9.0.0-alpha.1" />
   </ItemGroup>
 
   <ItemGroup>
