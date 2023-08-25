@@ -8,10 +8,6 @@
     <ProjectReference Include="..\NServiceBus.Gateway\NServiceBus.Gateway.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <Reference Include="System.Net.Http" />
-  </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="NServiceBus.AcceptanceTesting" Version="9.0.0-alpha.1" />
     <PackageReference Include="NServiceBus.Callbacks" Version="5.0.0-alpha.1" />

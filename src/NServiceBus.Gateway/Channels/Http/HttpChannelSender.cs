@@ -16,12 +16,6 @@ namespace NServiceBus.Gateway.Channels.Http
     {
         static HttpChannelSender()
         {
-#if NETFRAMEWORK
-            httpHandler = new HttpClientHandler
-            {
-                UseDefaultCredentials = true
-            };
-#else
             httpHandler = new SocketsHttpHandler
             {
                 Credentials = CredentialCache.DefaultCredentials,
@@ -29,7 +23,6 @@ namespace NServiceBus.Gateway.Channels.Http
                 // Default is infinite, needs to be able to react to load balancer changes, etc.
                 PooledConnectionLifetime = TimeSpan.FromMinutes(1)
             };
-#endif
         }
 
         public async Task Send(string remoteUrl, IDictionary<string, string> headers, Stream data, CancellationToken cancellationToken = default)
