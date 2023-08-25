@@ -9,11 +9,6 @@ namespace NServiceBus.Gateway
         SingleCallSubmit = 0,
         SingleCallDatabusProperty = 1,
     }
-    [System.Obsolete("Use `DataReceivedOnChannelEventArgs` instead. Will be removed in version 5.0.0.", true)]
-    public class DataReceivedOnChannelArgs : System.EventArgs
-    {
-        public DataReceivedOnChannelArgs() { }
-    }
     public class DataReceivedOnChannelEventArgs : System.EventArgs
     {
         public DataReceivedOnChannelEventArgs() { }
@@ -44,12 +39,6 @@ namespace NServiceBus.Gateway
     {
         bool SupportsDistributedTransactions { get; }
         System.Threading.Tasks.Task<NServiceBus.Gateway.IDeduplicationSession> CheckForDuplicate(string messageId, NServiceBus.Extensibility.ContextBag context, System.Threading.CancellationToken cancellationToken = default);
-    }
-    [System.Obsolete("Use `NonDurableDeduplicationConfiguration` instead. Will be removed in version 5." +
-        "0.0.", true)]
-    public class InMemoryDeduplicationConfiguration
-    {
-        public InMemoryDeduplicationConfiguration() { }
     }
     public class NonDurableDeduplicationConfiguration : NServiceBus.Gateway.GatewayDeduplicationConfiguration
     {
@@ -100,10 +89,6 @@ namespace NServiceBus
 {
     public static class GatewayExtensions
     {
-        [System.Obsolete("Gateway with no configuration is not supported. Use `Gateway(GatewayDeduplication" +
-            "Configuration)` instead. The member currently throws a NotImplementedException. " +
-            "Will be removed in version 5.0.0.", true)]
-        public static NServiceBus.GatewaySettings Gateway(this NServiceBus.EndpointConfiguration config) { }
         public static NServiceBus.GatewaySettings Gateway(this NServiceBus.EndpointConfiguration config, NServiceBus.Gateway.GatewayDeduplicationConfiguration storageConfiguration) { }
     }
     public class GatewaySettings
