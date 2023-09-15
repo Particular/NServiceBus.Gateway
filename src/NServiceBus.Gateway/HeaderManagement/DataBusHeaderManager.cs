@@ -12,7 +12,7 @@
             {
                 if (!headers.TryGetValue(clientId, out Dictionary<string, string> collection))
                 {
-                    collection = new Dictionary<string, string>();
+                    collection = [];
                     headers[clientId] = collection;
                 }
                 collection[headerKey] = headerValue;
