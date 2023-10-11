@@ -35,6 +35,6 @@ namespace NServiceBus.Gateway.Channels
             senders.Add(type.ToLower(), sender);
         }
 
-        Dictionary<string, Type> senders = new Dictionary<string, Type>();
+        Dictionary<string, Type> senders = [];
     }
 }

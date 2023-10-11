@@ -156,12 +156,12 @@
 
         internal static List<Site> GetConfiguredSites(IReadOnlySettings settings)
         {
-            return settings.TryGet(out List<Site> sites) ? sites : new List<Site>();
+            return settings.TryGet(out List<Site> sites) ? sites : [];
         }
 
         internal static List<ReceiveChannel> GetConfiguredChannels(IReadOnlySettings settings)
         {
-            return settings.TryGet(out List<ReceiveChannel> channels) ? channels : new List<ReceiveChannel>();
+            return settings.TryGet(out List<ReceiveChannel> channels) ? channels : [];
         }
 
         internal static (string type, string address) GetReplyToUri(IReadOnlySettings settings)

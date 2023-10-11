@@ -22,6 +22,6 @@
 
         readonly int cacheSize;
         readonly LinkedList<string> clientIdList = new LinkedList<string>();
-        readonly Dictionary<string, LinkedListNode<string>> clientIdSet = new Dictionary<string, LinkedListNode<string>>();
+        readonly Dictionary<string, LinkedListNode<string>> clientIdSet = [];
     }
 }
