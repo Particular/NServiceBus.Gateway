@@ -12,7 +12,7 @@
         [SetUp]
         public void Setup()
         {
-            FailingMessage = new IncomingMessage("failing-id", new Dictionary<string, string>(), new byte[0]);
+            FailingMessage = new IncomingMessage("failing-id", [], new byte[0]);
             Exception = new Exception("exception-message");
             TimeIncrease = TimeSpan.FromSeconds(1);
             NumberOfRetries = 2;

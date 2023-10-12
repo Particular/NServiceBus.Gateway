@@ -13,7 +13,7 @@
         {
             context = new ErrorContext(
                 new Exception(),
-                new Dictionary<string, string>(),
+                [],
                 Guid.NewGuid().ToString(),
                 new byte[0],
                 new TransportTransaction(),
@@ -24,7 +24,7 @@
             config = new RecoverabilityConfig(
                 new ImmediateConfig(0),
                 new DelayedConfig(4, TimeSpan.FromSeconds(10)),
-                new FailedConfig("error", new HashSet<Type>()));
+                new FailedConfig("error", []));
         }
 
         [Test]

@@ -51,7 +51,6 @@
             return input;
         }
 
-        Dictionary<string, Dictionary<string, string>> headers
-            = new Dictionary<string, Dictionary<string, string>>();
+        Dictionary<string, Dictionary<string, string>> headers = [];
     }
 }

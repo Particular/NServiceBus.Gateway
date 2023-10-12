@@ -27,7 +27,7 @@ namespace NServiceBus.Gateway.Tests.Routing
         [Test]
         public void Should_return_empty_list_if_header_is_missing()
         {
-            Assert.AreEqual(0, OriginatingSiteHeaderRouter.GetDestinationSitesFor(new Dictionary<string, string>()).Count());
+            Assert.AreEqual(0, OriginatingSiteHeaderRouter.GetDestinationSitesFor([]).Count());
         }
     }
 }

@@ -13,7 +13,7 @@ namespace NServiceBus.Gateway.Tests
     {
         public OutgoingPhysicalMessageContextFake(GatewayIncomingBehavior.ReturnState state = null, Dictionary<string, string> headers = null)
         {
-            Headers = headers ?? new Dictionary<string, string>();
+            Headers = headers ?? [];
             if (headers == null)
             {
                 Headers = new Dictionary<string, string>
