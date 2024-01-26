@@ -49,7 +49,7 @@ namespace NServiceBus.Installation
                 logger.InfoFormat(
 @"Did not attempt to grant user '{0}' HttpListener permissions since you are running an old OS. Processing will continue.
 To manually perform this action run the following command for each url from an admin console:
-httpcfg set urlacl /u {{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} /a D:(A;;GX;;;""{0}"")", identity);
+httpcfg set urlacl /u {{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} /a D:(A;;GX;;;""{1}"")", identity, identity);
                 return Task.FromResult(0);
             }
             if (!ElevateChecker.IsCurrentUserElevated())
@@ -57,7 +57,7 @@ httpcfg set urlacl /u {{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} /a 
                 logger.InfoFormat(
 @"Did not attempt to grant user '{0}' HttpListener permissions since process is not running with elevate privileges. Processing will continue.
 To manually perform this action run the following command for each url from an admin console:
-netsh http add urlacl url={{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} user=""{0}""", identity);
+netsh http add urlacl url={{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} user=""{1}""", identity, identity);
                 return Task.FromResult(0);
             }
 
@@ -82,7 +82,7 @@ netsh http add urlacl url={{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}}
                     var message = string.Format(
 @"Failed to grant user '{0}' HttpListener permissions due to an Exception. Processing will continue.
 To help diagnose the problem try running the following command from an admin console:
-netsh http add urlacl url={1} user=""{0}""", uri, identity);
+netsh http add urlacl url={1} user=""{2}""", identity, uri, identity);
                     logger.Warn(message, exception);
                 }
             }
@@ -115,10 +115,10 @@ netsh http add urlacl url={1} user=""{0}""", uri, identity);
                 var message = string.Format(
 @"Failed to grant user '{0}' HttpListener permissions. Processing will continue.
 Try running the following command from an admin console:
-netsh http add urlacl url={2} user=""{0}""
+netsh http add urlacl url={1} user=""{2}""
 
 The error message from running the above command is:
-{1}", identity, error, uri);
+{3}", identity, uri, identity, error);
                 logger.Warn(message);
             }
         }
