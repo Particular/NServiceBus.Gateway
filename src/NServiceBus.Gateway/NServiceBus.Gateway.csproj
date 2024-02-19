@@ -3,12 +3,12 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>$(SolutionDir)NServiceBus.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\NServiceBus.snk</AssemblyOriginatorKeyFile>
     <Description>The NServiceBus Gateway</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus" Version="9.0.0-alpha.1" />
+    <PackageReference Include="NServiceBus" Version="[9.0.0, 10.0.0]" />
   </ItemGroup>
 
   <ItemGroup>
