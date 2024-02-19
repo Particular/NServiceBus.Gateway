@@ -3,7 +3,6 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Configuration.AdvancedExtensibility;
-    using DataBus;
     using NUnit.Framework;
 
     public class When_doing_request_response_with_databus_between_sites : NServiceBusAcceptanceTest
