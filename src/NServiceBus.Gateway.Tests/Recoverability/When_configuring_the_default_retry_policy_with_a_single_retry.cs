@@ -1,7 +1,6 @@
 ﻿namespace NServiceBus.Gateway.Tests.Recoverability
 {
     using System;
-    using System.Collections.Generic;
     using Transport;
     using NUnit.Framework;
     using Configuration.AdvancedExtensibility;

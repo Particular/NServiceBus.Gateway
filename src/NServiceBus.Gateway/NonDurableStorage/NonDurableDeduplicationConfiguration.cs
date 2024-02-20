@@ -17,7 +17,7 @@
             get => cacheSize;
             set
             {
-                Guard.AgainstNegativeAndZero(nameof(value), value);
+                ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value);
                 cacheSize = value;
             }
         }

@@ -31,8 +31,8 @@
         /// </param>
         public void ChannelFactories(Func<string, IChannelSender> senderFactory, Func<string, IChannelReceiver> receiverFactory)
         {
-            Guard.AgainstNull(nameof(senderFactory), senderFactory);
-            Guard.AgainstNull(nameof(receiverFactory), receiverFactory);
+            ArgumentNullException.ThrowIfNull(senderFactory);
+            ArgumentNullException.ThrowIfNull(receiverFactory);
 
             settings.Set("GatewayChannelSenderFactory", senderFactory);
             settings.Set("GatewayChannelReceiverFactory", receiverFactory);
@@ -46,8 +46,8 @@
         /// <param name="timeIncrease">The time to wait between each retry.</param>
         public void Retries(int numberOfRetries, TimeSpan timeIncrease)
         {
-            Guard.AgainstNegative(nameof(numberOfRetries), numberOfRetries);
-            Guard.AgainstNegative(nameof(timeIncrease), timeIncrease);
+            ArgumentOutOfRangeException.ThrowIfNegative(numberOfRetries);
+            ArgumentOutOfRangeException.ThrowIfLessThan(timeIncrease, TimeSpan.Zero);
 
             SetDefaultRetryPolicySettings(numberOfRetries, timeIncrease);
         }
@@ -59,7 +59,7 @@
         /// <param name="customRetryPolicy">The custom retry policy to use.</param>
         public void CustomRetryPolicy(Func<IncomingMessage, Exception, int, TimeSpan> customRetryPolicy)
         {
-            Guard.AgainstNull(nameof(customRetryPolicy), customRetryPolicy);
+            ArgumentNullException.ThrowIfNull(customRetryPolicy);
 
             settings.Set("Gateway.Retries.RetryPolicy", customRetryPolicy);
         }
@@ -81,9 +81,9 @@
         /// <param name="legacyMode">Pass `true` to set the forwarding mode for this site to legacy mode.</param>
         public void AddSite(string siteKey, string address, string type = "http", bool legacyMode = false)
         {
-            Guard.AgainstNullAndEmpty(nameof(siteKey), siteKey);
-            Guard.AgainstNullAndEmpty(nameof(address), address);
-            Guard.AgainstNullAndEmpty(nameof(type), type);
+            ArgumentException.ThrowIfNullOrWhiteSpace(siteKey);
+            ArgumentException.ThrowIfNullOrWhiteSpace(address);
+            ArgumentException.ThrowIfNullOrWhiteSpace(type);
 
             var sites = settings.GetOrCreate<List<Site>>();
 
@@ -108,9 +108,9 @@
         /// <param name="isDefault">True if this should be the default channel for send operations. Default is `false`.</param>
         public void AddReceiveChannel(string address, string type = "http", int maxConcurrency = 1, bool isDefault = false)
         {
-            Guard.AgainstNullAndEmpty(nameof(address), address);
-            Guard.AgainstNullAndEmpty(nameof(type), type);
-            Guard.AgainstNegativeAndZero(nameof(maxConcurrency), maxConcurrency);
+            ArgumentException.ThrowIfNullOrWhiteSpace(address);
+            ArgumentException.ThrowIfNullOrWhiteSpace(type);
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxConcurrency);
 
             var channels = settings.GetOrCreate<List<ReceiveChannel>>();
 
@@ -132,8 +132,8 @@
         /// <param name="type">The address type. Default is `http`. Must match one of the incoming receive channels.</param>
         public void SetReplyToUri(string replyToUri, string type = "http")
         {
-            Guard.AgainstNullAndEmpty(nameof(replyToUri), replyToUri);
-            Guard.AgainstNullAndEmpty(nameof(type), type);
+            ArgumentException.ThrowIfNullOrWhiteSpace(replyToUri);
+            ArgumentException.ThrowIfNullOrWhiteSpace(type);
 
             settings.Set("Gateway.ReplyToUri", (type, replyToUri));
         }
@@ -144,7 +144,7 @@
         /// <param name="timeout">The new timeout value.</param>
         public void TransactionTimeout(TimeSpan timeout)
         {
-            Guard.AgainstNegativeAndZero(nameof(timeout), timeout);
+            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(timeout, TimeSpan.Zero);
 
             settings.Set("Gateway.TransactionTimeout", timeout);
         }

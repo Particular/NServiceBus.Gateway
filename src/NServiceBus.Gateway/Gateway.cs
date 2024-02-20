@@ -242,7 +242,7 @@
 
             readonly TransportTransactionMode transportTransactionMode;
 
-            ICollection<SingleCallChannelReceiver> activeReceivers = new List<SingleCallChannelReceiver>();
+            ICollection<SingleCallChannelReceiver> activeReceivers = [];
             IManageReceiveChannels manageReceiveChannels;
             Func<string, IChannelReceiver> channelReceiverFactory;
             EndpointRouter endpointRouter;

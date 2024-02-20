@@ -1,5 +1,6 @@
 ﻿namespace NServiceBus
 {
+    using System;
     using Configuration.AdvancedExtensibility;
     using Gateway;
 
@@ -15,8 +16,8 @@
         /// <param name="storageConfiguration">the storage configuration for the gateway's deduplication mechanism</param>
         public static GatewaySettings Gateway(this EndpointConfiguration config, GatewayDeduplicationConfiguration storageConfiguration)
         {
-            Guard.AgainstNull(nameof(config), config);
-            Guard.AgainstNull(nameof(storageConfiguration), storageConfiguration);
+            ArgumentNullException.ThrowIfNull(config);
+            ArgumentNullException.ThrowIfNull(storageConfiguration);
 
             config.EnableFeature<Features.Gateway>();
 
