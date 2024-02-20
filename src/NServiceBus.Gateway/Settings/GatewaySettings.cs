@@ -81,9 +81,9 @@
         /// <param name="legacyMode">Pass `true` to set the forwarding mode for this site to legacy mode.</param>
         public void AddSite(string siteKey, string address, string type = "http", bool legacyMode = false)
         {
-            ArgumentException.ThrowIfNullOrEmpty(siteKey);
-            ArgumentException.ThrowIfNullOrEmpty(address);
-            ArgumentException.ThrowIfNullOrEmpty(type);
+            ArgumentException.ThrowIfNullOrWhiteSpace(siteKey);
+            ArgumentException.ThrowIfNullOrWhiteSpace(address);
+            ArgumentException.ThrowIfNullOrWhiteSpace(type);
 
             var sites = settings.GetOrCreate<List<Site>>();
 
@@ -108,8 +108,8 @@
         /// <param name="isDefault">True if this should be the default channel for send operations. Default is `false`.</param>
         public void AddReceiveChannel(string address, string type = "http", int maxConcurrency = 1, bool isDefault = false)
         {
-            ArgumentException.ThrowIfNullOrEmpty(address);
-            ArgumentException.ThrowIfNullOrEmpty(type);
+            ArgumentException.ThrowIfNullOrWhiteSpace(address);
+            ArgumentException.ThrowIfNullOrWhiteSpace(type);
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxConcurrency);
 
             var channels = settings.GetOrCreate<List<ReceiveChannel>>();
@@ -132,8 +132,8 @@
         /// <param name="type">The address type. Default is `http`. Must match one of the incoming receive channels.</param>
         public void SetReplyToUri(string replyToUri, string type = "http")
         {
-            ArgumentException.ThrowIfNullOrEmpty(replyToUri);
-            ArgumentException.ThrowIfNullOrEmpty(type);
+            ArgumentException.ThrowIfNullOrWhiteSpace(replyToUri);
+            ArgumentException.ThrowIfNullOrWhiteSpace(type);
 
             settings.Set("Gateway.ReplyToUri", (type, replyToUri));
         }
