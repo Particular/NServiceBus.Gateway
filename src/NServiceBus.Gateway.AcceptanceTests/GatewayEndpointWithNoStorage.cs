@@ -22,6 +22,7 @@
             var storageDir = Path.Combine(NServiceBusAcceptanceTest.StorageRootDir, TestContext.CurrentContext.Test.ID);
 
             endpointConfiguration.EnableInstallers();
+            endpointConfiguration.UseSerialization<SystemJsonSerializer>();
 
             endpointConfiguration.UseTransport(new LearningTransport { StorageDirectory = storageDir });
 
