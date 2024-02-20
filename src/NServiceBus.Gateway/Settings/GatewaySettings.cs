@@ -144,7 +144,7 @@
         /// <param name="timeout">The new timeout value.</param>
         public void TransactionTimeout(TimeSpan timeout)
         {
-            ArgumentOutOfRangeException.ThrowIfLessThan(timeout, TimeSpan.Zero);
+            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(timeout, TimeSpan.Zero);
 
             settings.Set("Gateway.TransactionTimeout", timeout);
         }
