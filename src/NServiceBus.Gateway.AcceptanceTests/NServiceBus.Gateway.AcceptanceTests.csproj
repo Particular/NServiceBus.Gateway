@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net481;net6.0;net7.0;net8.0</TargetFrameworks>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
@@ -9,7 +9,7 @@
     <ProjectReference Include="..\NServiceBus.Gateway\NServiceBus.Gateway.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net481'">
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 
@@ -29,6 +29,7 @@
     <PackageId>NServiceBus.Gateway.AcceptanceTests.Sources</PackageId>
     <Description>Acceptance tests for NServiceBus gateway functionality</Description>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
   </PropertyGroup>
 
   <ItemGroup>
