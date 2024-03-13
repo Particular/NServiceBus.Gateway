@@ -8,10 +8,13 @@
     <ProjectReference Include="..\NServiceBus.Gateway\NServiceBus.Gateway.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'net482'">
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="NServiceBus.AcceptanceTesting" Version="[8.0.0, 9.0.0)" />
     <PackageReference Include="NServiceBus.Callbacks" Version="[4.0.0, 5.0.0)" />
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
 
   <ItemGroup>
