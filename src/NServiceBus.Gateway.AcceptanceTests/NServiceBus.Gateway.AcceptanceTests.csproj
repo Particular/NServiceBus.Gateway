@@ -8,7 +8,7 @@
     <ProjectReference Include="..\NServiceBus.Gateway\NServiceBus.Gateway.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net482'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net481'">
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 
