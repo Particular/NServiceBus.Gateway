@@ -241,7 +241,9 @@ namespace NServiceBus.Gateway.Channels.Http
 
         static readonly ILog Logger = LogManager.GetLogger<HttpChannelReceiver>();
 
+#pragma warning disable PS0025 // Dictionary keys should implement IEquatable<T> - Valid use for by-reference comparison
         readonly ConcurrentDictionary<Task, Task> messageProcessingTasks = new ConcurrentDictionary<Task, Task>();
+#pragma warning restore PS0025
 
         SemaphoreSlim concurrencyLimiter;
         HttpListener listener;
