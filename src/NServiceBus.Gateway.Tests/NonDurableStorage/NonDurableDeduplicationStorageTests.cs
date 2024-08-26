@@ -18,7 +18,7 @@
             }
             using (var s1 = await storage.CheckForDuplicate("A", new ContextBag()))
             {
-                Assert.IsTrue(s1.IsDuplicate);
+                Assert.That(s1.IsDuplicate, Is.True);
             }
 
             using (var s1 = await storage.CheckForDuplicate("B", new ContextBag()))
@@ -27,7 +27,7 @@
             }
             using (var s1 = await storage.CheckForDuplicate("B", new ContextBag()))
             {
-                Assert.IsTrue(s1.IsDuplicate);
+                Assert.That(s1.IsDuplicate, Is.True);
             }
 
             using (var s1 = await storage.CheckForDuplicate("C", new ContextBag()))
@@ -36,7 +36,7 @@
             }
             using (var s1 = await storage.CheckForDuplicate("C", new ContextBag()))
             {
-                Assert.IsTrue(s1.IsDuplicate);
+                Assert.That(s1.IsDuplicate, Is.True);
             }
 
             using (var s1 = await storage.CheckForDuplicate("A", new ContextBag()))

@@ -20,7 +20,7 @@
 
             using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
             {
-                Assert.IsTrue(session.IsDuplicate);
+                Assert.That(session.IsDuplicate, Is.True);
             }
         }
 
