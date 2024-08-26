@@ -39,8 +39,11 @@
                 return TimeSpan.MinValue;
             }, config);
 
-            Assert.That(retryPolicyCalled, Is.True, "Retry policy was not called by the recoverability policy");
-            Assert.That(currentRetry, Is.EqualTo(context.DelayedDeliveriesPerformed + 1), "Retry policy was called with wrong retry number");
+            Assert.Multiple(() =>
+            {
+                Assert.That(retryPolicyCalled, Is.True, "Retry policy was not called by the recoverability policy");
+                Assert.That(currentRetry, Is.EqualTo(context.DelayedDeliveriesPerformed + 1), "Retry policy was called with wrong retry number");
+            });
         }
 
         [Test]

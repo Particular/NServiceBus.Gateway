@@ -28,9 +28,12 @@
 
             await new GatewayIncomingBehavior().Invoke(context, () => Task.FromResult(0));
 
-            Assert.That(state.HttpFrom, Is.EqualTo(originatingSite));
-            Assert.That(state.ReplyToAddress, Is.EqualTo(addressOfOriginatingEndpoint));
-            Assert.That(state.LegacyMode, Is.EqualTo(false));
+            Assert.Multiple(() =>
+            {
+                Assert.That(state.HttpFrom, Is.EqualTo(originatingSite));
+                Assert.That(state.ReplyToAddress, Is.EqualTo(addressOfOriginatingEndpoint));
+                Assert.That(state.LegacyMode, Is.EqualTo(false));
+            });
         }
 
         [Test]
@@ -48,9 +51,12 @@
 
             await new GatewayIncomingBehavior().Invoke(context, () => Task.FromResult(0));
 
-            Assert.That(state.OriginatingSite, Is.EqualTo(originatingSite));
-            Assert.That(state.ReplyToAddress, Is.EqualTo(addressOfOriginatingEndpoint));
-            Assert.That(state.LegacyMode, Is.EqualTo(false));
+            Assert.Multiple(() =>
+            {
+                Assert.That(state.OriginatingSite, Is.EqualTo(originatingSite));
+                Assert.That(state.ReplyToAddress, Is.EqualTo(addressOfOriginatingEndpoint));
+                Assert.That(state.LegacyMode, Is.EqualTo(false));
+            });
         }
 
         [Test]

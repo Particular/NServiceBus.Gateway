@@ -28,10 +28,12 @@
             var behavior = new GatewayOutgoingBehavior();
             await behavior.Invoke(context, () => Task.FromResult(0));
 
-
-            Assert.That(context.Headers[Headers.OriginatingSite], Is.EqualTo(originatingSite));
-            Assert.That(context.Headers[Headers.RouteTo], Is.EqualTo(addressOfOriginatingEndpoint));
-            Assert.That(context.Headers[GatewayHeaders.LegacyMode], Is.EqualTo("False"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(context.Headers[Headers.OriginatingSite], Is.EqualTo(originatingSite));
+                Assert.That(context.Headers[Headers.RouteTo], Is.EqualTo(addressOfOriginatingEndpoint));
+                Assert.That(context.Headers[GatewayHeaders.LegacyMode], Is.EqualTo("False"));
+            });
         }
 
         [Test]
