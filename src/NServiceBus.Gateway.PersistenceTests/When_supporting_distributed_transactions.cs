@@ -106,7 +106,7 @@
                 }
             }
 
-            Assert.NotNull(exception);
+            Assert.That(exception, Is.Not.Null);
         }
     }
 }
