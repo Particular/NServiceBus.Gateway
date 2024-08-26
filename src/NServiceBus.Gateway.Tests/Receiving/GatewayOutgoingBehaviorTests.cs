@@ -85,7 +85,7 @@
             var behavior = new GatewayOutgoingBehavior();
             await behavior.Invoke(context, () => Task.FromResult(0));
 
-            Assert.IsFalse(context.Headers.ContainsKey(Headers.OriginatingSite));
+            Assert.That(context.Headers.ContainsKey(Headers.OriginatingSite), Is.False);
         }
 
         [Test]
@@ -98,7 +98,7 @@
             var behavior = new GatewayOutgoingBehavior();
             await behavior.Invoke(context, () => Task.FromResult(0));
 
-            Assert.IsFalse(context.Headers.ContainsKey(Headers.OriginatingSite));
+            Assert.That(context.Headers.ContainsKey(Headers.OriginatingSite), Is.False);
         }
 
         [Test]
@@ -115,7 +115,7 @@
             var behavior = new GatewayOutgoingBehavior();
             await behavior.Invoke(context, () => Task.FromResult(0));
 
-            Assert.IsFalse(context.Headers.ContainsKey(Headers.OriginatingSite));
+            Assert.That(context.Headers.ContainsKey(Headers.OriginatingSite), Is.False);
         }
 
         [Test]
@@ -132,7 +132,7 @@
             var behavior = new GatewayOutgoingBehavior();
             await behavior.Invoke(context, () => Task.FromResult(0));
 
-            Assert.IsFalse(context.Headers.ContainsKey(Headers.OriginatingSite));
+            Assert.That(context.Headers.ContainsKey(Headers.OriginatingSite), Is.False);
         }
     }
 }

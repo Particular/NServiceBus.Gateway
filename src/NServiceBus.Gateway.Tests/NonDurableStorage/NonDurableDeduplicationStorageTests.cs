@@ -41,7 +41,7 @@
 
             using (var s1 = await storage.CheckForDuplicate("A", new ContextBag()))
             {
-                Assert.IsFalse(s1.IsDuplicate);
+                Assert.That(s1.IsDuplicate, Is.False);
             }
         }
     }

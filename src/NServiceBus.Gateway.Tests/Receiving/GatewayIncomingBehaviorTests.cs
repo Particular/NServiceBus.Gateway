@@ -62,7 +62,7 @@
 
             await new GatewayIncomingBehavior().Invoke(context, () => Task.FromResult(0));
 
-            Assert.IsFalse(context.Extensions.TryGet(out GatewayIncomingBehavior.ReturnState _));
+            Assert.That(context.Extensions.TryGet(out GatewayIncomingBehavior.ReturnState _), Is.False);
         }
     }
 }

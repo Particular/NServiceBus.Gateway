@@ -12,7 +12,7 @@
         {
             using (var session = await storage.CheckForDuplicate(Guid.NewGuid().ToString(), new ContextBag()))
             {
-                Assert.IsFalse(session.IsDuplicate);
+                Assert.That(session.IsDuplicate, Is.False);
             }
         }
 
@@ -23,12 +23,12 @@
 
             using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
             {
-                Assert.IsFalse(session.IsDuplicate);
+                Assert.That(session.IsDuplicate, Is.False);
             }
 
             using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
             {
-                Assert.IsFalse(session.IsDuplicate);
+                Assert.That(session.IsDuplicate, Is.False);
             }
         }
     }
