@@ -27,7 +27,7 @@
         {
             var delay = RetryPolicy.Invoke(FailingMessage, Exception, 1);
 
-            Assert.AreEqual(TimeIncrease, delay, "First retry should be attempted after a single timeIncrease interval");
+            Assert.That(delay, Is.EqualTo(TimeIncrease), "First retry should be attempted after a single timeIncrease interval");
         }
 
         [Test]
@@ -35,7 +35,7 @@
         {
             var delay = RetryPolicy.Invoke(FailingMessage, Exception, 2);
 
-            Assert.AreEqual(TimeSpan.MinValue, delay, "Second Retry should be prevented");
+            Assert.That(delay, Is.EqualTo(TimeSpan.MinValue), "Second Retry should be prevented");
         }
 
         IncomingMessage FailingMessage;

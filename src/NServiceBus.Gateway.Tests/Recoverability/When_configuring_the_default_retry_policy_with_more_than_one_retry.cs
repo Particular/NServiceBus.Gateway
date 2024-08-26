@@ -35,7 +35,7 @@
         {
             var delay = RetryPolicy.Invoke(FailingMessage, Exception, NumberOfRetries + 1);
 
-            Assert.AreEqual(TimeSpan.MinValue, delay, $"{NumberOfRetries + 1} should not be allowed");
+            Assert.That(delay, Is.EqualTo(TimeSpan.MinValue), $"{NumberOfRetries + 1} should not be allowed");
         }
 
         IncomingMessage FailingMessage;

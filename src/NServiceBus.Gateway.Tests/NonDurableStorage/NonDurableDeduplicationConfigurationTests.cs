@@ -11,7 +11,7 @@
         {
             var configuration = new NonDurableDeduplicationConfiguration();
 
-            Assert.AreEqual(10000, configuration.CacheSize);
+            Assert.That(configuration.CacheSize, Is.EqualTo(10000));
         }
 
         [Test]
@@ -21,9 +21,9 @@
             {
                 CacheSize = int.MaxValue
             };
-            Assert.AreEqual(int.MaxValue, configuration.CacheSize);
+            Assert.That(configuration.CacheSize, Is.EqualTo(int.MaxValue));
             configuration.CacheSize = 42;
-            Assert.AreEqual(42, configuration.CacheSize);
+            Assert.That(configuration.CacheSize, Is.EqualTo(42));
         }
 
         [Test]

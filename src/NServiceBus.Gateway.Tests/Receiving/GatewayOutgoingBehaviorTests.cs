@@ -29,9 +29,9 @@
             await behavior.Invoke(context, () => Task.FromResult(0));
 
 
-            Assert.AreEqual(originatingSite, context.Headers[Headers.OriginatingSite]);
-            Assert.AreEqual(addressOfOriginatingEndpoint, context.Headers[Headers.RouteTo]);
-            Assert.AreEqual("False", context.Headers[GatewayHeaders.LegacyMode]);
+            Assert.That(context.Headers[Headers.OriginatingSite], Is.EqualTo(originatingSite));
+            Assert.That(context.Headers[Headers.RouteTo], Is.EqualTo(addressOfOriginatingEndpoint));
+            Assert.That(context.Headers[GatewayHeaders.LegacyMode], Is.EqualTo("False"));
         }
 
         [Test]
@@ -48,7 +48,7 @@
             await behavior.Invoke(context, () => Task.FromResult(0));
 
 
-            Assert.AreEqual(originatingSite, context.Headers[Headers.HttpTo]);
+            Assert.That(context.Headers[Headers.HttpTo], Is.EqualTo(originatingSite));
         }
 
         [Test]
@@ -74,7 +74,7 @@
             await behavior.Invoke(context, () => Task.FromResult(0));
 
 
-            Assert.AreEqual(existingRouteTo, context.Headers[Headers.RouteTo]);
+            Assert.That(context.Headers[Headers.RouteTo], Is.EqualTo(existingRouteTo));
         }
 
         [Test]
