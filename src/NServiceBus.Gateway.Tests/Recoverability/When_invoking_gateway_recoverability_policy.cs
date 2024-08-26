@@ -48,7 +48,7 @@
         {
             var action = GatewayRecoverabilityPolicy.Invoke(context, (message, exception, retry) => TimeSpan.MinValue, config);
 
-            Assert.IsInstanceOf<MoveToError>(action, "MoveToError recoverability action was expected");
+            Assert.That(action, Is.InstanceOf<MoveToError>(), "MoveToError recoverability action was expected");
             var moveToErrorAction = action as MoveToError;
             Assert.That(moveToErrorAction.ErrorQueue, Is.EqualTo(config.Failed.ErrorQueue), "MoveToError recoverability action has wrong error queue");
         }
@@ -60,7 +60,7 @@
 
             var action = GatewayRecoverabilityPolicy.Invoke(context, (message, exception, retry) => requestedDelay, config);
 
-            Assert.IsInstanceOf<DelayedRetry>(action, "DelayedRetry recoverability action was expected");
+            Assert.That(action, Is.InstanceOf<DelayedRetry>(), "DelayedRetry recoverability action was expected");
             var delayedRetryAction = action as DelayedRetry;
             Assert.That(delayedRetryAction.Delay, Is.EqualTo(requestedDelay), "DelayedRetry recoverability action has wrong delay");
         }
