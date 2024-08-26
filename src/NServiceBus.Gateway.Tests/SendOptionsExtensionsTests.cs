@@ -12,7 +12,7 @@
 
             var sites = sendOptions.GetSitesRoutingTo();
 
-            Assert.IsEmpty(sites);
+            Assert.That(sites, Is.Empty);
         }
 
         [Test]
