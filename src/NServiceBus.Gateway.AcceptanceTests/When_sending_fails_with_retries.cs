@@ -34,7 +34,7 @@
                 .Run();
 
             Assert.IsTrue(context.MessageMovedToErrorQueue, "Message was not sent to error queue");
-            Assert.AreEqual(2, context.NumberOfRetries, "Incorrect number of retries");
+            Assert.That(context.NumberOfRetries, Is.EqualTo(2), "Incorrect number of retries");
         }
 
         [Test]

@@ -39,8 +39,11 @@
                 return TimeSpan.MinValue;
             }, config);
 
-            Assert.IsTrue(retryPolicyCalled, "Retry policy was not called by the recoverability policy");
-            Assert.AreEqual(context.DelayedDeliveriesPerformed + 1, currentRetry, "Retry policy was called with wrong retry number");
+            Assert.Multiple(() =>
+            {
+                Assert.That(retryPolicyCalled, Is.True, "Retry policy was not called by the recoverability policy");
+                Assert.That(currentRetry, Is.EqualTo(context.DelayedDeliveriesPerformed + 1), "Retry policy was called with wrong retry number");
+            });
         }
 
         [Test]
@@ -48,9 +51,9 @@
         {
             var action = GatewayRecoverabilityPolicy.Invoke(context, (message, exception, retry) => TimeSpan.MinValue, config);
 
-            Assert.IsInstanceOf<MoveToError>(action, "MoveToError recoverability action was expected");
+            Assert.That(action, Is.InstanceOf<MoveToError>(), "MoveToError recoverability action was expected");
             var moveToErrorAction = action as MoveToError;
-            Assert.AreEqual(config.Failed.ErrorQueue, moveToErrorAction.ErrorQueue, "MoveToError recoverability action has wrong error queue");
+            Assert.That(moveToErrorAction.ErrorQueue, Is.EqualTo(config.Failed.ErrorQueue), "MoveToError recoverability action has wrong error queue");
         }
 
         [Test]
@@ -60,9 +63,9 @@
 
             var action = GatewayRecoverabilityPolicy.Invoke(context, (message, exception, retry) => requestedDelay, config);
 
-            Assert.IsInstanceOf<DelayedRetry>(action, "DelayedRetry recoverability action was expected");
+            Assert.That(action, Is.InstanceOf<DelayedRetry>(), "DelayedRetry recoverability action was expected");
             var delayedRetryAction = action as DelayedRetry;
-            Assert.AreEqual(requestedDelay, delayedRetryAction.Delay, "DelayedRetry recoverability action has wrong delay");
+            Assert.That(delayedRetryAction.Delay, Is.EqualTo(requestedDelay), "DelayedRetry recoverability action has wrong delay");
         }
 
         ErrorContext context;

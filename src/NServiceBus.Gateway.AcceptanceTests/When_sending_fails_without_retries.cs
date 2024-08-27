@@ -33,7 +33,7 @@
                 .Run();
 
             Assert.IsTrue(context.MessageMovedToErrorQueue, "Message was not sent to error queue");
-            Assert.AreEqual(0, context.NumberOfRetries, "Message was retried");
+            Assert.That(context.NumberOfRetries, Is.EqualTo(0), "Message was retried");
         }
 
         class Context : ScenarioContext, ICountNumberOfRetries
