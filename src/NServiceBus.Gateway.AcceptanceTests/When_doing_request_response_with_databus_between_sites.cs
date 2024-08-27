@@ -1,4 +1,7 @@
-﻿namespace NServiceBus.Gateway.AcceptanceTests
+﻿// Databus is obsolete and this test needs to be refactored to use the new data bus API or removed. For now
+// we are suppressing the obsoletion warning it to unblock the build.
+#pragma warning disable CS0618 // Type or member is obsolete
+namespace NServiceBus.Gateway.AcceptanceTests
 {
     using System.Threading.Tasks;
     using AcceptanceTesting;
@@ -139,3 +142,4 @@
         }
     }
 }
+#pragma warning restore CS0618 // Type or member is obsolete
