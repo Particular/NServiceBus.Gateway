@@ -1,4 +1,7 @@
-﻿namespace NServiceBus.Gateway.AcceptanceTests
+﻿// Databus is obsolete and this test needs to be refactored to use the new data bus API or removed. For now
+// we are suppressing the obsoletion warning it to unblock the build.
+#pragma warning disable CS0618 // Type or member is obsolete
+namespace NServiceBus.Gateway.AcceptanceTests
 {
     using System.Threading.Tasks;
     using AcceptanceTesting;
@@ -33,9 +36,12 @@
                 Assert.That(context.SiteAReceivedPayloadInResponse, Is.EqualTo(PayloadToSend),
                     "The large payload should be marshalled correctly using the databus");
             });
-            Assert.That(context.OriginatingSiteForRequest, Is.EqualTo("http,http://localhost:25899/SiteA/"));
-            Assert.That(context.OriginatingSiteForResponse, Is.EqualTo("http,http://localhost:25899/SiteB/"));
-            Assert.NotNull(context.Response);
+            Assert.Multiple(() =>
+            {
+                Assert.That(context.OriginatingSiteForRequest, Is.EqualTo("http,http://localhost:25899/SiteA/"));
+                Assert.That(context.OriginatingSiteForResponse, Is.EqualTo("http,http://localhost:25899/SiteB/"));
+                Assert.That(context.Response, Is.Not.Null);
+            });
         }
 
         static byte[] PayloadToSend = new byte[1024 * 1024 * 10];
@@ -136,3 +142,4 @@
         }
     }
 }
+#pragma warning restore CS0618 // Type or member is obsolete

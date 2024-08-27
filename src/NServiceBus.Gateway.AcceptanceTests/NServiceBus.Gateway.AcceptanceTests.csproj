@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="[9.0.0, 10.0.0)" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="[9.2.2, 10.0.0)" />
     <PackageReference Include="NServiceBus.Callbacks" Version="[5.0.0, 6.0.0)" />
   </ItemGroup>
 

@@ -32,8 +32,11 @@
                 .Done(c => c.MessageMovedToErrorQueue)
                 .Run();
 
-            Assert.IsTrue(context.MessageMovedToErrorQueue, "Message was not sent to error queue");
-            Assert.That(context.NumberOfRetries, Is.EqualTo(0), "Message was retried");
+            Assert.Multiple(() =>
+            {
+                Assert.That(context.MessageMovedToErrorQueue, Is.True, "Message was not sent to error queue");
+                Assert.That(context.NumberOfRetries, Is.EqualTo(0), "Message was retried");
+            });
         }
 
         class Context : ScenarioContext, ICountNumberOfRetries

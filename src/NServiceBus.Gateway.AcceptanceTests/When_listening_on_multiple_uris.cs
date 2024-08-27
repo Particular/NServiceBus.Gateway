@@ -28,8 +28,11 @@
                 .Done(c => c.GotMessageOnDefaultChannel && c.GotMessageOnNonDefaultChannel)
                 .Run();
 
-            Assert.IsTrue(context.GotMessageOnDefaultChannel);
-            Assert.IsTrue(context.GotMessageOnNonDefaultChannel);
+            Assert.Multiple(() =>
+            {
+                Assert.That(context.GotMessageOnDefaultChannel, Is.True);
+                Assert.That(context.GotMessageOnNonDefaultChannel, Is.True);
+            });
         }
 
         async Task SendMessage(string url)

@@ -56,8 +56,11 @@
                 .Done(c => c.GotMessage)
                 .Run();
 
-            Assert.IsTrue(context.GotMessage);
-            Assert.That(context.MySpecialHeader, Is.EqualTo("MySpecialValue"));
+            Assert.Multiple(() =>
+            {
+                Assert.That(context.GotMessage, Is.True);
+                Assert.That(context.MySpecialHeader, Is.EqualTo("MySpecialValue"));
+            });
         }
 
         static string Hash(Stream stream)
