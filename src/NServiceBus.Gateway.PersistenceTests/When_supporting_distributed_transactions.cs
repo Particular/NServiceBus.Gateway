@@ -26,7 +26,7 @@
             {
                 using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
                 {
-                    Assert.IsFalse(session.IsDuplicate);
+                    Assert.That(session.IsDuplicate, Is.False);
                     await session.MarkAsDispatched();
                 }
 
@@ -34,7 +34,7 @@
                 {
                     using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
                     {
-                        Assert.IsFalse(session.IsDuplicate, "concurrent readers should not see uncommitted data");
+                        Assert.That(session.IsDuplicate, Is.False, "concurrent readers should not see uncommitted data");
                         await session.MarkAsDispatched();
                     }
 
@@ -46,7 +46,7 @@
 
             using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
             {
-                Assert.IsTrue(session.IsDuplicate);
+                Assert.That(session.IsDuplicate, Is.True);
             }
         }
 
@@ -59,7 +59,7 @@
             {
                 using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
                 {
-                    Assert.IsFalse(session.IsDuplicate);
+                    Assert.That(session.IsDuplicate, Is.False);
                     await session.MarkAsDispatched();
                 }
 
@@ -68,7 +68,7 @@
 
             using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
             {
-                Assert.IsFalse(session.IsDuplicate);
+                Assert.That(session.IsDuplicate, Is.False);
             }
         }
 
@@ -82,7 +82,7 @@
             {
                 using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
                 {
-                    Assert.IsFalse(session.IsDuplicate);
+                    Assert.That(session.IsDuplicate, Is.False);
                     await session.MarkAsDispatched();
                 }
 
@@ -90,7 +90,7 @@
                 {
                     using (var session = await storage.CheckForDuplicate(messageId, new ContextBag()))
                     {
-                        Assert.IsFalse(session.IsDuplicate);
+                        Assert.That(session.IsDuplicate, Is.False);
                         await session.MarkAsDispatched();
                     }
                     concurrentScope.Complete();
@@ -106,7 +106,7 @@
                 }
             }
 
-            Assert.NotNull(exception);
+            Assert.That(exception, Is.Not.Null);
         }
     }
 }

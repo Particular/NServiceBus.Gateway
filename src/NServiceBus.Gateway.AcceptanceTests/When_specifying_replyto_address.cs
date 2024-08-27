@@ -23,7 +23,7 @@
                 .Run();
 
             Assert.IsTrue(context.GotCallback);
-            Assert.AreEqual(42, context.Response);
+            Assert.That(context.Response, Is.EqualTo(42));
         }
 
         public class Context : ScenarioContext

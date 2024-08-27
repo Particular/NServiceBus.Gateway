@@ -26,12 +26,15 @@
                 .Done(c => c.GotResponseBack && c.GotCallback)
                 .Run();
 
-            Assert.AreEqual(PayloadToSend, context.SiteBReceivedPayload,
-                "The large payload should be marshalled correctly using the databus");
-            Assert.AreEqual(PayloadToSend, context.SiteAReceivedPayloadInResponse,
-                "The large payload should be marshalled correctly using the databus");
-            Assert.AreEqual("http,http://localhost:25899/SiteA/", context.OriginatingSiteForRequest);
-            Assert.AreEqual("http,http://localhost:25899/SiteB/", context.OriginatingSiteForResponse);
+            Assert.Multiple(() =>
+            {
+                Assert.That(context.SiteBReceivedPayload, Is.EqualTo(PayloadToSend),
+                            "The large payload should be marshalled correctly using the databus");
+                Assert.That(context.SiteAReceivedPayloadInResponse, Is.EqualTo(PayloadToSend),
+                    "The large payload should be marshalled correctly using the databus");
+            });
+            Assert.That(context.OriginatingSiteForRequest, Is.EqualTo("http,http://localhost:25899/SiteA/"));
+            Assert.That(context.OriginatingSiteForResponse, Is.EqualTo("http,http://localhost:25899/SiteB/"));
             Assert.NotNull(context.Response);
         }
 

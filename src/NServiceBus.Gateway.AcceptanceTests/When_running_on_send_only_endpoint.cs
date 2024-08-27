@@ -14,7 +14,7 @@
                     .Done(c => c.EndpointsStarted)
                     .Run());
 
-            StringAssert.Contains("Gateway is not support for send only endpoints.", ex.Message);
+            Assert.That(ex.Message, Does.Contain("Gateway is not support for send only endpoints."));
         }
 
         class GatewayEndpoint : EndpointConfigurationBuilder

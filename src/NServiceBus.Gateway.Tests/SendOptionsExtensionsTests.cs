@@ -12,7 +12,7 @@
 
             var sites = sendOptions.GetSitesRoutingTo();
 
-            Assert.IsEmpty(sites);
+            Assert.That(sites, Is.Empty);
         }
 
         [Test]
@@ -29,7 +29,7 @@
             sendOptions.RouteToSites(expectedSites);
             var sites = sendOptions.GetSitesRoutingTo();
 
-            CollectionAssert.AreEqual(expectedSites, sites);
+            Assert.That(sites, Is.EqualTo(expectedSites).AsCollection);
         }
     }
 }

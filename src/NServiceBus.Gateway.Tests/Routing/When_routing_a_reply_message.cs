@@ -20,14 +20,14 @@ namespace NServiceBus.Gateway.Tests.Routing
 
             var headers = new Dictionary<string, string> { { Headers.OriginatingSite, defaultChannel.ToString() } };
 
-            Assert.AreEqual(defaultChannel, OriginatingSiteHeaderRouter.GetDestinationSitesFor(headers).First().Channel);
+            Assert.That(OriginatingSiteHeaderRouter.GetDestinationSitesFor(headers).First().Channel, Is.EqualTo(defaultChannel));
         }
 
 
         [Test]
         public void Should_return_empty_list_if_header_is_missing()
         {
-            Assert.AreEqual(0, OriginatingSiteHeaderRouter.GetDestinationSitesFor([]).Count());
+            Assert.That(OriginatingSiteHeaderRouter.GetDestinationSitesFor([]).Count(), Is.EqualTo(0));
         }
     }
 }
