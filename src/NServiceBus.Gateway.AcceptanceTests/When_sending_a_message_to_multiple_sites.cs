@@ -22,8 +22,11 @@
                 .Done(c => c.GotResponseBackFromSiteA && c.GotResponseBackFromSiteB)
                 .Run();
 
-            Assert.IsTrue(context.GotResponseBackFromSiteA);
-            Assert.IsTrue(context.GotResponseBackFromSiteB);
+            Assert.Multiple(() =>
+            {
+                Assert.That(context.GotResponseBackFromSiteA, Is.True);
+                Assert.That(context.GotResponseBackFromSiteB, Is.True);
+            });
         }
 
         public class Context : ScenarioContext

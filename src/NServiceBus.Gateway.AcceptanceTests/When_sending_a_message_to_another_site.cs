@@ -19,7 +19,7 @@
                 .Done(c => c.GotResponseBack)
                 .Run();
 
-            Assert.IsTrue(context.GotResponseBack);
+            Assert.That(context.GotResponseBack, Is.True);
         }
 
         public class Context : ScenarioContext
