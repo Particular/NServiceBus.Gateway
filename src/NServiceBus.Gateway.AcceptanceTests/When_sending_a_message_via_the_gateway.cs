@@ -57,7 +57,7 @@
                 .Run();
 
             Assert.IsTrue(context.GotMessage);
-            Assert.AreEqual("MySpecialValue", context.MySpecialHeader);
+            Assert.That(context.MySpecialHeader, Is.EqualTo("MySpecialValue"));
         }
 
         static string Hash(Stream stream)
