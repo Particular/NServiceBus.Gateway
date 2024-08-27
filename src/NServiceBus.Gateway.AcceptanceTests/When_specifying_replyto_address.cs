@@ -22,8 +22,11 @@
                 .Done(c => c.GotCallback)
                 .Run();
 
-            Assert.IsTrue(context.GotCallback);
-            Assert.That(context.Response, Is.EqualTo(42));
+            Assert.Multiple(() =>
+            {
+                Assert.That(context.GotCallback, Is.True);
+                Assert.That(context.Response, Is.EqualTo(42));
+            });
         }
 
         public class Context : ScenarioContext

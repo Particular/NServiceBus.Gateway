@@ -33,9 +33,12 @@
                 Assert.That(context.SiteAReceivedPayloadInResponse, Is.EqualTo(PayloadToSend),
                     "The large payload should be marshalled correctly using the databus");
             });
-            Assert.That(context.OriginatingSiteForRequest, Is.EqualTo("http,http://localhost:25899/SiteA/"));
-            Assert.That(context.OriginatingSiteForResponse, Is.EqualTo("http,http://localhost:25899/SiteB/"));
-            Assert.NotNull(context.Response);
+            Assert.Multiple(() =>
+            {
+                Assert.That(context.OriginatingSiteForRequest, Is.EqualTo("http,http://localhost:25899/SiteA/"));
+                Assert.That(context.OriginatingSiteForResponse, Is.EqualTo("http,http://localhost:25899/SiteB/"));
+                Assert.That(context.Response, Is.Not.Null);
+            });
         }
 
         static byte[] PayloadToSend = new byte[1024 * 1024 * 10];
