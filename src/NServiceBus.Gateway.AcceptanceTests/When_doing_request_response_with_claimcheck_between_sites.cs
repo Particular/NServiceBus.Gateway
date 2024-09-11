@@ -1,17 +1,14 @@
-﻿// Databus is obsolete and this test needs to be refactored to use the new data bus API or removed. For now
-// we are suppressing the obsoletion warning it to unblock the build.
-#pragma warning disable CS0618 // Type or member is obsolete
-namespace NServiceBus.Gateway.AcceptanceTests
+﻿namespace NServiceBus.Gateway.AcceptanceTests
 {
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Configuration.AdvancedExtensibility;
     using NUnit.Framework;
 
-    public class When_doing_request_response_with_databus_between_sites : NServiceBusAcceptanceTest
+    public class When_doing_request_response_with_claimcheck_between_sites : NServiceBusAcceptanceTest
     {
         [Test]
-        public async Task Should_be_able_to_reply_to_the_message_using_databus()
+        public async Task Should_be_able_to_reply_to_the_message_using_claimcheck()
         {
             var context = await Scenario.Define<Context>()
                 .WithEndpoint<SiteA>(
@@ -21,7 +18,7 @@ namespace NServiceBus.Gateway.AcceptanceTests
                         options.RouteToSites("SiteB");
                         c.Response = await bus.Request<MyResponse>(new MyRequest
                         {
-                            Payload = new DataBusProperty<byte[]>(PayloadToSend)
+                            Payload = new ClaimCheckProperty<byte[]>(PayloadToSend)
                         }, options);
                         c.GotCallback = true;
                     }))
@@ -32,9 +29,9 @@ namespace NServiceBus.Gateway.AcceptanceTests
             Assert.Multiple(() =>
             {
                 Assert.That(context.SiteBReceivedPayload, Is.EqualTo(PayloadToSend),
-                            "The large payload should be marshalled correctly using the databus");
+                            "The large payload should be marshalled correctly using the claimcheck implementation");
                 Assert.That(context.SiteAReceivedPayloadInResponse, Is.EqualTo(PayloadToSend),
-                    "The large payload should be marshalled correctly using the databus");
+                    "The large payload should be marshalled correctly using the claimcheck implementation");
             });
             Assert.Multiple(() =>
             {
@@ -63,7 +60,7 @@ namespace NServiceBus.Gateway.AcceptanceTests
             {
                 EndpointSetup<GatewayEndpoint>(c =>
                 {
-                    c.UseDataBus<FileShareDataBus, SystemJsonDataBusSerializer>().BasePath(@".\databus\siteA");
+                    c.UseClaimCheck<FileShareClaimCheck, SystemJsonClaimCheckSerializer>().BasePath(@".\claimcheck\siteA");
                     c.MakeInstanceUniquelyAddressable("1");
                     c.EnableCallbacks();
 
@@ -101,7 +98,7 @@ namespace NServiceBus.Gateway.AcceptanceTests
             {
                 EndpointSetup<GatewayEndpoint>(c =>
                 {
-                    c.UseDataBus<FileShareDataBus, SystemJsonDataBusSerializer>().BasePath(@".\databus\siteB");
+                    c.UseClaimCheck<FileShareClaimCheck, SystemJsonClaimCheckSerializer>().BasePath(@".\claimcheck\siteB");
                     c.EnableCallbacks(makesRequests: false);
                     var gatewaySettings = c.GetSettings().Get<GatewaySettings>();
                     gatewaySettings.AddReceiveChannel("http://localhost:25899/SiteB/");
@@ -133,13 +130,12 @@ namespace NServiceBus.Gateway.AcceptanceTests
 
         public class MyRequest : ICommand
         {
-            public DataBusProperty<byte[]> Payload { get; set; }
+            public ClaimCheckProperty<byte[]> Payload { get; set; }
         }
 
         public class MyResponse : IMessage
         {
-            public DataBusProperty<byte[]> OriginalPayload { get; set; }
+            public ClaimCheckProperty<byte[]> OriginalPayload { get; set; }
         }
     }
 }
-#pragma warning restore CS0618 // Type or member is obsolete

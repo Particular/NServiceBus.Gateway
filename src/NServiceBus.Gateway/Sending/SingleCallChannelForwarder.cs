@@ -7,7 +7,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Channels.Http;
-    using DataBus;
+    using ClaimCheck;
     using HeaderManagement;
     using Logging;
     using Routing;
@@ -55,10 +55,10 @@
 
     class SingleCallChannelForwarder
     {
-        public SingleCallChannelForwarder(Func<string, IChannelSender> senderFactory, IDataBus databus)
+        public SingleCallChannelForwarder(Func<string, IChannelSender> senderFactory, IClaimCheck claimCheck)
         {
             this.senderFactory = senderFactory;
-            this.databus = databus;
+            this.claimCheck = claimCheck;
         }
 
         public async Task Forward(ReadOnlyMemory<byte> body, Dictionary<string, string> headers, Site targetSite, CancellationToken cancellationToken = default)
@@ -67,9 +67,9 @@
 
             var channelSender = senderFactory(targetSite.Channel.Type);
 
-            //databus properties have to be available at the receiver site
+            //claimcheck properties have to be available at the receiver site
             //before the body of the message is forwarded on the bus
-            await TransmitDataBusProperties(channelSender, targetSite, toHeaders, cancellationToken).ConfigureAwait(false);
+            await TransmitClaimCheckProperties(channelSender, targetSite, toHeaders, cancellationToken).ConfigureAwait(false);
 
             using (var messagePayload = new ReadOnlyStream(body))
             {
@@ -118,7 +118,7 @@
             await channelSender.Send(targetSite.Channel.Address, headers, data, cancellationToken).ConfigureAwait(false);
         }
 
-        async Task TransmitDataBusProperties(IChannelSender channelSender, Site targetSite,
+        async Task TransmitClaimCheckProperties(IChannelSender channelSender, Site targetSite,
             IDictionary<string, string> headers, CancellationToken cancellationToken)
         {
             var headersToSend = new Dictionary<string, string>(headers);
@@ -126,17 +126,17 @@
             foreach (
                 var headerKey in headers.Keys.Where(headerKey => headerKey.Contains("NServiceBus.DataBus.")))
             {
-                if (databus == null)
+                if (claimCheck == null)
                 {
                     throw new InvalidOperationException(
-                        "Can't send a message with a databus property without a databus configured");
+                        "Can't send a message with a claimcheck property without an implementation of the claimcheck pattern configured");
                 }
 
                 headersToSend[GatewayHeaders.DatabusKey] = headerKey;
 
-                var databusKeyForThisProperty = headers[headerKey];
+                var claimCheckKeyForThisProperty = headers[headerKey];
 
-                using (var stream = await databus.Get(databusKeyForThisProperty, cancellationToken).ConfigureAwait(false))
+                using (var stream = await claimCheck.Get(claimCheckKeyForThisProperty, cancellationToken).ConfigureAwait(false))
                 {
                     await Transmit(channelSender, targetSite, CallType.SingleCallDatabusProperty, headersToSend, stream, cancellationToken).ConfigureAwait(false);
                 }
@@ -152,6 +152,6 @@
 
         static readonly ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
         Func<string, IChannelSender> senderFactory;
-        IDataBus databus;
+        IClaimCheck claimCheck;
     }
 }
