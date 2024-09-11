@@ -6,7 +6,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Channels;
-    using DataBus;
+    using ClaimCheck;
     using Extensibility;
     using HeaderManagement;
     using Logging;
@@ -16,13 +16,13 @@
 
     class SingleCallChannelReceiver
     {
-        public SingleCallChannelReceiver(Func<string, IChannelReceiver> channelFactory, IGatewayDeduplicationStorage deduplicationStorage, IDataBus databus, bool useTransactionScope)
+        public SingleCallChannelReceiver(Func<string, IChannelReceiver> channelFactory, IGatewayDeduplicationStorage deduplicationStorage, IClaimCheck claimCheck, bool useTransactionScope)
         {
             this.channelFactory = channelFactory;
             this.deduplicationStorage = deduplicationStorage;
-            this.databus = databus;
+            this.claimCheck = claimCheck;
             this.useTransactionScope = useTransactionScope;
-            headerManager = new DataBusHeaderManager();
+            headerManager = new ClaimCheckHeaderManager();
         }
 
         public void Start(Channel channel, int maxConcurrency, Func<MessageReceivedOnChannelArgs, CancellationToken, Task> receivedHandler)
@@ -64,7 +64,7 @@
                 switch (callInfo.Type)
                 {
                     case CallType.SingleCallDatabusProperty:
-                        await HandleDatabusProperty(callInfo, cancellationToken).ConfigureAwait(false);
+                        await HandleClaimCheckProperty(callInfo, cancellationToken).ConfigureAwait(false);
                         break;
                     case CallType.SingleCallSubmit:
                         await HandleSubmit(callInfo, cancellationToken).ConfigureAwait(false);
@@ -89,7 +89,7 @@
                     await Hasher.Verify(stream, callInfo.Md5, cancellationToken).ConfigureAwait(false);
                 }
 
-                var headers = headerManager.ReassembleDataBusProperties(callInfo.ClientId, callInfo.Headers);
+                var headers = headerManager.ReassembleClaimCheckProperties(callInfo.ClientId, callInfo.Headers);
                 var args = CreateMessageReceivedArgsWithDefaultValues(callInfo.TimeToBeReceived, headers[NServiceBus + Id]);
 
                 var isGatewayMessage = IsGatewayMessage(headers);
@@ -206,33 +206,33 @@
             return result;
         }
 
-        async Task HandleDatabusProperty(CallInfo callInfo, CancellationToken cancellationToken)
+        async Task HandleClaimCheckProperty(CallInfo callInfo, CancellationToken cancellationToken)
         {
-            if (databus == null)
+            if (claimCheck == null)
             {
-                throw new InvalidOperationException("Databus transmission received without a configured databus");
+                throw new InvalidOperationException("ClaimCheck transmission received without a configured implementation of the claimcheck pattern");
             }
 
-            var newDatabusKey = await databus.Put(callInfo.Data, callInfo.TimeToBeReceived, cancellationToken).ConfigureAwait(false);
+            var newClaimCheckKey = await claimCheck.Put(callInfo.Data, callInfo.TimeToBeReceived, cancellationToken).ConfigureAwait(false);
             if (callInfo.Md5 != null)
             {
-                using (var databusStream = await databus.Get(newDatabusKey, cancellationToken).ConfigureAwait(false))
+                using (var claimCheckStream = await claimCheck.Get(newClaimCheckKey, cancellationToken).ConfigureAwait(false))
                 {
-                    await Hasher.Verify(databusStream, callInfo.Md5, cancellationToken).ConfigureAwait(false);
+                    await Hasher.Verify(claimCheckStream, callInfo.Md5, cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            var specificDataBusHeaderToUpdate = callInfo.ReadDataBus();
-            headerManager.InsertHeader(callInfo.ClientId, specificDataBusHeaderToUpdate, newDatabusKey);
+            var specificClaimCheckHeaderToUpdate = callInfo.ReadClaimCheck();
+            headerManager.InsertHeader(callInfo.ClientId, specificClaimCheckHeaderToUpdate, newClaimCheckKey);
         }
 
         static ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
 
         Func<string, IChannelReceiver> channelFactory;
         IGatewayDeduplicationStorage deduplicationStorage;
-        IDataBus databus;
+        IClaimCheck claimCheck;
         readonly bool useTransactionScope;
-        DataBusHeaderManager headerManager;
+        ClaimCheckHeaderManager headerManager;
         IChannelReceiver channelReceiver;
 
         const string NServiceBus = "NServiceBus.";

@@ -7,7 +7,6 @@
     using System.Threading.Tasks;
     using Logging;
     using Microsoft.Extensions.DependencyInjection;
-    using NServiceBus.DataBus;
     using NServiceBus.Gateway;
     using NServiceBus.Gateway.Channels;
     using NServiceBus.Gateway.Channels.Http;
@@ -22,6 +21,7 @@
     using Routing;
     using Settings;
     using Transport;
+    using NServiceBus.ClaimCheck;
 
     /// <summary>
     /// Used to configure the gateway.
@@ -71,7 +71,7 @@
                 GetConfigurationBasedSiteRouter(context),
                 replyToAddress,
                 b.GetRequiredService<IMessageDispatcher>(),
-                CreateForwarder(channelSenderFactory, b.GetServices<IDataBus>()?.FirstOrDefault())));
+                CreateForwarder(channelSenderFactory, b.GetServices<IClaimCheck>()?.FirstOrDefault())));
 
             context.AddSatelliteReceiver("Gateway", logicalGatewayAddress, PushRuntimeSettings.Default,
                 (config, errorContext) => GatewayRecoverabilityPolicy.Invoke(errorContext, retryPolicy, config),
@@ -92,7 +92,7 @@
                 GetEndpointRouter(context),
                 b.GetRequiredService<IMessageDispatcher>(),
                 storageConfiguration.CreateStorage(b),
-                b.GetServices<IDataBus>()?.FirstOrDefault(),
+                b.GetServices<IClaimCheck>()?.FirstOrDefault(),
                 b.GetRequiredService<ITransportAddressResolver>().ToTransportAddress(logicalGatewayAddress),
                 transportDefinition.TransportTransactionMode));
         }
@@ -138,9 +138,9 @@
             return $"{replyToUri.type},{replyToUri.address}";
         }
 
-        static SingleCallChannelForwarder CreateForwarder(Func<string, IChannelSender> channelSenderFactory, IDataBus databus)
+        static SingleCallChannelForwarder CreateForwarder(Func<string, IChannelSender> channelSenderFactory, IClaimCheck claimCheck)
         {
-            return new SingleCallChannelForwarder(channelSenderFactory, databus);
+            return new SingleCallChannelForwarder(channelSenderFactory, claimCheck);
         }
 
         static EndpointRouter GetEndpointRouter(FeatureConfigurationContext context)
@@ -174,11 +174,11 @@
 
         class GatewayReceiverStartupTask : FeatureStartupTask
         {
-            public GatewayReceiverStartupTask(IManageReceiveChannels channelManager, Func<string, IChannelReceiver> channelReceiverFactory, EndpointRouter endpointRouter, IMessageDispatcher dispatcher, IGatewayDeduplicationStorage deduplicationStorage, IDataBus databus, string replyToAddress, TransportTransactionMode transportTransactionMode)
+            public GatewayReceiverStartupTask(IManageReceiveChannels channelManager, Func<string, IChannelReceiver> channelReceiverFactory, EndpointRouter endpointRouter, IMessageDispatcher dispatcher, IGatewayDeduplicationStorage deduplicationStorage, IClaimCheck claimCheck, string replyToAddress, TransportTransactionMode transportTransactionMode)
             {
                 dispatchMessages = dispatcher;
                 this.deduplicationStorage = deduplicationStorage;
-                this.databus = databus;
+                this.claimCheck = claimCheck;
                 this.endpointRouter = endpointRouter;
                 manageReceiveChannels = channelManager;
                 this.channelReceiverFactory = channelReceiverFactory;
@@ -195,7 +195,7 @@
 
                 foreach (var receiveChannel in manageReceiveChannels.GetReceiveChannels())
                 {
-                    var receiver = new SingleCallChannelReceiver(channelReceiverFactory, deduplicationStorage, databus, useTransactionScope);
+                    var receiver = new SingleCallChannelReceiver(channelReceiverFactory, deduplicationStorage, claimCheck, useTransactionScope);
 
                     receiver.Start(receiveChannel, receiveChannel.MaxConcurrency, MessageReceivedOnChannel);
                     activeReceivers.Add(receiver);
@@ -248,7 +248,7 @@
             EndpointRouter endpointRouter;
             IMessageDispatcher dispatchMessages;
             IGatewayDeduplicationStorage deduplicationStorage;
-            IDataBus databus;
+            IClaimCheck claimCheck;
             string replyToAddress;
 
             static ILog Logger = LogManager.GetLogger<GatewayReceiverStartupTask>();

@@ -41,15 +41,15 @@ namespace NServiceBus.Gateway.Receiving
             return md5;
         }
 
-        public static string ReadDataBus(this CallInfo callInfo)
+        public static string ReadClaimCheck(this CallInfo callInfo)
         {
-            callInfo.Headers.TryGetValue(GatewayHeaders.DatabusKey, out string dataBus);
+            callInfo.Headers.TryGetValue(GatewayHeaders.DatabusKey, out string claimCheckKey);
 
-            if (string.IsNullOrWhiteSpace(dataBus))
+            if (string.IsNullOrWhiteSpace(claimCheckKey))
             {
                 throw new ChannelException(400, "Required header '" + GatewayHeaders.DatabusKey + "' missing.");
             }
-            return dataBus;
+            return claimCheckKey;
         }
 
         public static string ReadClientId(IDictionary<string, string> headers)
