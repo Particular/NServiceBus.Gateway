@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="9.2.3" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="9.2.4" />
     <PackageReference Include="NServiceBus.Callbacks" Version="5.0.1" />
     <PackageReference Include="NUnit" Version="4.3.2" />
   </ItemGroup>
