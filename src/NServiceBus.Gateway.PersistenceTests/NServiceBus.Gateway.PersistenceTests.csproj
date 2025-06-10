@@ -33,10 +33,4 @@
     <RemoveSourceFileFromPackage Include="NonDurableDeduplicationStorageConfiguration.cs" />
   </ItemGroup>
 
-  <Target Name="WorkaroundForTesthostBeingAddedAsContent" BeforeTargets="_GetPackageFiles">
-    <ItemGroup>
-      <Content Update="**\testhost.*" Pack="false" />
-    </ItemGroup>
-  </Target>
-
 </Project>
