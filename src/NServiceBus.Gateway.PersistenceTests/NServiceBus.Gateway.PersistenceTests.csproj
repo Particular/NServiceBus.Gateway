@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\NServiceBusTests.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
@@ -12,13 +12,14 @@
 
   <ItemGroup>
     <PackageReference Include="GitHubActionsTestLogger" Version="2.4.1" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" PrivateAssets="All" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" PrivateAssets="All" />
-    <PackageReference Include="Particular.Packaging" Version="4.2.2" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" PrivateAssets="All" />
+    <PackageReference Include="NUnit" Version="4.3.2" />
+    <PackageReference Include="NUnit.Analyzers" Version="4.8.1" PrivateAssets="All" />
+    <PackageReference Include="NUnit3TestAdapter" Version="5.0.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NUnit" Version="4.3.2" />
+    <PackageReference Include="Particular.Packaging" Version="4.4.0" PrivateAssets="All" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -31,11 +32,5 @@
   <ItemGroup>
     <RemoveSourceFileFromPackage Include="NonDurableDeduplicationStorageConfiguration.cs" />
   </ItemGroup>
-
-  <Target Name="WorkaroundForTesthostBeingAddedAsContent" BeforeTargets="_GetPackageFiles">
-    <ItemGroup>
-      <Content Update="**\testhost.*" Pack="false" />
-    </ItemGroup>
-  </Target>
 
 </Project>
