@@ -7,25 +7,20 @@
     /// </summary>
     public class NonDurableDeduplicationConfiguration : GatewayDeduplicationConfiguration
     {
-        int cacheSize = 10000;
-
         /// <summary>
         /// Configures the size of the LRU cache. This values defines the maximum amount of messages which can be tracked for duplicates.
         /// </summary>
         public int CacheSize
         {
-            get => cacheSize;
+            get;
             set
             {
                 ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value);
-                cacheSize = value;
+                field = value;
             }
-        }
+        } = 10000;
 
         /// <inheritdoc />
-        public override IGatewayDeduplicationStorage CreateStorage(IServiceProvider builder)
-        {
-            return new NonDurableDeduplicationStorage(CacheSize);
-        }
+        public override IGatewayDeduplicationStorage CreateStorage(IServiceProvider builder) => new NonDurableDeduplicationStorage(CacheSize);
     }
 }
