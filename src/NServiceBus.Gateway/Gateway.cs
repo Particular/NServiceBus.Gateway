@@ -23,12 +23,9 @@
     using Transport;
     using NServiceBus.ClaimCheck;
 
-    /// <summary>
-    /// Used to configure the gateway.
-    /// </summary>
     class Gateway : Feature
     {
-        internal Gateway()
+        public Gateway()
         {
             DependsOn("NServiceBus.Features.DelayedDeliveryFeature");
             Defaults(s => s.SetDefault("Gateway.Retries.RetryPolicy", DefaultRetryPolicy.BuildWithDefaults()));
@@ -38,9 +35,6 @@
             Defaults(c => c.Set(new InstallerSettings()));
         }
 
-        /// <summary>
-        /// Called when the features is activated
-        /// </summary>
         protected override void Setup(FeatureConfigurationContext context)
         {
             if (context.Settings.GetOrDefault<bool>("Endpoint.SendOnly"))
