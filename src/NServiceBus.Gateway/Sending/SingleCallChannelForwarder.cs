@@ -15,7 +15,7 @@
 
     class ReadOnlyStream : Stream
     {
-        ReadOnlyMemory<byte> memory;
+        readonly ReadOnlyMemory<byte> memory;
         long position;
 
         public ReadOnlyStream(ReadOnlyMemory<byte> memory)
@@ -151,7 +151,7 @@
         const string TimeToBeReceived = "TimeToBeReceived";
 
         static readonly ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
-        Func<string, IChannelSender> senderFactory;
-        IClaimCheck claimCheck;
+        readonly Func<string, IChannelSender> senderFactory;
+        readonly IClaimCheck claimCheck;
     }
 }

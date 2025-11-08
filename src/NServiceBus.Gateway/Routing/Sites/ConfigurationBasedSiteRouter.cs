@@ -28,6 +28,6 @@ namespace NServiceBus.Gateway.Routing.Sites
             }
         }
 
-        IDictionary<string, Site> sites = new Dictionary<string, Site>();
+        readonly IDictionary<string, Site> sites = new Dictionary<string, Site>();
     }
 }

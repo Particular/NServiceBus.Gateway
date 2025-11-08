@@ -51,6 +51,6 @@
             return input;
         }
 
-        Dictionary<string, Dictionary<string, string>> headers = [];
+        readonly Dictionary<string, Dictionary<string, string>> headers = [];
     }
 }

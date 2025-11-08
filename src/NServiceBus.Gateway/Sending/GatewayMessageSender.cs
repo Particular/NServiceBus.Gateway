@@ -100,11 +100,11 @@ namespace NServiceBus.Gateway.Sending
             messageNotifier.RaiseMessageForwarded(localAddress, targetSite.Channel.Type, body, headers);
         }
 
-        string localAddress;
-        ConfigurationBasedSiteRouter configRouter;
-        MessageNotifier messageNotifier;
-        string inputAddress;
-        string replyToAddress;
+        readonly string localAddress;
+        readonly ConfigurationBasedSiteRouter configRouter;
+        readonly MessageNotifier messageNotifier;
+        readonly string inputAddress;
+        readonly string replyToAddress;
         readonly IMessageDispatcher dispatcher;
         readonly SingleCallChannelForwarder forwarder;
     }

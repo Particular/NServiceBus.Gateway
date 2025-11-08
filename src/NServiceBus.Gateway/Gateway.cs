@@ -172,22 +172,11 @@
             return new ConfigurationBasedSiteRouter(sites);
         }
 
-        static ILog Logger = LogManager.GetLogger<Gateway>();
+        static readonly ILog Logger = LogManager.GetLogger<Gateway>();
 
-        class GatewayReceiverStartupTask : FeatureStartupTask
+        class GatewayReceiverStartupTask(IManageReceiveChannels channelManager, Func<string, IChannelReceiver> channelReceiverFactory, EndpointRouter endpointRouter, IMessageDispatcher dispatcher, IGatewayDeduplicationStorage deduplicationStorage, IClaimCheck claimCheck, string replyToAddress, TransportTransactionMode transportTransactionMode)
+            : FeatureStartupTask
         {
-            public GatewayReceiverStartupTask(IManageReceiveChannels channelManager, Func<string, IChannelReceiver> channelReceiverFactory, EndpointRouter endpointRouter, IMessageDispatcher dispatcher, IGatewayDeduplicationStorage deduplicationStorage, IClaimCheck claimCheck, string replyToAddress, TransportTransactionMode transportTransactionMode)
-            {
-                dispatchMessages = dispatcher;
-                this.deduplicationStorage = deduplicationStorage;
-                this.claimCheck = claimCheck;
-                this.endpointRouter = endpointRouter;
-                manageReceiveChannels = channelManager;
-                this.channelReceiverFactory = channelReceiverFactory;
-                this.replyToAddress = replyToAddress;
-                this.transportTransactionMode = transportTransactionMode;
-            }
-
             protected override Task OnStart(IMessageSession context, CancellationToken cancellationToken = default)
             {
                 // only use transaction scope if both transport and persistence are able to enlist with the transaction scope.
@@ -195,7 +184,7 @@
                 var useTransactionScope = deduplicationStorage.SupportsDistributedTransactions && transportTransactionMode == TransportTransactionMode.TransactionScope;
                 Logger.DebugFormat("Using TransactionScope: {0} (based on storage TransactionScope support: {1} and transport transaction mode: {2}).", useTransactionScope, deduplicationStorage.SupportsDistributedTransactions, transportTransactionMode);
 
-                foreach (var receiveChannel in manageReceiveChannels.GetReceiveChannels())
+                foreach (var receiveChannel in channelManager.GetReceiveChannels())
                 {
                     var receiver = new SingleCallChannelReceiver(channelReceiverFactory, deduplicationStorage, claimCheck, useTransactionScope);
 
@@ -242,21 +231,10 @@
                 };
 
                 var transportOperations = new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag(destination), dispatchProperties, DispatchConsistency.Default));
-                return dispatchMessages.Dispatch(transportOperations, new TransportTransaction(), cancellationToken);
+                return dispatcher.Dispatch(transportOperations, new TransportTransaction(), cancellationToken);
             }
 
-            readonly TransportTransactionMode transportTransactionMode;
-
-            ICollection<SingleCallChannelReceiver> activeReceivers = [];
-            IManageReceiveChannels manageReceiveChannels;
-            Func<string, IChannelReceiver> channelReceiverFactory;
-            EndpointRouter endpointRouter;
-            IMessageDispatcher dispatchMessages;
-            IGatewayDeduplicationStorage deduplicationStorage;
-            IClaimCheck claimCheck;
-            string replyToAddress;
-
-            static ILog Logger = LogManager.GetLogger<GatewayReceiverStartupTask>();
+            readonly ICollection<SingleCallChannelReceiver> activeReceivers = [];
         }
     }
 }
