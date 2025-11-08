@@ -36,4 +36,8 @@
     <RemoveSourceFileFromPackage Include="NonDurableTestSuiteConstaints.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EditorConfigFiles Remove=".editorconfig" />
+  </ItemGroup>
+
 </Project>
