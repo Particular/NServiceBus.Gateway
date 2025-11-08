@@ -26,11 +26,7 @@
 
     class Gateway : Feature
     {
-        public Gateway()
-        {
-            DependsOn("NServiceBus.Features.DelayedDeliveryFeature");
-            Defaults(s => s.SetDefault("Gateway.Retries.RetryPolicy", DefaultRetryPolicy.BuildWithDefaults()));
-        }
+        public Gateway() => DependsOn("NServiceBus.Features.DelayedDeliveryFeature");
 
         protected override void Setup(FeatureConfigurationContext context)
         {
