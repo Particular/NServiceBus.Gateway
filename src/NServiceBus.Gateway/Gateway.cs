@@ -198,13 +198,25 @@
             {
                 Logger.Info("Receiver is shutting down");
 
-                var stopTasks = activeReceivers.Select(channelReceiver => channelReceiver.Stop(cancellationToken));
+                var stopTasks = activeReceivers.Select(StopReceiver);
 
                 await Task.WhenAll(stopTasks).ConfigureAwait(false);
 
                 activeReceivers.Clear();
 
                 Logger.Info("Receiver shutdown complete");
+
+                async Task StopReceiver(SingleCallChannelReceiver receiver)
+                {
+                    try
+                    {
+                        await receiver.Stop(cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        Logger.Info("Stopping channel receiver was canceled");
+                    }
+                }
             }
 
             Task MessageReceivedOnChannel(MessageReceivedOnChannelArgs e, CancellationToken cancellationToken)
