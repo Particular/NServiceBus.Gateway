@@ -24,7 +24,9 @@
 
             types = types.Union(endpointConfiguration.TypesToInclude);
 
-            return types.Where(t => !t.IsAssignableTo(typeof(INeedToInstallSomething)) && !endpointConfiguration.TypesToExclude.Contains(t)).ToList();
+            return types.Where(t => !t.IsAssignableTo(typeof(INeedToInstallSomething)) &&
+                                    !t.IsAssignableTo(typeof(Features.Feature)) &&
+                                    !endpointConfiguration.TypesToExclude.Contains(t)).ToList();
         }
 
         static IEnumerable<Type> GetNestedTypeRecursive(Type rootType, Type builderType)

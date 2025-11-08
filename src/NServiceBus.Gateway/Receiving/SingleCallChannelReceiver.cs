@@ -14,17 +14,8 @@
     using Sending;
     using Utils;
 
-    class SingleCallChannelReceiver
+    class SingleCallChannelReceiver(Func<string, IChannelReceiver> channelFactory, IGatewayDeduplicationStorage deduplicationStorage, IClaimCheck claimCheck, bool useTransactionScope)
     {
-        public SingleCallChannelReceiver(Func<string, IChannelReceiver> channelFactory, IGatewayDeduplicationStorage deduplicationStorage, IClaimCheck claimCheck, bool useTransactionScope)
-        {
-            this.channelFactory = channelFactory;
-            this.deduplicationStorage = deduplicationStorage;
-            this.claimCheck = claimCheck;
-            this.useTransactionScope = useTransactionScope;
-            headerManager = new ClaimCheckHeaderManager();
-        }
-
         public void Start(Channel channel, int maxConcurrency, Func<MessageReceivedOnChannelArgs, CancellationToken, Task> receivedHandler)
         {
             messageReceivedHandler = receivedHandler;
@@ -228,11 +219,7 @@
 
         static readonly ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
 
-        readonly Func<string, IChannelReceiver> channelFactory;
-        readonly IGatewayDeduplicationStorage deduplicationStorage;
-        readonly IClaimCheck claimCheck;
-        readonly bool useTransactionScope;
-        readonly ClaimCheckHeaderManager headerManager;
+        readonly ClaimCheckHeaderManager headerManager = new();
         IChannelReceiver channelReceiver;
 
         const string NServiceBus = "NServiceBus.";
