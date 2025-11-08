@@ -202,7 +202,7 @@
             {
                 Logger.Info("Receiver is shutting down");
 
-                var stopTasks = activeReceivers.Select(channelReceiver => channelReceiver.Stop());
+                var stopTasks = activeReceivers.Select(channelReceiver => channelReceiver.Stop(cancellationToken));
 
                 await Task.WhenAll(stopTasks).ConfigureAwait(false);
 
@@ -222,8 +222,13 @@
 
                 Logger.Info("Sending message to " + destination);
 
-                var outgoingMessage = new OutgoingMessage(id, headers, body);
-                outgoingMessage.Headers[Headers.ReplyToAddress] = replyToAddress;
+                var outgoingMessage = new OutgoingMessage(id, headers, body)
+                {
+                    Headers =
+                    {
+                        [Headers.ReplyToAddress] = replyToAddress
+                    }
+                };
 
                 var dispatchProperties = new DispatchProperties
                 {
