@@ -3,11 +3,13 @@ namespace NServiceBus.Installation;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Gateway.Receiving;
 using Logging;
 
+[SupportedOSPlatform("windows")]
 class GatewayHttpListenerInstaller(IManageReceiveChannels channelManager) : INeedToInstallSomething
 {
     public Task Install(string identity, CancellationToken cancellationToken = default)
