@@ -13,7 +13,7 @@
         {
             var endpointConfiguration = new EndpointConfiguration(endpointCustomizationConfiguration.EndpointName);
 
-            endpointConfiguration.TypesToIncludeInScan(endpointCustomizationConfiguration.GetTypesScopedByTestClass());
+            endpointConfiguration.ScanTypesForTest(endpointCustomizationConfiguration);
 
             endpointConfiguration.Recoverability()
                 .Delayed(delayed => delayed.NumberOfRetries(0))
@@ -24,7 +24,10 @@
             endpointConfiguration.EnableInstallers();
             endpointConfiguration.UseSerialization<XmlSerializer>();
 
-            endpointConfiguration.UseTransport(new LearningTransport { StorageDirectory = storageDir });
+            endpointConfiguration.UseTransport(new LearningTransport
+            {
+                StorageDirectory = storageDir
+            });
 
             endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 
