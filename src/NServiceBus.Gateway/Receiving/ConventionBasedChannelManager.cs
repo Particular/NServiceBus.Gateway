@@ -25,6 +25,6 @@ namespace NServiceBus.Gateway.Receiving
             return GetReceiveChannels().First();
         }
 
-        string endpointName;
+        readonly string endpointName;
     }
 }

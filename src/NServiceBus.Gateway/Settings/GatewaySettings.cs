@@ -174,6 +174,6 @@
             settings.Set("Gateway.Retries.RetryPolicy", DefaultRetryPolicy.Build(numberOfRetries, timeIncrease));
         }
 
-        SettingsHolder settings;
+        readonly SettingsHolder settings;
     }
 }

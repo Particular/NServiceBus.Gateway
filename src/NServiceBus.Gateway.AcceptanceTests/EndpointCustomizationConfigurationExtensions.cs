@@ -6,6 +6,7 @@
     using System.Reflection;
     using AcceptanceTesting.Support;
     using Hosting.Helpers;
+    using Installation;
 
     public static class EndpointCustomizationConfigurationExtensions
     {
@@ -23,7 +24,9 @@
 
             types = types.Union(endpointConfiguration.TypesToInclude);
 
-            return types.Where(t => !endpointConfiguration.TypesToExclude.Contains(t)).ToList();
+            return types.Where(t => !t.IsAssignableTo(typeof(INeedToInstallSomething)) &&
+                                    !t.IsAssignableTo(typeof(Features.Feature)) &&
+                                    !endpointConfiguration.TypesToExclude.Contains(t)).ToList();
         }
 
         static IEnumerable<Type> GetNestedTypeRecursive(Type rootType, Type builderType)

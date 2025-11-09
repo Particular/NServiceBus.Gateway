@@ -14,17 +14,8 @@
     using Sending;
     using Utils;
 
-    class SingleCallChannelReceiver
+    class SingleCallChannelReceiver(Func<string, IChannelReceiver> channelFactory, IGatewayDeduplicationStorage deduplicationStorage, IClaimCheck claimCheck, bool useTransactionScope)
     {
-        public SingleCallChannelReceiver(Func<string, IChannelReceiver> channelFactory, IGatewayDeduplicationStorage deduplicationStorage, IClaimCheck claimCheck, bool useTransactionScope)
-        {
-            this.channelFactory = channelFactory;
-            this.deduplicationStorage = deduplicationStorage;
-            this.claimCheck = claimCheck;
-            this.useTransactionScope = useTransactionScope;
-            headerManager = new ClaimCheckHeaderManager();
-        }
-
         public void Start(Channel channel, int maxConcurrency, Func<MessageReceivedOnChannelArgs, CancellationToken, Task> receivedHandler)
         {
             messageReceivedHandler = receivedHandler;
@@ -226,13 +217,9 @@
             headerManager.InsertHeader(callInfo.ClientId, specificClaimCheckHeaderToUpdate, newClaimCheckKey);
         }
 
-        static ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
+        static readonly ILog Logger = LogManager.GetLogger("NServiceBus.Gateway");
 
-        Func<string, IChannelReceiver> channelFactory;
-        IGatewayDeduplicationStorage deduplicationStorage;
-        IClaimCheck claimCheck;
-        readonly bool useTransactionScope;
-        ClaimCheckHeaderManager headerManager;
+        readonly ClaimCheckHeaderManager headerManager = new();
         IChannelReceiver channelReceiver;
 
         const string NServiceBus = "NServiceBus.";
@@ -240,7 +227,7 @@
         const string CorrelationId = "CorrelationId";
         const string Recoverable = "Recoverable";
         const string TimeToBeReceived = "TimeToBeReceived";
-        static TimeSpan MinimumTimeToBeReceived = TimeSpan.FromSeconds(1);
+        static readonly TimeSpan MinimumTimeToBeReceived = TimeSpan.FromSeconds(1);
 
         Func<MessageReceivedOnChannelArgs, CancellationToken, Task> messageReceivedHandler;
     }

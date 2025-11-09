@@ -60,7 +60,7 @@
             return next();
         }
 
-        List<string> configuredSiteKeys;
-        string gatewayAddress;
+        readonly List<string> configuredSiteKeys;
+        readonly string gatewayAddress;
     }
 }

@@ -3,15 +3,16 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
+    using Installation;
     using Logging;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.Gateway;
     using NServiceBus.Gateway.Channels;
     using NServiceBus.Gateway.Channels.Http;
     using NServiceBus.Gateway.HeaderManagement;
-    using NServiceBus.Gateway.Installer;
     using NServiceBus.Gateway.Notifications;
     using NServiceBus.Gateway.Receiving;
     using NServiceBus.Gateway.Routing.Endpoints;
@@ -25,21 +26,13 @@
 
     class Gateway : Feature
     {
-        public Gateway()
-        {
-            DependsOn("NServiceBus.Features.DelayedDeliveryFeature");
-            Defaults(s => s.SetDefault("Gateway.Retries.RetryPolicy", DefaultRetryPolicy.BuildWithDefaults()));
-
-            // since the installers are registered even if the feature isn't enabled we need to make
-            // this a no-op if the installer runs without the feature enabled
-            Defaults(c => c.Set(new InstallerSettings()));
-        }
+        public Gateway() => DependsOn("NServiceBus.Features.DelayedDeliveryFeature");
 
         protected override void Setup(FeatureConfigurationContext context)
         {
             if (context.Settings.GetOrDefault<bool>("Endpoint.SendOnly"))
             {
-                throw new InvalidOperationException("Gateway is not support for send only endpoints.");
+                throw new InvalidOperationException("Gateway is not supported for send only endpoints.");
             }
 
             var storageConfiguration = context.Settings.Get<GatewayDeduplicationConfiguration>();
@@ -51,13 +44,14 @@
 
             var channelManager = CreateChannelManager(context.Settings);
 
-            RegisterChannels(context, channelManager, out var channelSenderFactory, out var channelReceiverFactory);
+            RegisterChannels(context, out var channelSenderFactory, out var channelReceiverFactory);
 
             var retryPolicy = context.Settings.Get<Func<IncomingMessage, Exception, int, TimeSpan>>("Gateway.Retries.RetryPolicy");
 
             var logicalGatewayAddress = new QueueAddress(context.Settings.EndpointQueueName(), null, null, "gateway");
             var replyToAddress = GetReplyToAddress(context.Settings, channelManager);
 
+            context.Services.AddSingleton(channelManager);
             context.Services.AddSingleton(b => new GatewayMessageSender(
                 b.GetRequiredService<ITransportAddressResolver>().ToTransportAddress(logicalGatewayAddress),
                 new MessageNotifier(),
@@ -81,7 +75,7 @@
             context.Pipeline.Register("GatewayOutgoingBehavior", new GatewayOutgoingBehavior(), "Puts gateway related information on the headers of outgoing messages");
 
             context.RegisterStartupTask(b => new GatewayReceiverStartupTask(
-                channelManager,
+                b.GetRequiredService<IManageReceiveChannels>(),
                 channelReceiverFactory,
                 GetEndpointRouter(context),
                 b.GetRequiredService<IMessageDispatcher>(),
@@ -89,9 +83,18 @@
                 b.GetServices<IClaimCheck>()?.FirstOrDefault(),
                 b.GetRequiredService<ITransportAddressResolver>().ToTransportAddress(logicalGatewayAddress),
                 transportDefinition.TransportTransactionMode));
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                context.AddInstaller<GatewayHttpListenerInstaller>();
+            }
+            else
+            {
+                Logger.InfoFormat("Installer does not support platform {0}. Ensure that the process has required permissions to listen to configured urls.", RuntimeInformation.OSDescription);
+            }
         }
 
-        static void RegisterChannels(FeatureConfigurationContext context, IManageReceiveChannels channelManager, out Func<string, IChannelSender> channelSenderFactory, out Func<string, IChannelReceiver> channelReceiverFactory)
+        static void RegisterChannels(FeatureConfigurationContext context, out Func<string, IChannelSender> channelSenderFactory, out Func<string, IChannelReceiver> channelReceiverFactory)
         {
             var usingCustomChannelProviders = context.Settings.HasSetting("GatewayChannelReceiverFactory") || context.Settings.HasSetting("GatewayChannelSenderFactory");
 
@@ -104,10 +107,6 @@
 
             channelReceiverFactory = s => new ChannelReceiverFactory(typeof(HttpChannelReceiver)).GetReceiver(s);
             channelSenderFactory = s => new ChannelSenderFactory(typeof(HttpChannelSender)).GetSender(s);
-
-            var installerSettings = context.Settings.Get<InstallerSettings>();
-            installerSettings.ChannelManager = channelManager;
-            installerSettings.Enabled = true;
         }
 
         static string GetReplyToAddress(IReadOnlySettings settings, IManageReceiveChannels channelManager)
@@ -139,7 +138,10 @@
 
         static EndpointRouter GetEndpointRouter(FeatureConfigurationContext context)
         {
-            return new EndpointRouter { MainInputAddress = context.Settings.EndpointName() };
+            return new EndpointRouter
+            {
+                MainInputAddress = context.Settings.EndpointName()
+            };
         }
 
         static void ConfigureTransaction(FeatureConfigurationContext context)
@@ -166,20 +168,11 @@
             return new ConfigurationBasedSiteRouter(sites);
         }
 
-        class GatewayReceiverStartupTask : FeatureStartupTask
-        {
-            public GatewayReceiverStartupTask(IManageReceiveChannels channelManager, Func<string, IChannelReceiver> channelReceiverFactory, EndpointRouter endpointRouter, IMessageDispatcher dispatcher, IGatewayDeduplicationStorage deduplicationStorage, IClaimCheck claimCheck, string replyToAddress, TransportTransactionMode transportTransactionMode)
-            {
-                dispatchMessages = dispatcher;
-                this.deduplicationStorage = deduplicationStorage;
-                this.claimCheck = claimCheck;
-                this.endpointRouter = endpointRouter;
-                manageReceiveChannels = channelManager;
-                this.channelReceiverFactory = channelReceiverFactory;
-                this.replyToAddress = replyToAddress;
-                this.transportTransactionMode = transportTransactionMode;
-            }
+        static readonly ILog Logger = LogManager.GetLogger<Gateway>();
 
+        class GatewayReceiverStartupTask(IManageReceiveChannels channelManager, Func<string, IChannelReceiver> channelReceiverFactory, EndpointRouter endpointRouter, IMessageDispatcher dispatcher, IGatewayDeduplicationStorage deduplicationStorage, IClaimCheck claimCheck, string replyToAddress, TransportTransactionMode transportTransactionMode)
+            : FeatureStartupTask
+        {
             protected override Task OnStart(IMessageSession context, CancellationToken cancellationToken = default)
             {
                 // only use transaction scope if both transport and persistence are able to enlist with the transaction scope.
@@ -187,7 +180,7 @@
                 var useTransactionScope = deduplicationStorage.SupportsDistributedTransactions && transportTransactionMode == TransportTransactionMode.TransactionScope;
                 Logger.DebugFormat("Using TransactionScope: {0} (based on storage TransactionScope support: {1} and transport transaction mode: {2}).", useTransactionScope, deduplicationStorage.SupportsDistributedTransactions, transportTransactionMode);
 
-                foreach (var receiveChannel in manageReceiveChannels.GetReceiveChannels())
+                foreach (var receiveChannel in channelManager.GetReceiveChannels())
                 {
                     var receiver = new SingleCallChannelReceiver(channelReceiverFactory, deduplicationStorage, claimCheck, useTransactionScope);
 
@@ -205,13 +198,25 @@
             {
                 Logger.Info("Receiver is shutting down");
 
-                var stopTasks = activeReceivers.Select(channelReceiver => channelReceiver.Stop());
+                var stopTasks = activeReceivers.Select(StopReceiver);
 
                 await Task.WhenAll(stopTasks).ConfigureAwait(false);
 
                 activeReceivers.Clear();
 
                 Logger.Info("Receiver shutdown complete");
+
+                async Task StopReceiver(SingleCallChannelReceiver receiver)
+                {
+                    try
+                    {
+                        await receiver.Stop(cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        Logger.Info("Stopping channel receiver was canceled");
+                    }
+                }
             }
 
             Task MessageReceivedOnChannel(MessageReceivedOnChannelArgs e, CancellationToken cancellationToken)
@@ -225,27 +230,24 @@
 
                 Logger.Info("Sending message to " + destination);
 
-                var outgoingMessage = new OutgoingMessage(id, headers, body);
-                outgoingMessage.Headers[Headers.ReplyToAddress] = replyToAddress;
+                var outgoingMessage = new OutgoingMessage(id, headers, body)
+                {
+                    Headers =
+                    {
+                        [Headers.ReplyToAddress] = replyToAddress
+                    }
+                };
 
-                var dispatchProperties = new DispatchProperties { DiscardIfNotReceivedBefore = new DiscardIfNotReceivedBefore(timeToBeReceived) };
+                var dispatchProperties = new DispatchProperties
+                {
+                    DiscardIfNotReceivedBefore = new DiscardIfNotReceivedBefore(timeToBeReceived)
+                };
 
                 var transportOperations = new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag(destination), dispatchProperties, DispatchConsistency.Default));
-                return dispatchMessages.Dispatch(transportOperations, new TransportTransaction(), cancellationToken);
+                return dispatcher.Dispatch(transportOperations, new TransportTransaction(), cancellationToken);
             }
 
-            readonly TransportTransactionMode transportTransactionMode;
-
-            ICollection<SingleCallChannelReceiver> activeReceivers = [];
-            IManageReceiveChannels manageReceiveChannels;
-            Func<string, IChannelReceiver> channelReceiverFactory;
-            EndpointRouter endpointRouter;
-            IMessageDispatcher dispatchMessages;
-            IGatewayDeduplicationStorage deduplicationStorage;
-            IClaimCheck claimCheck;
-            string replyToAddress;
-
-            static ILog Logger = LogManager.GetLogger<GatewayReceiverStartupTask>();
+            readonly ICollection<SingleCallChannelReceiver> activeReceivers = [];
         }
     }
 }

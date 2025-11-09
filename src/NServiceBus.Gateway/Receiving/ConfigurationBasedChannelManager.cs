@@ -28,6 +28,6 @@ namespace NServiceBus.Gateway.Receiving
             return defaultChannel;
         }
 
-        List<ReceiveChannel> receiveChannels;
+        readonly List<ReceiveChannel> receiveChannels;
     }
 }

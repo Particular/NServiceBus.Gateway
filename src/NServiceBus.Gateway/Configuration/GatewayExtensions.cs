@@ -22,6 +22,7 @@
             config.EnableFeature<Features.Gateway>();
 
             config.GetSettings().Set(storageConfiguration);
+            config.GetSettings().SetDefault("Gateway.Retries.RetryPolicy", DefaultRetryPolicy.BuildWithDefaults());
 
             return new GatewaySettings(config);
         }
