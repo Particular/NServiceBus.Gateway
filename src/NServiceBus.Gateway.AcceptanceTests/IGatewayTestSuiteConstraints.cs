@@ -1,15 +1,11 @@
-﻿namespace NServiceBus.Gateway.AcceptanceTests
+﻿namespace NServiceBus.Gateway.AcceptanceTests;
+
+using System.Threading.Tasks;
+using AcceptanceTesting.Support;
+
+public interface IGatewayTestSuiteConstraints
 {
-    using System.Threading.Tasks;
-    using AcceptanceTesting.Support;
+    GatewaySettings ConfigureGateway(string endpointName, EndpointConfiguration configuration, RunSettings settings);
 
-    public interface IGatewayTestSuiteConstraints
-    {
-        /// <summary>
-        /// Return the GatewayDeduplicationConfiguration only. The test infrastructure will call endpoingConfig.Gateway(…)
-        /// </summary>
-        Task<GatewayDeduplicationConfiguration> ConfigureDeduplicationStorage(string endpointName, EndpointConfiguration configuration, RunSettings settings);
-
-        Task Cleanup();
-    }
+    Task Cleanup();
 }

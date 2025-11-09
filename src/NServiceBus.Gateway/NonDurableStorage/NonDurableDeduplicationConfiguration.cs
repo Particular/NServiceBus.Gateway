@@ -1,6 +1,9 @@
 ﻿namespace NServiceBus.Gateway
 {
     using System;
+    using Features;
+    using Microsoft.Extensions.DependencyInjection;
+    using Settings;
 
     /// <summary>
     /// Configuration class for the in-memory gateway deduplication storage.
@@ -21,6 +24,11 @@
         } = 10000;
 
         /// <inheritdoc />
-        public override IGatewayDeduplicationStorage CreateStorage(IServiceProvider builder) => new NonDurableDeduplicationStorage(CacheSize);
+        protected internal override void EnableFeature(SettingsHolder settings) => settings.EnableFeature<NonDurableDeduplication>();
+
+        class NonDurableDeduplication : Feature
+        {
+            protected override void Setup(FeatureConfigurationContext context) => context.Services.AddSingleton<IGatewayDeduplicationStorage>(_ => new NonDurableDeduplicationStorage(context.Settings.Get<NonDurableDeduplicationConfiguration>().CacheSize));
+        }
     }
 }
