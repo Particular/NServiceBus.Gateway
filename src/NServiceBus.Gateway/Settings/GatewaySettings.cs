@@ -12,13 +12,14 @@
     /// <summary>
     /// Placeholder for the various settings and extension points related to gateway.
     /// </summary>
-    public class GatewaySettings
+    public class GatewaySettings : ExposeSettings
     {
-        internal GatewaySettings(EndpointConfiguration config)
+        internal GatewaySettings(SettingsHolder settings) : base(settings)
         {
-            settings = config.GetSettings();
-        }
+            this.settings = settings;
 
+            settings.SetDefault("Gateway.Retries.RetryPolicy", DefaultRetryPolicy.BuildWithDefaults());
+        }
 
         /// <summary>
         /// Register custom factories for creating channel receivers and channel senders. This allows for overriding the default
@@ -67,10 +68,7 @@
         /// <summary>
         /// Failed messages will not be retried and will be sent directly to the configured error queue.
         /// </summary>
-        public void DisableRetries()
-        {
-            SetDefaultRetryPolicySettings(0, TimeSpan.MinValue);
-        }
+        public void DisableRetries() => SetDefaultRetryPolicySettings(0, TimeSpan.MinValue);
 
         /// <summary>
         /// The site key to use, this goes hand in hand with Bus.SendToSites(key, message).

@@ -91,7 +91,7 @@ namespace NServiceBus
         public static NServiceBus.GatewaySettings Gateway<TGatewayDeduplicationConfiguration>(this NServiceBus.EndpointConfiguration config, TGatewayDeduplicationConfiguration storageConfiguration)
             where TGatewayDeduplicationConfiguration : NServiceBus.Gateway.GatewayDeduplicationConfiguration { }
     }
-    public class GatewaySettings
+    public class GatewaySettings : NServiceBus.Configuration.AdvancedExtensibility.ExposeSettings
     {
         public void AddReceiveChannel(string address, string type = "http", int maxConcurrency = 1, bool isDefault = false) { }
         public void AddSite(string siteKey, string address, string type = "http", bool legacyMode = false) { }
