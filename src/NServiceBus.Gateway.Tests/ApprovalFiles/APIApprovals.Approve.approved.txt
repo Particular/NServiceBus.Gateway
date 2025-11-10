@@ -18,8 +18,7 @@ namespace NServiceBus.Gateway
     public abstract class GatewayDeduplicationConfiguration
     {
         protected GatewayDeduplicationConfiguration() { }
-        public abstract NServiceBus.Gateway.IGatewayDeduplicationStorage CreateStorage(System.IServiceProvider builder);
-        public virtual void Setup(NServiceBus.Settings.IReadOnlySettings settings) { }
+        protected abstract void EnableFeature(NServiceBus.Settings.SettingsHolder settings);
     }
     public interface IChannelReceiver
     {
@@ -44,7 +43,7 @@ namespace NServiceBus.Gateway
     {
         public NonDurableDeduplicationConfiguration() { }
         public int CacheSize { get; set; }
-        public override NServiceBus.Gateway.IGatewayDeduplicationStorage CreateStorage(System.IServiceProvider builder) { }
+        protected override void EnableFeature(NServiceBus.Settings.SettingsHolder settings) { }
     }
     public class ReceiveChannel : NServiceBus.Gateway.Channels.Channel
     {
@@ -89,10 +88,12 @@ namespace NServiceBus
 {
     public static class GatewayExtensions
     {
-        public static NServiceBus.GatewaySettings Gateway(this NServiceBus.EndpointConfiguration config, NServiceBus.Gateway.GatewayDeduplicationConfiguration storageConfiguration) { }
+        public static NServiceBus.GatewaySettings Gateway<TGatewayDeduplicationConfiguration>(this NServiceBus.EndpointConfiguration config, TGatewayDeduplicationConfiguration storageConfiguration)
+            where TGatewayDeduplicationConfiguration : NServiceBus.Gateway.GatewayDeduplicationConfiguration { }
     }
-    public class GatewaySettings
+    public class GatewaySettings : NServiceBus.Configuration.AdvancedExtensibility.ExposeSettings
     {
+        public GatewaySettings(NServiceBus.Settings.SettingsHolder settings) { }
         public void AddReceiveChannel(string address, string type = "http", int maxConcurrency = 1, bool isDefault = false) { }
         public void AddSite(string siteKey, string address, string type = "http", bool legacyMode = false) { }
         public void ChannelFactories(System.Func<string, NServiceBus.Gateway.IChannelSender> senderFactory, System.Func<string, NServiceBus.Gateway.IChannelReceiver> receiverFactory) { }

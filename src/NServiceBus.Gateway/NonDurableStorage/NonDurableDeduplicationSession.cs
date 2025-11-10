@@ -4,16 +4,9 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    class NonDurableDeduplicationSession : IDeduplicationSession
+    class NonDurableDeduplicationSession(string messageId, Dictionary<string, LinkedListNode<string>> clientIdSet, LinkedList<string> clientIdList, int cacheSize)
+        : IDeduplicationSession
     {
-        public NonDurableDeduplicationSession(string messageId, Dictionary<string, LinkedListNode<string>> clientIdSet, LinkedList<string> clientIdList, int cacheSize)
-        {
-            this.messageId = messageId;
-            this.clientIdSet = clientIdSet;
-            this.clientIdList = clientIdList;
-            this.cacheSize = cacheSize;
-        }
-
         public bool IsDuplicate
         {
             get
@@ -55,10 +48,5 @@
         public void Dispose()
         {
         }
-
-        readonly string messageId;
-        readonly Dictionary<string, LinkedListNode<string>> clientIdSet;
-        readonly LinkedList<string> clientIdList;
-        readonly int cacheSize;
     }
 }

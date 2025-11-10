@@ -14,14 +14,13 @@
                 var endpointName = endpointCustomizationConfiguration.CustomEndpointName ?? configuration.GetSettings().EndpointName();
 
                 var constraints = new GatewayTestSuiteConstraints();
-                var deduplicationConfiguration = constraints.ConfigureDeduplicationStorage(
+
+                var gatewaySettings = constraints.ConfigureGateway(
                     endpointName,
                     configuration,
-                    runDescriptor.Settings)
-                    .GetAwaiter().GetResult();
+                    runDescriptor.Settings);
 
-                var gatewaySettings = configuration.Gateway(deduplicationConfiguration);
-
+                // This is needed to enable the tests to access and modify gateway settings
                 configuration.GetSettings().Set(gatewaySettings);
 
                 runDescriptor.OnTestCompleted(_ => constraints.Cleanup());

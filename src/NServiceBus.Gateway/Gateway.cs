@@ -35,9 +35,6 @@
                 throw new InvalidOperationException("Gateway is not supported for send only endpoints.");
             }
 
-            var storageConfiguration = context.Settings.Get<GatewayDeduplicationConfiguration>();
-            storageConfiguration.Setup(context.Settings);
-
             var transportDefinition = context.Settings.Get<TransportDefinition>();
 
             ConfigureTransaction(context);
@@ -79,7 +76,7 @@
                 channelReceiverFactory,
                 GetEndpointRouter(context),
                 b.GetRequiredService<IMessageDispatcher>(),
-                storageConfiguration.CreateStorage(b),
+                b.GetRequiredService<IGatewayDeduplicationStorage>(),
                 b.GetServices<IClaimCheck>()?.FirstOrDefault(),
                 b.GetRequiredService<ITransportAddressResolver>().ToTransportAddress(logicalGatewayAddress),
                 transportDefinition.TransportTransactionMode));
