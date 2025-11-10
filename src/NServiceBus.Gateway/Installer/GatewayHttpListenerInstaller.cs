@@ -47,11 +47,11 @@ netsh http add urlacl url={{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}}
 
             try
             {
-                await StartNetshProcess(identity, uri, cancellationToken).ConfigureAwait(false);
+                await ExecuteNetsh(identity, uri, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                Logger.Warn("Starting netsh took too long.");
+                Logger.Warn("Running netsh was cancelled.");
             }
             catch (Exception exception)
             {
@@ -63,7 +63,7 @@ netsh http add urlacl url={uri} user=""{identity}""";
         }
     }
 
-    static async Task StartNetshProcess(string identity, string uri, CancellationToken cancellationToken)
+    static async Task ExecuteNetsh(string identity, string uri, CancellationToken cancellationToken)
     {
         var startInfo = new ProcessStartInfo
         {
@@ -77,25 +77,27 @@ netsh http add urlacl url={uri} user=""{identity}""";
         };
         using var process = Process.Start(startInfo);
 
-        if (process != null)
+        if (process == null)
         {
-            await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+            return;
+        }
 
-            if (process.ExitCode == 0)
-            {
-                Logger.InfoFormat("Granted user '{0}' HttpListener permissions for {1}.", identity, uri);
-                return;
-            }
+        await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
-            var error = (await process.StandardOutput.ReadToEndAsync(cancellationToken).ConfigureAwait(false)).Trim();
-            var message = $@"Failed to grant user '{identity}' HttpListener permissions. Processing will continue.
+        if (process.ExitCode == 0)
+        {
+            Logger.InfoFormat("Granted user '{0}' HttpListener permissions for {1}.", identity, uri);
+            return;
+        }
+
+        var error = (await process.StandardOutput.ReadToEndAsync(cancellationToken).ConfigureAwait(false)).Trim();
+        var message = $@"Failed to grant user '{identity}' HttpListener permissions. Processing will continue.
 Try running the following command from an admin console:
 netsh http add urlacl url={uri} user=""{identity}""
 
 The error message from running the above command is:
 {error}";
-            Logger.Warn(message);
-        }
+        Logger.Warn(message);
     }
 
     static readonly ILog Logger = LogManager.GetLogger<GatewayHttpListenerInstaller>();
