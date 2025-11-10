@@ -75,31 +75,7 @@ netsh http add urlacl url={uri} user=""{identity}""";
 
         if (process != null)
         {
-            using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
-            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
-
-            try
-            {
-                await process.WaitForExitAsync(linkedCts.Token);
-            }
-            catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
-            {
-                // Timeout occurred, kill the process but don't throw
-                if (!process.HasExited)
-                {
-                    process.Kill();
-                }
-                // Continue to check exit code and read output if available
-            }
-            catch (OperationCanceledException)
-            {
-                // Caller's cancellation token was triggered
-                if (!process.HasExited)
-                {
-                    process.Kill();
-                }
-                throw;
-            }
+            await process.WaitForExitAsync(cancellationToken);
 
             if (process.ExitCode == 0)
             {
