@@ -47,7 +47,11 @@ netsh http add urlacl url={{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}}
 
             try
             {
-                await StartNetshProcess(identity, uri, cancellationToken);
+                await StartNetshProcess(identity, uri, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                Logger.Warn("Starting netsh took too long.");
             }
             catch (Exception exception)
             {
@@ -75,7 +79,7 @@ netsh http add urlacl url={uri} user=""{identity}""";
 
         if (process != null)
         {
-            await process.WaitForExitAsync(cancellationToken);
+            await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
             if (process.ExitCode == 0)
             {
@@ -83,7 +87,7 @@ netsh http add urlacl url={uri} user=""{identity}""";
                 return;
             }
 
-            var error = (await process.StandardOutput.ReadToEndAsync(cancellationToken)).Trim();
+            var error = (await process.StandardOutput.ReadToEndAsync(cancellationToken).ConfigureAwait(false)).Trim();
             var message = $@"Failed to grant user '{identity}' HttpListener permissions. Processing will continue.
 Try running the following command from an admin console:
 netsh http add urlacl url={uri} user=""{identity}""
