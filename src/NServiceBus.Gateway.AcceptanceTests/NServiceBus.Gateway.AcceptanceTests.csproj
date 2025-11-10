@@ -33,7 +33,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <RemoveSourceFileFromPackage Include="NonDurableTestSuiteConstaints.cs" />
+    <RemoveSourceFileFromPackage Include="NonDurableTestSuiteConstraints.cs" />
   </ItemGroup>
 
 </Project>
