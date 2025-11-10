@@ -8,6 +8,6 @@
     {
         public GatewaySettings ConfigureGateway(string endpointName, EndpointConfiguration configuration, RunSettings settings) => configuration.Gateway(new NonDurableDeduplicationConfiguration());
 
-        public Task Cleanup() => Task.FromResult(0);
+        public Task Cleanup() => Task.CompletedTask;
     }
 }
