@@ -14,7 +14,10 @@
     /// </summary>
     public class GatewaySettings : ExposeSettings
     {
-        internal GatewaySettings(SettingsHolder settings) : base(settings)
+        /// <summary>
+        /// Constructs the settings.
+        /// </summary>
+        public GatewaySettings(SettingsHolder settings) : base(settings)
         {
             this.settings = settings;
 

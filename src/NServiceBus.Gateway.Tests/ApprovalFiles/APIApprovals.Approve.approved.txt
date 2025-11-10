@@ -93,6 +93,7 @@ namespace NServiceBus
     }
     public class GatewaySettings : NServiceBus.Configuration.AdvancedExtensibility.ExposeSettings
     {
+        public GatewaySettings(NServiceBus.Settings.SettingsHolder settings) { }
         public void AddReceiveChannel(string address, string type = "http", int maxConcurrency = 1, bool isDefault = false) { }
         public void AddSite(string siteKey, string address, string type = "http", bool legacyMode = false) { }
         public void ChannelFactories(System.Func<string, NServiceBus.Gateway.IChannelSender> senderFactory, System.Func<string, NServiceBus.Gateway.IChannelReceiver> receiverFactory) { }
