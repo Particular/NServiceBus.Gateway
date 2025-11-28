@@ -12,7 +12,7 @@ using Logging;
 [SupportedOSPlatform("windows")]
 class GatewayHttpListenerInstaller(IManageReceiveChannels channelManager) : INeedToInstallSomething
 {
-    public Task Install(string identity, CancellationToken cancellationToken = default)
+    public async Task Install(string identity, CancellationToken cancellationToken = default)
     {
         if (Environment.OSVersion.Version.Major <= 5)
         {
@@ -20,7 +20,7 @@ class GatewayHttpListenerInstaller(IManageReceiveChannels channelManager) : INee
                 @"Did not attempt to grant user '{0}' HttpListener permissions since you are running an old OS. Processing will continue.
 To manually perform this action run the following command for each url from an admin console:
 httpcfg set urlacl /u {{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} /a D:(A;;GX;;;""{1}"")", identity, identity);
-            return Task.CompletedTask;
+            return;
         }
 
         if (!ElevateChecker.IsCurrentUserElevated())
@@ -29,7 +29,7 @@ httpcfg set urlacl /u {{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} /a 
                 @"Did not attempt to grant user '{0}' HttpListener permissions since process is not running with elevate privileges. Processing will continue.
 To manually perform this action run the following command for each url from an admin console:
 netsh http add urlacl url={{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}} user=""{1}""", identity, identity);
-            return Task.CompletedTask;
+            return;
         }
 
         foreach (var receiveChannel in channelManager.GetReceiveChannels())
@@ -47,7 +47,11 @@ netsh http add urlacl url={{http://URL:PORT/[PATH/] | https://URL:PORT/[PATH/]}}
 
             try
             {
-                StartNetshProcess(identity, uri);
+                await ExecuteNetsh(identity, uri, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                Logger.Warn("Running netsh was cancelled.");
             }
             catch (Exception exception)
             {
@@ -57,11 +61,9 @@ netsh http add urlacl url={uri} user=""{identity}""";
                 Logger.Warn(message, exception);
             }
         }
-
-        return Task.CompletedTask;
     }
 
-    static void StartNetshProcess(string identity, string uri)
+    static async Task ExecuteNetsh(string identity, string uri, CancellationToken cancellationToken)
     {
         var startInfo = new ProcessStartInfo
         {
@@ -75,25 +77,27 @@ netsh http add urlacl url={uri} user=""{identity}""";
         };
         using var process = Process.Start(startInfo);
 
-        if (process != null)
+        if (process == null)
         {
-            process.WaitForExit(5000);
+            return;
+        }
 
-            if (process.ExitCode == 0)
-            {
-                Logger.InfoFormat("Granted user '{0}' HttpListener permissions for {1}.", identity, uri);
-                return;
-            }
+        await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
-            var error = process.StandardOutput.ReadToEnd().Trim();
-            var message = $@"Failed to grant user '{identity}' HttpListener permissions. Processing will continue.
+        if (process.ExitCode == 0)
+        {
+            Logger.InfoFormat("Granted user '{0}' HttpListener permissions for {1}.", identity, uri);
+            return;
+        }
+
+        var error = (await process.StandardOutput.ReadToEndAsync(cancellationToken).ConfigureAwait(false)).Trim();
+        var message = $@"Failed to grant user '{identity}' HttpListener permissions. Processing will continue.
 Try running the following command from an admin console:
 netsh http add urlacl url={uri} user=""{identity}""
 
 The error message from running the above command is:
 {error}";
-            Logger.Warn(message);
-        }
+        Logger.Warn(message);
     }
 
     static readonly ILog Logger = LogManager.GetLogger<GatewayHttpListenerInstaller>();
