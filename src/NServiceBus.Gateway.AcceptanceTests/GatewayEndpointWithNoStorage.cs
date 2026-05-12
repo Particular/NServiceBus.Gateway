@@ -29,8 +29,6 @@
                 StorageDirectory = storageDir
             });
 
-            endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
-
             await configurationBuilderCustomization(endpointConfiguration).ConfigureAwait(false);
 
             return endpointConfiguration;
